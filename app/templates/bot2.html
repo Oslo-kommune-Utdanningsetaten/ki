@@ -1,0 +1,43 @@
+{% extends "header.html" %}
+
+{% block title %}
+  {{config['SITENAME']}}
+{% endblock %}
+
+{% block content %}
+
+<div id="bot_page" class="container">
+
+  <div id="bot_nr" hidden>{{bot_nr}}</div>
+  <p>
+    Marvin, the Paranoid Android
+  </p>
+
+  <div class="card border-dark">
+    <div v-for="message_line in messages">
+      <div v-if="message_line.role != 'system'">
+        <div class="card-body  border-top" :class="formatBg(message_line)" >
+          <p class="card-text">
+              ${ message_line.content }
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-auto">
+      <label for="message_input" class="visually-hidden">skriv her</label>
+      <input type="text" class="form-control" id="message_input" placeholder="skriv her" v-model="message">
+    </div>
+    <div class="col-auto">
+      <button id="send_message" class="btn btn-primary mb-3" @click="sendMessage()">Send inn</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{url_for('static', filename='js/scripts.js')}}"></script>
+{% endblock %}

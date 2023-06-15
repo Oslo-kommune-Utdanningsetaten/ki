@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block header %}
+  <header>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{url_for('main.index')}}">
+          <img src="{{ url_for('static', filename='img/oslobot.svg') }}" width="32" height="32" alt="KI">
+          KI for Osloskolen
+        </a>
+        <div class="d-flex">
+          {% if g.logged_on %}
+            <a href="{{url_for('auth.logout')}}">Logg ut </a>
+          {% else %}
+            <a href="{{url_for('auth.feidelogin')}}">Logg inn </a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+  </header>
+
+
+{% endblock %}

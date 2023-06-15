@@ -1,0 +1,47 @@
+{% extends "header.html" %}
+
+{% block title %}
+  {{config['SITENAME']}}
+{% endblock %}
+
+{% block content %}
+
+<div id="bot_page" class="container" v-cloak>
+
+  <div id="bot_nr" hidden>{{bot_nr}}</div>
+  <div v-if="bot">
+    <h2>
+      ${ bot.title }
+    </h2>
+    <p>
+      ${ bot.ingress }
+    </p>
+
+    <div class="card border-dark">
+      <div v-for="message_line in messages">
+        <div v-if="message_line.role != 'system'">
+          <div class="card-body  border-top" :class="formatBg(message_line)" >
+            <p class="card-text" style="white-space: pre-wrap;">
+                ${ message_line.content }
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="input_line" class="input-group mt-3">
+      <input type="text" v-model="message" class="form-control" placeholder="skriv her" @keypress.enter="sendMessage()" aria-label="skriv her" aria-describedby="button-send">
+      <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
+    </div>
+    <div id="spinner" class="text-center mt-3 invisible">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{url_for('static', filename='js/scripts.js')}}"></script>
+{% endblock %}

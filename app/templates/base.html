@@ -1,0 +1,36 @@
+{% block head %}
+<!doctype html>
+<html lang="no">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8"/>
+  <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='logo/favicon_16.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='addons/bootstrap.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+{% endblock %}
+
+<body>
+  {% block header %}{% endblock %}
+
+  {% block content %}
+  {% endblock %}
+
+
+
+  <script src="{{ url_for('static', filename='addons/jquery-3.7.0.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='addons/bootstrap.min.js') }}"></script>
+  {% if config["FLASK_DEBUG"] %}
+    <script src="{{ url_for('static', filename='addons/vue.global.js') }}"></script>
+  {% else %}
+    <script src="{{ url_for('static', filename='addons/vue.global.prod.js') }}"></script>
+  {% endif %}
+  {% block scripts %}{% endblock %}
+
+
+</body>
+</html>
+
+
