@@ -29,7 +29,7 @@ def load_logged_in_user():
             g.username = username
             g.name = session.get('user.name')
             g.bots = session.get('user.bots')
-
+            g.token = session.get('user.auth')
 
 @auth.route('/login', methods=('GET', 'POST'))
 def login():
@@ -85,7 +85,7 @@ def feidecallback():
     )
 
     # Parse the tokens!
-    client.parse_request_body_response(json.dumps(token_response.json()))
+    tokens = client.parse_request_body_response(json.dumps(token_response.json()))
 
     # get the user's profile information
     userinfo_endpoint = provider_cfg["userinfo_endpoint"]
@@ -132,6 +132,7 @@ def feidecallback():
             session['user.username'] = username
             session['user.name'] = name
             session['user.bots'] = bots
+            session['user.auth'] = tokens['id_token']
         else:
             session.clear()
 
@@ -148,4 +149,9 @@ def logout():
     g.username = None
     g.name = None
     g.bots = []
-    return redirect(url_for('main.index'))
+    feide_provider_cfg = get_provider_cfg()
+    end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
+    site_url = request.host_url
+    return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={g.token}"
+            
+    return redirect(return_uri)
