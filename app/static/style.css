@@ -46,15 +46,18 @@
   display: none;
 }
 
-
 body {
   font-family: "OsloSans", Arial, sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
 }
 
 .name {
   justify-self: end;
 }
-
 
 .oslo-btn-primary, .oslo-btn-primary.active:hover {
     color: #2A2859;

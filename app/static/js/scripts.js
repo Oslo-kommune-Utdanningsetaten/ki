@@ -38,6 +38,9 @@ $(document).ready(function(){
         $("#input_line").addClass("invisible")
         $("#spinner").removeClass("invisible")
       },
+      newThread() {
+        startpromt()
+      }
     }
   })
 
@@ -56,15 +59,19 @@ $(document).ready(function(){
     return response.json();
   }
 
-  vm = app.mount('#bot_page')
 
   // get startpromt for bot
-  postData("/api/bot_info/"+vm.bot_nr, {}).then((data) => {
-    vm.bot = data.bot_info
-    vm.messages = [{
-          "role": "system",
-          "content": vm.bot.prompt,
-        }] 
-  });
+  function startpromt() {
+    postData("/api/bot_info/"+vm.bot_nr, {}).then((data) => {
+      vm.bot = data.bot_info
+      vm.messages = [{
+            "role": "system",
+            "content": vm.bot.prompt,
+          }] 
+    });
+  }
+
+  vm = app.mount('#bot_page')
+  startpromt()
 
 });

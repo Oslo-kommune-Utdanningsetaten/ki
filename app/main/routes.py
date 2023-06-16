@@ -24,6 +24,10 @@ def bot(bot_nr):
     bot_info = models.BotInfo.query.get(bot_nr)
     if not bot_info:
         abort(404)
+    if not int(bot_nr) in g.bots:
+        return redirect(url_for('main.index'))
 
     return render_template('bot.html', bot_nr=bot_nr)
+
+
 

@@ -14,6 +14,7 @@ pyopenssl = "23.2"
 openai = "*"
 flask-sqlalchemy = "*"
 pymysql = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.10"

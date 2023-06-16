@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<div id="bot_page" class="container" v-cloak>
+<div id="bot_page" class="container mt-3" v-cloak>
 
   <div id="bot_nr" hidden>{{bot_nr}}</div>
   <div v-if="bot">
@@ -31,6 +31,7 @@
     <div id="input_line" class="input-group mt-3">
       <input type="text" v-model="message" class="form-control" placeholder="skriv her" @keypress.enter="sendMessage()" aria-label="skriv her" aria-describedby="button-send">
       <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
+      <button class="btn oslo-btn-secondary" type="button" id="button-new" @click="newThread()">Ny samtale</button>
     </div>
     <div id="spinner" class="text-center mt-3 invisible">
       <div class="spinner-border" role="status">

@@ -23,7 +23,7 @@ def load_logged_in_user():
                     request.path != url_for('main.index')):
                 return redirect(url_for('auth.feidelogin'))
             elif request.blueprint in ['api']:
-                abort(403) 
+                abort(401) 
         else:
             g.logged_on = True
             g.username = username

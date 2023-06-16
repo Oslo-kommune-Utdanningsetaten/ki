@@ -89,7 +89,6 @@ def send_to_openai(bot_info, messages):
       model=bot_info.model,
       messages=messages
     )
-    print(response)
 
     if response['choices'][0]['finish_reason'] == 'stop':
         return_messages = response['choices'][0]['message']
