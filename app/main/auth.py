@@ -151,7 +151,7 @@ def logout():
     g.bots = []
     feide_provider_cfg = get_provider_cfg()
     end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
-    site_url = request.host_url
+    site_url = request.referrer
     return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={g.token}"
             
     return redirect(return_uri)

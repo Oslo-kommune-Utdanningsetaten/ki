@@ -10,6 +10,7 @@ $(document).ready(function(){
         bot: null,
         message: '',
         messages: [],
+        spinner_text: '',
       }
     },
     computed: {
@@ -35,12 +36,21 @@ $(document).ready(function(){
             $("#input_line").removeClass("invisible")
         });
         this.message = '';
+        this.genSpinnerText()
         $("#input_line").addClass("invisible")
         $("#spinner").removeClass("invisible")
       },
       newThread() {
         startpromt()
-      }
+      },
+      genSpinnerText() {
+        spinner_texts = [
+          'Fint at du venter mens jeg jobber med svaret ditt.',
+          'Jeg kommer straks med et svar ...',
+          'Vent en litt, så får du svar.',
+          ];
+        this.spinner_text = spinner_texts[Math.floor(Math.random() * 3)]
+      },
     }
   })
 
