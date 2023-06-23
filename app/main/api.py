@@ -8,6 +8,9 @@ from app.main import models
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
+openai.api_key = current_app.config['OPENAI_API_KEY']
+openai.organization = current_app.config['OPENAI_ORG_ID']
+
 
 # define a retry decorator, 
 def retry_with_exponential_backoff(

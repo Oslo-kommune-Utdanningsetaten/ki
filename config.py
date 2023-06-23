@@ -13,3 +13,4 @@ class Config:
     FEIDE_CALLBACK = os.environ.get("FEIDE_CALLBACK", None)
     SITENAME = os.environ.get('SITENAME') or 'AI Osloskolen'
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', None)
+    OPENAI_ORG_ID = os.environ.get('OPENAI_ORG_ID', None)
