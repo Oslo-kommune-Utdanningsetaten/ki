@@ -47,7 +47,7 @@ $(document).ready(function(){
         spinner_texts = [
           'Fint at du venter mens jeg jobber med svaret ditt.',
           'Jeg kommer straks med et svar ...',
-          'Vent en litt, så får du svar.',
+          'Vent litt, så får du svar.',
           ];
         this.spinner_text = spinner_texts[Math.floor(Math.random() * 3)]
       },

@@ -4,9 +4,6 @@ from app.main import models
 
 main = Blueprint('main', __name__)
 
-openai.api_key = current_app.config['OPENAI_API_KEY']
-
-
 @main.route('/')
 def index():
     bots = models.BotInfo.query.all()

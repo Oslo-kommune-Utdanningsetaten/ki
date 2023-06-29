@@ -16,7 +16,7 @@ class Setting(db.Model):
 class BotAccess(db.Model):
     access_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     bot_nr = db.Column(db.Integer)
-    school = db.Column(db.String(3))
+    school = db.Column(db.String(50))
     level = db.Column(db.String(20))
 
     def __repr__(self):

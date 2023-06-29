@@ -103,7 +103,7 @@ def feidecallback():
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         uri, headers, body = client.add_token(groupinfo_endpoint)
         groupinfo_response = requests.get(uri, headers=headers, data=body)
-        # print(groupinfo_response.json())
+        print(groupinfo_response.json())
 
         for group in groupinfo_response.json():
             if (group.get('id') == "fc:org:feide.osloskolen.no" and
@@ -145,13 +145,15 @@ def feidecallback():
 @auth.route('/logout')
 def logout():
     session.clear()
-    g.logged_on = False
     g.username = None
     g.name = None
     g.bots = []
-    feide_provider_cfg = get_provider_cfg()
-    end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
-    site_url = request.referrer
-    return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={g.token}"
-            
-    return redirect(return_uri)
+    if g.logged_on and g.token:
+        g.logged_on = False
+        feide_provider_cfg = get_provider_cfg()
+        end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
+        site_url = request.referrer
+        return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={g.token}"
+        return redirect(return_uri)
+    else:
+        return redirect(url_for('main.index'))

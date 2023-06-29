@@ -13,7 +13,7 @@
   </p>
   <div class="row">
     {% for bot in bots %}
-      <div class="col-sm-6 mb-3 mb-sm-0">
+      <div class="col-sm-4 mb-3 mb-sm-0">
         <div class="card" >
           <div class="card-img-top text-center">
             <img src="{{ url_for('static', filename='img/bot') + bot.bot_nr|string + '.svg'}}">
@@ -21,9 +21,13 @@
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
             <p class="card-text">{{ bot.ingress }}</p>
-            <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}" class="btn btn-primary">Åpne</a>
+            <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-primary">Åpne</a>
           </div>
         </div>
+      </div>
+    {% else %}
+      <div>
+        <a href="{{url_for('auth.feidelogin')}}" role="button" class="btn oslo-btn-primary">Logg inn </a>
       </div>
     {% endfor %}
   </div>
