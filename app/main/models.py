@@ -30,3 +30,10 @@ class BotInfo(db.Model):
     prompt = db.Column(db.Text)
     model = db.Column(db.String(20))
 
+
+class School(db.Model):
+    org_nr = db.Column(db.String(20), primary_key=True)
+    # school_id = db.Column(db.Integer, primary_key=True)
+    school_name = db.Column(db.String(50))
+    school_code = db.Column(db.String(3))
+

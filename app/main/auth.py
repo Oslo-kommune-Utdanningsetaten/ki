@@ -106,18 +106,24 @@ def feidecallback():
         print(groupinfo_response.json())
 
         for group in groupinfo_response.json():
+            # role empoyee from parent org
             if (group.get('id') == "fc:org:feide.osloskolen.no" and
                         group['membership']['primaryAffiliation'] == "employee"):
                 employee = True
+            # school org_nr(s) from child org(s)
             if (group.get('type') == "fc:org" and 
                         group.get("parent") == "fc:org:feide.osloskolen.no"):
-                schools.append(group['displayName'])
+                school_id = group['id'].split(":")[4] # fifth part of id is org_nr
+                school = models.School.query.get(school_id)
+                if school:
+                    schools.append(school)
+            # level(s) from grep
             if (group.get('type') == "fc:grep" and 
                         group.get('grep_type') == "aarstrinn"):
                 levels.append(group['code'])
         for line in access:
             for school in schools:
-                if (line.school == school) or (line.school == '*'):
+                if (line.school == school.org_nr) or (line.school == '*'):
                     if employee or (line.level == '*'):
                         if line.bot_nr not in bots:
                             bots.append(line.bot_nr)
