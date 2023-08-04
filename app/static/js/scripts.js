@@ -72,8 +72,8 @@ $(document).ready(function(){
 
   // get startpromt for bot
   function startpromt() {
-    postData("/api/bot_info/"+vm.bot_nr, {}).then((data) => {
-      vm.bot = data.bot_info
+    postData("/api/bot/"+vm.bot_nr, {}).then((data) => {
+      vm.bot = data.bot
       vm.messages = [{
             "role": "system",
             "content": vm.bot.prompt,

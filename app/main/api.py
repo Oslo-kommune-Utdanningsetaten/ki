@@ -56,18 +56,18 @@ def retry_with_exponential_backoff(
  
     return wrapper
     
-@api.route('/bot_info/<bot_nr>', methods=['POST'])
+@api.route('/bot/<bot_nr>', methods=['POST'])
 def start_message(bot_nr):
 
-    bot_info = models.BotInfo.query.get(bot_nr)
-    if not bot_info:
+    bot = models.Bot.query.get(bot_nr)
+    if not bot:
         abort(404)
 
-    return jsonify({'bot_info': {
-        'bot_nr': bot_info.bot_nr,
-        'title': bot_info.title,
-        'ingress': bot_info.ingress,
-        'prompt': bot_info.prompt,
+    return jsonify({'bot': {
+        'bot_nr': bot.bot_nr,
+        'title': bot.title,
+        'ingress': bot.ingress,
+        'prompt': bot.prompt,
         }})
 
 
@@ -77,19 +77,19 @@ def send_message():
     bot_nr = request.json.get('bot_nr')
     if not bot_nr in g.bots:
         abort(403)
-    bot_info = models.BotInfo.query.get(bot_nr)
-    if not bot_info:
+    bot = models.Bot.query.get(bot_nr)
+    if not bot:
         abort(404)
     messages = request.json.get('messages')
-    return_messages = send_to_openai(bot_info, messages)
+    return_messages = send_to_openai(bot, messages)
 
     return jsonify({'messages': return_messages})
 
 
 @retry_with_exponential_backoff
-def send_to_openai(bot_info, messages):
+def send_to_openai(bot, messages):
     response = openai.ChatCompletion.create(
-      model=bot_info.model,
+      model=bot.model,
       messages=messages
     )
 

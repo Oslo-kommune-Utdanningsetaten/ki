@@ -18,6 +18,7 @@ client = WebApplicationClient(current_app.config['FEIDE_CLIENT_ID'])
 def load_logged_in_user():
         username = session.get('user.username')
         g.logged_on = False
+        g.admin = False
         if username is None:
             if (request.blueprint in ['main'] and
                     request.path != url_for('main.index')):
@@ -30,6 +31,13 @@ def load_logged_in_user():
             g.name = session.get('user.name')
             g.bots = session.get('user.bots')
             g.token = session.get('user.auth')
+
+
+            # temp admin access
+            if username == "fnygard@feide.osloskolen.no":
+                bots = models.Bot.query.all()
+                g.bots = [bot.bot_nr for bot in bots]
+                g.admin = True
 
 @auth.route('/login', methods=('GET', 'POST'))
 def login():
@@ -94,7 +102,6 @@ def feidecallback():
     username = userinfo_response.json()["https://n.feide.no/claims/eduPersonPrincipalName"]
     if username:
         access = models.BotAccess.query.all()
-
         schools = []
         levels = []
         employee = False
@@ -103,7 +110,7 @@ def feidecallback():
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         uri, headers, body = client.add_token(groupinfo_endpoint)
         groupinfo_response = requests.get(uri, headers=headers, data=body)
-        print(groupinfo_response.json())
+        # print(groupinfo_response.json())
 
         for group in groupinfo_response.json():
             # role empoyee from parent org
@@ -123,7 +130,7 @@ def feidecallback():
                 levels.append(group['code'])
         for line in access:
             for school in schools:
-                if (line.school == school.org_nr) or (line.school == '*'):
+                if (line.school_id == school.org_nr) or (line.school_id == '*'):
                     if employee or (line.level == '*'):
                         if line.bot_nr not in bots:
                             bots.append(line.bot_nr)

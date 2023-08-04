@@ -1,0 +1,94 @@
+{% extends "header.html" %}
+
+{% block title %}
+  {{config['SITENAME']}}
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-3" >
+
+
+
+  <form method="post">
+    <div class="row mb-3">
+      <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="bot_title" value="{{bot.title}}" name="title">
+      </div>
+    </div>
+    <div class="row mb-3">
+      <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="bot_ingress" value="{{bot.ingress}}" name="ingress">
+      </div>
+    </div>
+    <div class="row mb-3">
+      <label for="bot_promt" class="col-sm-2 col-form-label">Start-promt (ikke synlig for bruker)</label>
+      <div class="col-sm-10">
+        <textarea class="form-control" id="bot_promt" rows="5" name="prompt">{{bot.prompt}}</textarea>
+      </div>
+    </div>
+    <fieldset class="row mb-3">
+      <legend class="col-form-label col-sm-2 pt-0">Modell som brukes</legend>
+      <div class="col-sm-10">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="model" id="model_35" value="gpt-3.5-turbo" {{ 'checked' if bot.model == 'gpt-3.5-turbo' }} >
+          <label class="form-check-label" for="model_35">
+            GPT 3.5
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="model" id="model_4" value="gpt-4" {{ 'checked' if bot.model == 'gpt-4' }}>
+          <label class="form-check-label" for="model_4">
+            GPT 4
+          </label>
+        </div>
+      </div>
+    </fieldset>
+    <div class="row mb-3">
+      <label for="accesses" class="col-sm-2 col-form-label">Tilganger</label>
+      <div class="col-sm-10">
+        {% for line in bot.accesses %}
+        <div>
+          <select name="access">
+            <option value="s:{{line.access_id}}:del"></option>
+            <option value="s:{{line.access_id}}:*" {{ 'selected' if line.school_id == '*' }}>Alle skoler</option>
+            {% for school in schools %}  
+            <option value="s:{{line.access_id}}:{{school.org_nr}}" {{ 'selected' if line.school_id == school.org_nr }}>{{ school.school_name }}</option>
+            {% endfor %}
+          </select>
+          <select name="access">
+            <option value="l:{{line.access_id}}:-" {{ 'selected' if line.level == '-' }}>Kun lærere</option>
+            <option value="l:{{line.access_id}}:*" {{ 'selected' if line.level == '*' }}>Alle</option>
+            {% for lev in range(1,14) %}
+            <option value="l:{{line.access_id}}:{{lev}}" {{ 'selected' if line.level|int == lev }}>{{ lev }}. trinn</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+        <div>
+          <select name="access">
+            <option value="s:new:-" selected></option>
+            <option value="s:new:*">Alle skoler</option>
+            {% for school in schools %}  
+            <option value="s:new:{{school.org_nr}}">{{ school.school_name }}</option>
+            {% endfor %}
+          </select>
+          <select name="access">
+            <option value="l:new:-">Kun lærere</option>
+            <option value="l:new:*" selected>Alle</option>
+            {% for lev in range(1,14) %}
+            <option value="l:new:{{lev}}">{{ lev }}. trinn</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn oslo-btn-primary">Lagre</button>
+  </form>
+
+
+</div>
+{% endblock %}
+
