@@ -19,9 +19,6 @@ $(document).ready(function(){
       this.bot_nr = $("#bot_nr").text();
     },
     methods: {
-      formatBg(line) {
-        return line.role == "assistant" ? "text-bg-light" : "";
-      },
       sendMessage() {
         vm.messages.push({
           "role": "user",

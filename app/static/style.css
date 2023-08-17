@@ -55,6 +55,34 @@ a {
     color: inherit;
 }
 
+ul .user {
+  list-style-type: none;
+  background-color: #FFFFFF
+}
+
+ul .user:before {
+  content:'';
+  display:inline-block;
+  height:2em;   
+  width:2em;  
+}
+
+
+ul .assistant {   
+  list-style:none; 
+  background-color: #B3F5FF
+} 
+
+ul .assistant:before{   
+  content:'';
+  display:inline-block;
+  height:2em;   
+  width:2em;  
+  background-image:url('img/oslobot.svg');  
+  background-size:contain;  
+  background-repeat:no-repeat; 
+}
+
 .name {
   justify-self: end;
 }

@@ -18,15 +18,13 @@
     </p>
 
     <div class="card border-dark">
-      <div v-for="message_line in messages">
-        <div v-if="message_line.role != 'system'">
-          <div class="card-body  border-top" :class="formatBg(message_line)" >
-            <p class="card-text" style="white-space: pre-wrap;">
-                ${ message_line.content }
-            </p>
-          </div>
-        </div>
-      </div>
+      <ul class="list-group list-group-flush">
+        <span v-for="message_line in messages">
+          <li v-if="message_line.role != 'system'" class="list-group-item" :class="message_line.role">
+            ${ message_line.content }
+          </li>
+        </span>
+      </ul>
     </div>
     <div id="input_line" class="mt-3">
       <textarea type="text" rows="5" v-model="message" class="form-control" placeholder="skriv her" @keypress.enter="sendMessage()"></textarea>
