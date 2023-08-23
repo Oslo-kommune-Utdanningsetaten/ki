@@ -51,7 +51,20 @@ body {
 }
 
 a {
+    font-weight: 500;
     text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    color: #007eff;
+    text-decoration: none!important;
+}
+
+nav a {
+    font-weight: inherit;
+}
+nav a:hover {
     color: inherit;
 }
 
@@ -65,8 +78,10 @@ ul .user:before {
   display:inline-block;
   height:2em;   
   width:2em;  
+  background-image:url('img/user.svg');  
+  background-size:contain;  
+  background-repeat:no-repeat; 
 }
-
 
 ul .assistant {   
   list-style:none; 
@@ -83,6 +98,12 @@ ul .assistant:before{
   background-repeat:no-repeat; 
 }
 
+
+.response {
+    white-space: pre;
+    text-wrap: wrap;
+}
+
 .name {
   justify-self: end;
 }
@@ -91,7 +112,6 @@ ul .assistant:before{
     color: #2A2859;
     background-color: #6FE9FF;
     border-color: #6FE9FF;
-    border-radius: 0;
 }
 
 .oslo-btn-primary:hover, .oslo-btn-primary.active {
@@ -104,7 +124,6 @@ ul .assistant:before{
     color: #000;
     background-color: #F8F0DD;
     border-color: #F8F0DD;
-    border-radius: 0;
 }
 
 .oslo-btn-secondary:hover {

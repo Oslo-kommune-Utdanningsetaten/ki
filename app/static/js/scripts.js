@@ -29,13 +29,14 @@ $(document).ready(function(){
           { bot_nr: vm.bot.bot_nr, messages: vm.messages },
         ).then((data) => {
             vm.messages.push(data.messages);
-            $("#spinner").addClass("invisible")
-            $("#input_line").removeClass("invisible")
+            $("#spinner").addClass("d-none")
+            $("#input_line").removeClass("d-none")
+            $('html, body').animate({scrollTop: $("#lastline").offset().top}, 1000, "linear");
         });
         this.message = '';
         this.genSpinnerText()
-        $("#input_line").addClass("invisible")
-        $("#spinner").removeClass("invisible")
+        $("#input_line").addClass("d-none")
+        $("#spinner").removeClass("d-none")
       },
       newThread() {
         startpromt()

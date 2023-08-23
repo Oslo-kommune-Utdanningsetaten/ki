@@ -19,23 +19,32 @@
 
     <div class="card border-dark">
       <ul class="list-group list-group-flush">
-        <span v-for="message_line in messages">
-          <li v-if="message_line.role != 'system'" class="list-group-item" :class="message_line.role">
-            ${ message_line.content }
+        <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
+          <span id="lastline" v-if="msg_nr === messages.length - 1"></span>
+          <li v-if="message_line.role != 'system'" class="list-group-item response" :class="message_line.role">
+            <span v-html="message_line.content"></span>
           </li>
         </span>
       </ul>
     </div>
     <div id="input_line" class="mt-3">
       <textarea type="text" rows="5" v-model="message" class="form-control" placeholder="skriv her" @keypress.enter="sendMessage()"></textarea>
-      <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
-      <button class="btn oslo-btn-secondary" type="button" id="button-new" @click="newThread()">Ny samtale</button>
+      <div class="card">
+      <div class="card-body bg-body-tertiary">
+        <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
+        <button class="btn oslo-btn-secondary" type="button" id="button-new" @click="newThread()">Ny samtale</button>
+        <div><small>Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med virkeligheten, og den gir ikke beskjed om når den gjør det.</small></div>
+      </div>
+      </div>
     </div>
-    <div id="spinner" class="text-center mt-3 invisible">
+    <div id="spinner" class="text-center mt-3 d-none">
       <div class="spinner-border" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <div>${ spinner_text }</div>
+    </div>
+    <div>
+      &nbsp;
     </div>
 
   </div>
