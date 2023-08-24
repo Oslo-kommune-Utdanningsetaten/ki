@@ -21,7 +21,6 @@
           </div>
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
-            <p class="card-text">{{ bot.ingress }}</p>
             <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-primary">Åpne</a>
             {% if g.admin %} 
               <a href="{{url_for('main.adminbot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-secondary">Rediger</a>

@@ -16,7 +16,7 @@ class Setting(db.Model):
 class Bot(db.Model):
     bot_nr = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(20))
-    ingress = db.Column(db.String(100))
+    ingress = db.Column(db.Text)
     prompt = db.Column(db.Text)
     model = db.Column(db.String(20))
     accesses = db.relationship('BotAccess', backref='bot')

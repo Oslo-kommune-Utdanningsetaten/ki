@@ -28,7 +28,7 @@
       </ul>
     </div>
     <div id="input_line" class="mt-3">
-      <textarea type="text" rows="5" v-model="message" class="form-control" placeholder="skriv her" @keypress.enter="sendMessage()"></textarea>
+      <textarea type="text" rows="5" v-model="message" class="form-control" placeholder="Start samtalen ved å skrive her. Ikke legg inn personlige opplysninger." @keypress.enter="sendMessage()"></textarea>
       <div class="card">
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
