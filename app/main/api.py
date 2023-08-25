@@ -1,4 +1,4 @@
-from flask import Blueprint, g, abort, redirect, request, session, url_for, jsonify, current_app
+from flask import Blueprint, g, abort, request, jsonify, current_app, Response
 import random
 import time
 import openai
@@ -73,27 +73,39 @@ def start_message(bot_nr):
 
 @api.route('/send_message', methods=['POST'])
 def send_message():
-
     bot_nr = request.json.get('bot_nr')
+    messages = request.json.get('messages')
     if not bot_nr in g.bots:
         abort(403)
     bot = models.Bot.query.get(bot_nr)
     if not bot:
         abort(404)
-    messages = request.json.get('messages')
-    return_messages = send_to_openai(bot, messages)
 
-    return jsonify({'messages': return_messages})
+    def stream():
+        completion = openai.ChatCompletion.create(
+            model=bot.model, 
+            messages=messages,
+            stream=True)
+        for line in completion:
+            chunk = line['choices'][0].get('delta', {}).get('content', '')
+            if chunk:
+                yield chunk
+    return Response(stream(), mimetype='text/event-stream')
 
 
 @retry_with_exponential_backoff
-def send_to_openai(bot, messages):
-    response = openai.ChatCompletion.create(
-      model=bot.model,
-      messages=messages
+def send_to_openai(bot, messages, frontend_callback):
+    stream = openai.ChatCompletion.create(
+        model=bot.model,
+        messages=messages,
+        stream=True
     )
 
-    if response['choices'][0]['finish_reason'] == 'stop':
-        return_messages = response['choices'][0]['message']
-        return return_messages
-
+    for chunk in stream:
+        if chunk['choices'][0]['finish_reason'] is None:
+            # Send the message chunk to the frontend
+            message = chunk['choices'][0]['delta']['content']
+            frontend_callback(message)
+        if chunk['choices'][0]['finish_reason'] == 'stop':
+            # Do nothing more when the stream is done
+            pass
