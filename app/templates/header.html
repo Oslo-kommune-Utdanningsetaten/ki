@@ -13,10 +13,10 @@
             <img alt="Creative Commons-lisens" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" />
           </a>
         </div>
-        {% if g.logged_on %}
         <div class="p-2">
-            <a href="{{url_for('main.om')}}">Om tjenesten</a>
+            <a href="{{url_for('info.om')}}">Om tjenesten</a>
         </div>
+        {% if g.logged_on %}
         <div class="p-2">
             <a href="{{url_for('auth.logout')}}">Logg ut </a>
         </div>
