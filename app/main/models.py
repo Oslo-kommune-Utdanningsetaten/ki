@@ -19,6 +19,7 @@ class Bot(db.Model):
     ingress = db.Column(db.Text)
     prompt = db.Column(db.Text)
     model = db.Column(db.String(20))
+    image = db.Column(db.String(20))
     accesses = db.relationship('BotAccess', backref='bot')
 
 

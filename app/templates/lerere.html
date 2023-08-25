@@ -8,14 +8,8 @@
 
 <div id="om_page" class="container mt-3">
 
-  <div class="card float-end">
-    <div class="card-body">
-      <div><a href="{{url_for('info.om')}}">Hvorfor bruke KI?</a></div>
-      <div><a href="{{url_for('info.personvern')}}">Personvern, sikkerhet og KI</a></div>
-      <div><a href="{{url_for('info.elever')}}">Tips til bruk for elever</a></div>
-    </div>
-  </div>
-
+  {% set page = 'lerere' %}
+  {% include "info_menu.html" %}
 
   <div class="tutorial">
     <h3 class="mb-3">Tips til bruk for lærere</h3>

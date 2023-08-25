@@ -11,21 +11,27 @@
   <div class="my-3">
     <h3>Velkommen til Osloskolens KI-løsning</h3>
     <p>Denne løsningen er under pilotering for utvalgte brukere i Oslokolen</p>
-    <p>KI i Osloskolen er en løsning for å gi lærere og elever i Osloskolens tilgang til å bruke kunnstig intelligens på en trygg måte. Løsningen baserer seg på API-et til OpenAI sin språkmodell GPT 3.5. Selv om den er lagt bak FEIDE-pålogging, lagrer den ikke persondata. Feide-påloggingen benyttes kun til tilgangs- og kostnadskontroll, slik at elever og lærere i Osloskolen kan bruke denne teknologien på en trygg måte.</p>
-    <p>Løsningen er laget og utviklet av seksjon for læringsteknologi i utdanningsetaten og veilederteamet for bruk av læringsteknologi i Osloskolen.</p>
-    <p>Vi vil rette en stor takk til Odin Nøsen i Randabergskolen, både for bistand til utvikling av vår løsning og for at han har delt innhold under CC-lisens som vi har bearbeidet videre. Osloskolens løsning er inspirert av Randabergskolens KI-løsning.</p>
-    <p>Alt innholdet er delt under <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> lisens.</p>
-    <p>
-      <a href="https://aktuelt.osloskolen.no/larerik-bruk-av-laringsteknologi/informasjonssikkerhet-og-personvern/feide-tjenester/ki/" target="_blank">Personvern i løsningen</a><br>
-      <a href="https://uustatus.no/nb/erklaringer/publisert/a049250e-d0fb-4510-8f7c-29427e8876e8" target="_blank">Tilgjengelighetserklæring</a>
-    </p>
+    {% if not g.logged_on %}
+      <p>KI i Osloskolen er en løsning for å gi lærere og elever i Osloskolens tilgang til å bruke kunnstig intelligens på en trygg måte. Løsningen baserer seg på API-et til OpenAI sin språkmodell GPT 3.5. Selv om den er lagt bak FEIDE-pålogging, lagrer den ikke persondata. Feide-påloggingen benyttes kun til tilgangs- og kostnadskontroll, slik at elever og lærere i Osloskolen kan bruke denne teknologien på en trygg måte.</p>
+      <p>Løsningen er laget og utviklet av seksjon for læringsteknologi i utdanningsetaten og veilederteamet for bruk av læringsteknologi i Osloskolen.</p>
+      <p>Vi vil rette en stor takk til Odin Nøsen i Randabergskolen, både for bistand til utvikling av vår løsning og for at han har delt innhold under CC-lisens som vi har bearbeidet videre. Osloskolens løsning er inspirert av Randabergskolens KI-løsning.</p>
+      <p>Alt innholdet er delt under <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> lisens.</p>
+      <p>
+        <a href="https://aktuelt.osloskolen.no/larerik-bruk-av-laringsteknologi/informasjonssikkerhet-og-personvern/feide-tjenester/ki/" target="_blank">Personvern i løsningen</a><br>
+        <a href="https://uustatus.no/nb/erklaringer/publisert/a049250e-d0fb-4510-8f7c-29427e8876e8" target="_blank">Tilgjengelighetserklæring</a>
+      </p>
+    {% endif %}
   </div>
   <div class="row">
     {% for bot in bots %}
-      <div class="col-sm-4 mb-3 mb-sm-0">
+      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
         <div class="card" >
           <div class="card-img-top text-center">
-            <img src="{{ url_for('static', filename='img/bot') + bot.bot_nr|string + '.svg'}}">
+            {% if bot.image %}
+              <img src="{{ url_for('static', filename='img/') + bot.image}}">
+            {% else %}
+              <img src="{{ url_for('static', filename='img/') + 'defaultbot.svg'}}">
+            {% endif %}
           </div>
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
