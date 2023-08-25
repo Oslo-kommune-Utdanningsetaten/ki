@@ -20,7 +20,8 @@ def load_logged_in_user():
         g.logged_on = False
         g.admin = False
         if username is None:
-            if (request.blueprint in ['main'] and
+            if ((request.blueprint in ['main'] or 
+                    request.blueprint in ['info']) and
                     request.path != url_for('main.index')):
                 return redirect(url_for('auth.feidelogin'))
             elif request.blueprint in ['api']:

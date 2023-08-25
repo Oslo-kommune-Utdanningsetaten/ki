@@ -99,11 +99,12 @@ $(document).ready(function () {
   // get startpromt for bot
   function startpromt() {
     postData("/api/bot/" + vm.bot_nr, {}).then((data) => {
-      vm.bot = data.bot
+      vm.bot = data.bot;
       vm.messages = [{
         "role": "system",
         "content": vm.bot.prompt,
-      }]
+      }];
+      vm.message = '';
     });
   }
 
