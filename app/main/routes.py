@@ -30,6 +30,22 @@ def bot(bot_nr):
 
     return render_template('bot.html', bot_nr=bot_nr)
 
+@main.route('/om')
+def om():
+    return render_template('om.html')
+
+@main.route('/personvern')
+def personvern():
+    return render_template('personvern.html')
+
+@main.route('/lerere')
+def lerere():
+    return render_template('lerere.html')
+
+@main.route('/elever')
+def elever():
+    return render_template('elever.html')
+
 
 @main.route('/adminbot/<bot_nr>', methods=['GET','POST'])
 def adminbot(bot_nr):

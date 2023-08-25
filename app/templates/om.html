@@ -1,0 +1,33 @@
+{% extends "header.html" %}
+
+{% block title %}
+  {{config['SITENAME']}}
+{% endblock %}
+
+{% block content %}
+
+<div id="om_page" class="container mt-3">
+
+  <div class="card float-end">
+    <div class="card-body">
+      <div><a href="{{url_for('main.personvern')}}">Personvern, sikkerhet og KI</a></div>
+      <div><a href="{{url_for('main.lerere')}}">Tips til bruk for lærere</a></div>
+      <div><a href="{{url_for('main.elever')}}">Tips til bruk for elever</a></div>
+    </div>
+  </div>
+
+  <div>
+  <h3>Hvorfor bruke KI?</h3>
+  <p>Kunstig intelligens har hatt en rasende vekst det siste året og det åpner for en masse spennende bruksområder i skolen. KI kan være en god ressurs i tilpasset opplæring for lærere og en god studieassistent for elever. Det å hjelpe elevene se hensiktsmessig og skolerettet bruk av KI kan være med å skape gode digitale vaner, samt skape økt læring.</p>
+  <h3>Hvorfor bruke Osloskolens KI?</h3>
+  <p>KI i osloskolen er blant annet skapt for å være en lavterskel-inngang for lærere og elever, uavhengig av tidligere erfaring. Osloskolens chatbots er designet for å få brukere raskt i gang med KI på en hensiktsmessig måte.</p>
+  <p>KI i osloskolen bruker den samme type FEIDE-innloggingen som resten av de digitale løsningene du er vant til i skolehverdagen. Løsningen er trygg og i henhold til GDPR.</p>
+  <p>Det å skape en sikker løsning for bruk av KI som verken krever penger eller persondata åpner for at alle tilknyttet osloskolen skal få de samme forutsetningene til å lære om og med KI.</p>
+
+  <p><a href="{{url_for('main.personvern')}}">Personvern, sikkerhet og KI</a></p>
+  <p><a href="{{url_for('main.lerere')}}">Tips til bruk for lærere</a></p>
+  <p><a href="{{url_for('main.elever')}}">Tips til bruk for elever</a></p>
+
+  </div>
+</div>
+{% endblock %}

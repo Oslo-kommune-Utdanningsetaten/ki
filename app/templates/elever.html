@@ -1,0 +1,360 @@
+{% extends "header.html" %}
+
+{% block title %}
+  {{config['SITENAME']}}
+{% endblock %}
+
+{% block content %}
+
+<div id="om_page" class="container mt-3">
+
+  <div class="card float-end">
+    <div class="card-body">
+      <div><a href="{{url_for('main.om')}}">Hvorfor bruke KI?</a></div>
+      <div><a href="{{url_for('main.personvern')}}">Personvern, sikkerhet og KI</a></div>
+      <div><a href="{{url_for('main.lerere')}}">Tips til bruk for lærere</a></div>
+    </div>
+  </div>
+
+	<div class="tutorial">
+    <h3 class="mb-3">Tips til bruk for elever</h3>
+    <h4 class="mb-3">Hvordan kan du som elev bruke chatbots i skolearbeidet?</h4>
+    <ul>
+      <li>
+        <h5 class="mt-3">Leksehjelp</h5>
+        <div>
+          Du kan bruke AI-en til hjelpe deg med lekser. Den kan svare på spørsmål, komme med forklaringer eller gi deg råd i alle fagene du har.
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Kan du forklare karbonkretsløpet? Og så kan du følge opp med: Lag en enklere forklaring som barn forstår. Bruk eksempler. 
+          </li>
+          <li>
+            Hva er demokrati? 
+          </li>
+          <li>
+            Hva er forskjellene mellom en novelle og en roman? 
+          </li>
+          <li>
+            Jeg skal ha matteprøve i morgen. Kan du hjelpe meg med å øve på likninger? 
+          </li>
+          <li>
+            Kan du lage en quiz med ord og begreper som har med andre verdenskrig å gjøre? 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Hjelp med ord og uttrykk</h5>
+        <div>
+          AI-en kan hjelpe deg med ord du ikke forstår, øve på staving av ord og forbedre ordforrådet ditt ved å gi deg definisjoner, synonymer og eksempler på hvordan du bruker ordene i setninger.
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Hva betyr ordet ______? Kan du bruke det i en setning? 
+          </li>
+          <li>
+            Hva er ordet for når vi later som om ting er levende? 
+          </li>
+          <li>
+            Kan du gi meg noen synonymer på ordet _____? 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Litteratur og leseforståelse</h5>
+        <div>
+          Du kan snakke med AI-en for å diskutere innholdet i en historie eller tekst du har lest. Da kan du forstå teksten bedre og også huske innholdet bedre. Hvis det ikke er en kjent historie eller tekst må du kanskje gi AI-en teksten den skal diskutere med deg.
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Hvorfor gikk Nora i skuespillet «Et dukkehjem»? Du kan følge opp dersom du synes den skriver litt lite: Skriv mer om dette. Spør gjerne om karakterer i fortellingen, hva de ønsker og hvordan det går med dem – og hvorfor. 
+          </li>
+          <li>
+            Hvordan kan jeg analysere hovedtemaene i romanen «Sult» av Knut Hamsun? 
+          </li>
+          <li>
+            Hva er hovedmotivet i Marvel-filmen «Black Panther»? 
+          </li>
+          <li>
+            Du skal late som om du er Gandalf fra romanen «Ringenes Herre» og du skal på spørsmålene jeg stiller deg. Du kan begynne med å presentere deg selv. 
+          </li>
+          <li>
+            Jeg vil gjerne snakke om denne teksten med deg. Tekst: [lim inn teksten din her] 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Skrivestøtte</h5>
+        <div>
+          AI-en kan hjelpe deg med å planlegge og organisere ideer og struktur i tekst du skal skrive. Den kan gi deg tilbakemelding på grammatikk, tegnsetting og innholdet i det du har skrevet. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Jeg skal skrive en nyhetssak om en ny butikk som åpner i Randaberg. Hva bør jeg ha med i saken? 
+          </li>
+          <li>
+            Jeg skal skrive en filmanmeldelse. Kan du gi med noen stikkord om hva jeg bør ha med? 
+          </li>
+          <li>
+            Kan du gi meg en skriveramme for en argumenterende tekst? 
+          </li>
+          <li>
+            Skriv det som en sammenhengende tekst uten overskrifter. 
+          </li>
+          <li>
+            Jeg skal søke en sommerjobb. Hva bør jeg ha med i søknaden? 
+          </li>
+          <li>
+            Får jeg frem poenget mitt på en god måte i denne teksten? Tekst: [Lim inn teksten] 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Samtalepartner</h5>
+        <div>
+          AI-en kan være et trygt sted hvor du kan uttrykke tanker og følelser.  Husk at AI-en ikke kan erstatte læreren din eller helsesykepleier på skolen, men den kan gi deg litt hjelp på veien hvis det er noe du synes er dumt eller vanskelig. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Jeg er nervøs for den kommende prøven. Har du noen råd for å hjelpe meg med å holde meg rolig? 
+          </li>
+          <li>
+            Jeg kranglet med bestevennen min i dag og vi er sure på hverandre. Jeg synes det er dumt og vil bli venn igjen, men jeg vet ikke hvordan jeg skal gjøre det. 
+          </li>
+          <li>
+            Kan du hjelpe meg med å snu en negativ tanke? 
+          </li>
+          <li>
+            Kan du komme med en oppmuntring til en som har en dårlig dag? 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Studieteknikk og organisering</h5>
+        <div>
+          AI-en kan gi deg tips og strategier for effektive studievaner, tidsstyring og organisering, og hjelpe deg med å bli mer effektiv i læringsarbeidet ditt. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Kan du gi meg noen tips for å holde fokus mens jeg gjør lekser? 
+          </li>
+          <li>
+            Hvordan kan jeg planlegge skolearbeidet for en uke framover? 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Problemløsning og kritisk tenkning</h5>
+        <div>
+          Du kan også samhandle med AI-en om komplekse eller abstrakte emner, hvorpå AI-en kan gi ulike perspektiver, argumenter og løsninger. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Hvordan kan vi redusere plastavfallet i lokalsamfunnet vårt? 
+          </li>
+          <li>
+            Vi trenger lengre matfriminutt på skolen. Vi rekker ikke å spise opp maten vår. Hva skal vi gjøre? Jeg skal skrive et brev til skolen om at vi trenger et lengre matfriminutt. Hva må jeg huske på? Kan du lage et eksempelbrev til meg? 
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <h4 class="mb-3">Fagspesifikke eksempler</h4>
+    <ul>
+
+      <li>
+        <h5 class="mt-3">Matematikk</h5>
+        <div>
+          Du kan få hjelp med enkle matematikkproblemer, øve på ulike regnemåter eller få forklaringer på uttrykk i matematikken.  
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Kan du forklare hvordan jeg løser en likning? 
+          </li>
+          <li>
+            Kan du lage en sang om vinkelsummen i en trekant? (Se om du synes sangen ble bra eller ikke…) 
+          </li>
+          <li>
+            Hva er pi? Hvis forklaringen er for vanskelig kan du skrive: Forklar for en 5-åring hva pi er. Prøv deg frem med ulike aldre. 
+          </li>
+        </ul>
+        <p class="oslo-text-danger"><strong>
+          NB: AI-en er ikke superflink til å løse matteoppgaver, så du må ikke stole på svarene den gir! Du kan få den til å bli flinkere ved å vise den et riktig eksempel først. Da skjønner AI-en bedre hvordan den skal løse en annen oppgave du gir den. Dette er en nokså avansert måte å bruke AI-en på. 
+        </strong></p>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Realfag</h5>
+        <div>
+          AI-en kan gi deg informasjon og forklaringer om ulike vitenskapelige emner, og hjelpe deg med å forstå verden rundt deg. Den kan også gi deg trinnvise løsninger på et matematikk-, fysikk- eller kjemiproblem og lage praktiske øvelser. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Hvordan dannes skyer? 
+          </li>
+          <li>
+            Kan du forklare begrepene potensiell og kinetisk energi? Gi noen eksempler. 
+          </li>
+          <li>
+            Hvordan fungerer fotosyntese, og hvorfor er det viktig for planter og økosystemer? 
+          </li>
+          <li>
+            Kan du forklare hvordan bestemmelse av natriuminnhold i mineralvann ved hjelp av atomabsorpsjonsspektrometri og flammeprøver fungerer? 
+          </li>
+          <li>
+            Skisser strukturen til DNA og forklar dets rolle i genetisk informasjon 
+          </li>
+          <li>
+            Kan du lage et enkelt forsøk som demonstrerer Newtons andre lov? 
+          </li>
+          <li>
+            Kan du hjelpe meg med programmeringsprosjektet mitt om å bygge en chatbot ved hjelp av Python? 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">Samfunnsfag</h5>
+        <div>
+          AI-en er trent på tekst fra Wikipedia, så den kan en god del om både samfunnskunnskap, geografi og historie. Du kan også lære om historiske hendelser, personer og kulturer ved å stille spørsmål til AI-en eller delta i samtaler med den om ulike emner. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Gi meg viktige faktaopplysninger om landet Brasil. 
+          </li>
+          <li>
+            Kan du forklare forskjellen mellom vær og klima? 
+          </li>
+          <li>
+            Hvordan dannes fjorder, og hvorfor er de vanlige i Norge? 
+          </li>
+          <li>
+            Kan du forklare begrepet føydalisme for meg? 
+          </li>
+          <li>
+            Kan du fortelle meg om den første månelandingen? 
+          </li>
+          <li>
+            Kan du late som om du er Martin Luther King Jr. og begynne med å fortelle meg om hva du har gjort? 
+          </li>
+          <li>
+            Kan du hjelpe meg med å lage en tidslinje over de viktigste hendelsene under den franske revolusjonen? 
+          </li>
+          <li>
+            Hvilke tradisjoner og verdier er viktige i indisk kultur? 
+          </li>
+          <li>
+            Hvilke utfordringer oppstår når folk fra ulike kulturer skal snakke sammen? 
+          </li>
+          <li>
+            Hvilke kulturelle forskjeller er det mellom Norge og Danmark? 
+          </li>
+          <li>
+            Kan du forklare forskjellen mellom Høyre og Arbeiderpartiet? 
+          </li>
+          <li>
+            Hva er inflasjon og hvorfor er det dumt? 
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h5 class="mt-3">KRLE</h5>
+        <div>
+          AI-en vil prøve å svare så godt den kan å være redelig mot alle religioner. Du kan spørre om historien, tradisjonene, høytider, læren, bygninger og hellige skrifter til ulike religioner og livssyn. Det er også mulig å diskutere ulike etiske dilemmaer og teorier med AI-en. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Gi en kort beskrivelse av jødedommen for elever i barneskolen. 
+          </li>
+          <li>
+            Hvem var grunnleggeren av buddhismen, og hva er de grunnleggende læresetningene i denne religionen? 
+          </li>
+          <li>
+            Kan du forklare hvordan jødedom, kristendom og islam er relatert til hverandre? 
+          </li>
+          <li>
+            Hva er forskjellen mellom Det gamle testamentet og Det nye testamentet i Bibelen? 
+          </li>
+          <li>
+            Kan du forklare hva som skjer under ramadan og hvorfor denne måneden er så viktig for muslimer? 
+          </li>
+          <li>
+            Du skal vurdere følgende situasjon ut fra pliktetikk, konsekvensetikk og dydsetikk: En mor stjeler et brød for å gi det til sitt sultne barn. 
+          </li>
+        </ul>
+      </li>
+   
+      <li>
+        <h5 class="mt-3">Fremmedspråk og oversettelse</h5>
+        <div>
+          Du kan øve på samtaleferdigheter på et fremmedspråk, lære nye fraser eller forbedre grammatikken din ved å samarbeide med AI-en på det aktuelle språket. 
+        </div>
+        <div>
+          Eksempler på ledetekster:
+        </div>
+        <ul>
+          <li>
+            Hvordan sier jeg ‘Hei, hvordan har du det?’ på spansk? 
+          </li>
+          <li>
+            Vi skal ha en samtale på enkel tysk om det å handle i en matbutikk i Tyskland. Du skal være en ansatt i butikken og du begynner med å spørre «Hva kan jeg hjelpe deg med?». 
+          </li>
+          <li>
+            Hva er forskjellen mellom «have» og «has» i engelsk grammatikk? 
+          </li>
+          <li>
+            Oversett følgende tekst fra norsk til ukrainsk. Tekst: [Lim inn tekst] 
+          </li>
+          <li>
+            Jeg synes denne teksten var vanskelig å forstå. Kan du forklare meg hva teksten handler om? Tekst: [Lim inn tekst] 
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}
+
+
+ 

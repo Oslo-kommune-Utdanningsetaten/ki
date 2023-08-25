@@ -15,7 +15,7 @@
         </div>
         {% if g.logged_on %}
         <div class="p-2">
-            <a href="#">Om tjenesten</a>
+            <a href="{{url_for('main.om')}}">Om tjenesten</a>
         </div>
         <div class="p-2">
             <a href="{{url_for('auth.logout')}}">Logg ut </a>
