@@ -2,7 +2,7 @@ from flask import Blueprint, g, abort, redirect, request, session, url_for, json
 import random
 import time
 import openai
-from app import db
+from app import db, socketio
 from app.main import models
 
 
@@ -81,19 +81,29 @@ def send_message():
     if not bot:
         abort(404)
     messages = request.json.get('messages')
-    return_messages = send_to_openai(bot, messages)
 
-    return jsonify({'messages': return_messages})
+    def frontend_callback(message_chunk):
+        socketio.emit('message_chunk', {
+                      'message': message_chunk}, namespace='/')
+
+    send_to_openai(bot, messages, frontend_callback)
+
+    return jsonify({'message': 'Messages sent to stream'})
 
 
 @retry_with_exponential_backoff
-def send_to_openai(bot, messages):
-    response = openai.ChatCompletion.create(
-      model=bot.model,
-      messages=messages
+def send_to_openai(bot, messages, frontend_callback):
+    stream = openai.ChatCompletion.create(
+        model=bot.model,
+        messages=messages,
+        stream=True
     )
 
-    if response['choices'][0]['finish_reason'] == 'stop':
-        return_messages = response['choices'][0]['message']
-        return return_messages
-
+    for chunk in stream:
+        if chunk['choices'][0]['finish_reason'] is None:
+            # Send the message chunk to the frontend
+            message = chunk['choices'][0]['delta']['content']
+            frontend_callback(message)
+        if chunk['choices'][0]['finish_reason'] == 'stop':
+            # Do nothing more when the stream is done
+            pass

@@ -17,6 +17,19 @@ $(document).ready(function(){
     },
     mounted() {
       this.bot_nr = $("#bot_nr").text();
+
+      // Listen for responses
+      const socket = io();
+      socket.on('message_chunk', (data) => {
+        // Append response to last message object
+        let updatedMessage = this.messages[this.messages.length - 1];
+        updatedMessage.content += data.message;
+        this.messages[this.messages.length - 1] = updatedMessage;
+
+        // Scroll to bottom of page
+        const scrollingElement = (document.scrollingElement || document.body);
+        scrollingElement.scrollTop = scrollingElement.scrollHeight;
+      });
     },
     methods: {
       sendMessage() {
@@ -27,17 +40,21 @@ $(document).ready(function(){
         postData(
           "/api/send_message",
           { bot_nr: vm.bot.bot_nr, messages: vm.messages },
-        ).then((data) => {
-            vm.messages.push(data.messages);
+        ).then(() => {
             $("#spinner").addClass("d-none")
             $("#input_line").removeClass("d-none")
-            $('html, body').animate({scrollTop: $("#lastline").offset().top}, 1000, "linear");
+            // $('html, body').animate({scrollTop: $("#lastline").offset().top}, 1000, "linear");
         });
         this.message = '';
+        // Prepare response message object to be filled with socket response
+        vm.messages.push({
+          "role": "assistant",
+          "content": "",
+        })
         this.genSpinnerText()
         $("#input_line").addClass("d-none")
         $("#spinner").removeClass("d-none")
-      },
+    },
       newThread() {
         startpromt()
       },
