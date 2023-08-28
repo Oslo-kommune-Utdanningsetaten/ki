@@ -1,4 +1,4 @@
-from flask import Blueprint, g, abort, redirect, request, session, url_for, jsonify, current_app
+from flask import Blueprint, g, abort, request, jsonify, current_app, Response
 import random
 import time
 import openai
@@ -73,22 +73,24 @@ def start_message(bot_nr):
 
 @api.route('/send_message', methods=['POST'])
 def send_message():
-
     bot_nr = request.json.get('bot_nr')
+    messages = request.json.get('messages')
     if not bot_nr in g.bots:
         abort(403)
     bot = models.Bot.query.get(bot_nr)
     if not bot:
         abort(404)
-    messages = request.json.get('messages')
 
-    def frontend_callback(message_chunk):
-        socketio.emit('message_chunk', {
-                      'message': message_chunk}, namespace='/')
-
-    send_to_openai(bot, messages, frontend_callback)
-
-    return jsonify({'message': 'Messages sent to stream'})
+    def stream():
+        completion = openai.ChatCompletion.create(
+            model=bot.model, 
+            messages=messages,
+            stream=True)
+        for line in completion:
+            chunk = line['choices'][0].get('delta', {}).get('content', '')
+            if chunk:
+                yield chunk
+    return Response(stream(), mimetype='text/event-stream')
 
 
 @retry_with_exponential_backoff
