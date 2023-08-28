@@ -61,6 +61,7 @@ $(document).ready(function () {
       var { value, done } = await reader.read();
       if (done) {
         $("#input_line").removeClass("d-none")
+        $(".type-writer").removeClass("type-writer");
 
         // Handle markdown parsing
         let updatedMessage = messages[messages.length - 1];

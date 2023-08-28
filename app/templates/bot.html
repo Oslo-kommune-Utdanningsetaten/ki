@@ -22,7 +22,7 @@
         <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
           <span id="lastline" v-if="msg_nr === messages.length - 1"></span>
           <li v-if="message_line.role != 'system'" class="list-group-item response" :class="message_line.role">
-            <span v-html="message_line.content" class="chat"></span>
+            <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 ? 'type-writer' : ''" ></span>
           </li>
         </span>
       </ul>
