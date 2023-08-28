@@ -98,6 +98,9 @@ ul .assistant:before{
   background-repeat:no-repeat; 
 }
 
+.chat p {
+    margin-bottom: 0;
+}
 
 .response {
     white-space: pre;

@@ -7,7 +7,6 @@ $(document).ready(function () {
         bot: null,
         message: '',
         messages: [],
-        spinner_text: '',
       }
     },
     computed: {
@@ -28,9 +27,7 @@ $(document).ready(function () {
           }
         );
         this.message = '';
-        this.genSpinnerText()
         $("#input_line").addClass("d-none")
-        $("#spinner").removeClass("d-none")
 
         callChatStream(
           "/api/send_message",
@@ -40,14 +37,6 @@ $(document).ready(function () {
       },
       newThread() {
         startpromt()
-      },
-      genSpinnerText() {
-        spinner_texts = [
-          'Fint at du venter mens jeg jobber med svaret ditt.',
-          'Jeg kommer straks med et svar ...',
-          'Vent litt, så får du svar.',
-        ];
-        this.spinner_text = spinner_texts[Math.floor(Math.random() * 3)]
       },
     }
   })
@@ -71,8 +60,13 @@ $(document).ready(function () {
     while (true) {
       var { value, done } = await reader.read();
       if (done) {
-        $("#spinner").addClass("d-none")
         $("#input_line").removeClass("d-none")
+
+        // Handle markdown parsing
+        let updatedMessage = messages[messages.length - 1];
+        updatedMessage.content = marked.parse(updatedMessage.content);
+        messages[messages.length - 1] = updatedMessage;
+
         break;
       }
 
@@ -82,8 +76,8 @@ $(document).ready(function () {
       messages[messages.length - 1] = updatedMessage;
 
       // Scroll to bottom of page
-      const scrollingElement = (document.scrollingElement || document.body);
-      scrollingElement.scrollTop = scrollingElement.scrollHeight;
+      // const scrollingElement = (document.scrollingElement || document.body);
+      // scrollingElement.scrollTop = scrollingElement.scrollHeight;
     }
   }
 
