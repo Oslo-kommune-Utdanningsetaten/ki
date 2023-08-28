@@ -2,7 +2,7 @@ from flask import Blueprint, g, abort, request, jsonify, current_app, Response
 import random
 import time
 import openai
-from app import db, socketio
+from app import db
 from app.main import models
 
 

@@ -15,7 +15,6 @@ openai = "*"
 flask-sqlalchemy = "*"
 pymysql = "*"
 gunicorn = "*"
-flask-socketio = "*"
 
 [requires]
 python_version = "3.10"
