@@ -1,6 +1,5 @@
-from flask import Blueprint, flash, g, redirect, render_template, \
+from flask import Blueprint, flash, g, redirect, \
     request, session, url_for, current_app, jsonify, abort
-from werkzeug.security import check_password_hash, generate_password_hash
 from oauthlib.oauth2 import WebApplicationClient
 import requests 
 import json
@@ -39,15 +38,6 @@ def load_logged_in_user():
                 bots = models.Bot.query.all()
                 g.bots = [bot.bot_nr for bot in bots]
                 g.admin = True
-
-@auth.route('/login', methods=('GET', 'POST'))
-def login():
-
-    if not os.environ.get("FLASK_DEBUG", False):
-        abort(404)
-
-    # return render_template('login.html')
-    return redirect(url_for('main.index'))
 
 
 def get_provider_cfg():
@@ -149,6 +139,7 @@ def feidecallback():
             session['user.auth'] = tokens['id_token']
         else:
             session.clear()
+            flash('Du har dessverre ikke tilgang til denne løsningen.', 'alert-danger')
 
     else:
         session.clear()

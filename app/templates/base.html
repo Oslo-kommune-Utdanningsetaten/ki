@@ -15,10 +15,19 @@
 <body>
   {% block header %}{% endblock %}
 
-  {% block content %}
-  {% endblock %}
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert {{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endwith %}
 
-
+    {% block content %}
+    {% endblock %}
+  </div>
 
   <script src="{{ url_for('static', filename='addons/marked.umd.min.js') }}"></script>
   <script src="{{ url_for('static', filename='addons/jquery-3.7.0.min.js') }}"></script>
