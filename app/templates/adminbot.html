@@ -6,6 +6,9 @@
 
 {% block content %}
 
+{% set levels = ({ "aarstrinn1": "1. trinn", "aarstrinn2": "2. trinn", "aarstrinn3": "3. trinn", "aarstrinn4": "4. trinn", "aarstrinn5": "5. trinn", "aarstrinn6": "6. trinn", "aarstrinn7": "7. trinn", "aarstrinn8": "8. trinn", "aarstrinn9": "9. trinn", "vg1": "1. vgs", "vg2": "2. vgs", "vg3": "3. vgs"}) %}
+
+
 <div class="container mt-3" >
 
 
@@ -61,8 +64,8 @@
           <select name="access">
             <option value="l:{{line.access_id}}:-" {{ 'selected' if line.level == '-' }}>Kun lærere</option>
             <option value="l:{{line.access_id}}:*" {{ 'selected' if line.level == '*' }}>Alle</option>
-            {% for lev in range(1,14) %}
-            <option value="l:{{line.access_id}}:{{lev}}" {{ 'selected' if line.level|int == lev }}>{{ lev }}. trinn</option>
+            {% for l_code, l_name in levels.items() %}
+            <option value="l:{{line.access_id}}:{{l_code}}" {{ 'selected' if line.level == l_code }}>{{ l_name }}</option>
             {% endfor %}
           </select>
         </div>
@@ -78,8 +81,8 @@
           <select name="access">
             <option value="l:new:-">Kun lærere</option>
             <option value="l:new:*" selected>Alle</option>
-            {% for lev in range(1,14) %}
-            <option value="l:new:{{lev}}">{{ lev }}. trinn</option>
+            {% for l_code, l_name in levels.items() %}
+            <option value="l:new:{{l_code}}">{{ l_name }}</option>
             {% endfor %}
           </select>
         </div>
