@@ -14,3 +14,7 @@ class Config:
     SITENAME = os.environ.get('SITENAME') or 'AI Osloskolen'
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', None)
     OPENAI_ORG_ID = os.environ.get('OPENAI_ORG_ID', None)
+    OPENAI_API_BASE = os.environ.get('OPENAI_API_BASE', None)
+    OPENAI_API_TYPE = os.environ.get('OPENAI_API_TYPE', None)
+    OPENAI_API_VERSION = os.environ.get('OPENAI_API_VERSION', None)
+    OPENAI_API_DEPLOYMENT = os.environ.get('OPENAI_API_DEPLOYMENT', None)

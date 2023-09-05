@@ -9,7 +9,10 @@ from app.main import models
 api = Blueprint('api', __name__, url_prefix='/api')
 
 openai.api_key = current_app.config['OPENAI_API_KEY']
-openai.organization = current_app.config['OPENAI_ORG_ID']
+openai.api_version  = current_app.config['OPENAI_API_VERSION']
+openai.api_base = current_app.config['OPENAI_API_BASE']
+openai.api_type = current_app.config['OPENAI_API_TYPE']
+deployment_name = current_app.config['OPENAI_API_DEPLOYMENT']
 
 
 # define a retry decorator, 
@@ -85,6 +88,7 @@ def send_message():
         completion = openai.ChatCompletion.create(
             model=bot.model, 
             messages=messages,
+            deployment_id=deployment_name,
             stream=True)
         for line in completion:
             chunk = line['choices'][0].get('delta', {}).get('content', '')
@@ -98,6 +102,7 @@ def send_to_openai(bot, messages, frontend_callback):
     stream = openai.ChatCompletion.create(
         model=bot.model,
         messages=messages,
+        deployment_id=deployment_name,
         stream=True
     )
 
