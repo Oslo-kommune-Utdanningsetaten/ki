@@ -96,21 +96,3 @@ def send_message():
                 yield chunk
     return Response(stream(), mimetype='text/event-stream')
 
-
-@retry_with_exponential_backoff
-def send_to_openai(bot, messages, frontend_callback):
-    stream = openai.ChatCompletion.create(
-        model=bot.model,
-        messages=messages,
-        deployment_id=deployment_name,
-        stream=True
-    )
-
-    for chunk in stream:
-        if chunk['choices'][0]['finish_reason'] is None:
-            # Send the message chunk to the frontend
-            message = chunk['choices'][0]['delta']['content']
-            frontend_callback(message)
-        if chunk['choices'][0]['finish_reason'] == 'stop':
-            # Do nothing more when the stream is done
-            pass

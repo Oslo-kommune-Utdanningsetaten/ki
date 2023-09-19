@@ -34,7 +34,12 @@ def load_logged_in_user():
 
 
             # temp admin access
-            if username == "fnygard@feide.osloskolen.no":
+            admins = [
+                    "fnygard@feide.osloskolen.no", 
+                    "mawoa033.osloskolen.no", 
+                    "jbnatvig.osloskolen.no",
+                    ]
+            if username in admins:
                 bots = models.Bot.query.all()
                 g.bots = [bot.bot_nr for bot in bots]
                 g.admin = True
