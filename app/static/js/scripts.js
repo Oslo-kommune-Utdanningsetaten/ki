@@ -7,6 +7,7 @@ $(document).ready(function () {
         bot: null,
         message: '',
         messages: [],
+        showTypeWriter: false,
       }
     },
     computed: {
@@ -28,12 +29,19 @@ $(document).ready(function () {
         );
         this.message = '';
         $("#input_line").addClass("d-none")
+        $(".edit-link").addClass("invisible");
+        vm.showTypeWriter = true;
 
         callChatStream(
           "/api/send_message",
           { bot_nr: vm.bot.bot_nr, messages: vm.messages },
           vm.messages
         )
+      },
+      editPrompt(response_nr) {
+        vm.messages.splice(response_nr + 1);
+        vm.message = vm.messages.pop()["content"];
+        vm.showTypeWriter = false;
       },
       newThread() {
         startpromt()
@@ -61,7 +69,8 @@ $(document).ready(function () {
       var { value, done } = await reader.read();
       if (done) {
         $("#input_line").removeClass("d-none")
-        $(".type-writer").removeClass("type-writer");
+        $(".edit-link").removeClass("invisible");
+        vm.showTypeWriter = false;
 
         // Handle markdown parsing
         let updatedMessage = messages[messages.length - 1];

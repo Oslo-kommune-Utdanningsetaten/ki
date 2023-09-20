@@ -73,29 +73,28 @@ ul .user {
   background-color: #FFFFFF
 }
 
-ul .user:before {
-  content:'';
-  display:inline-block;
-  height:2em;   
-  width:2em;  
-  background-image:url('img/user.svg');  
-  background-size:contain;  
-  background-repeat:no-repeat; 
-}
 
 ul .assistant {   
   list-style:none; 
   background-color: #B3F5FF
 } 
 
-ul .assistant:before{   
-  content:'';
-  display:inline-block;
-  height:2em;   
+.avatar {   
+  text-align: center!important;
+  padding: 0!important;
+}
+
+.avatar img {   
   width:2em;  
-  background-image:url('img/oslobot.svg');  
-  background-size:contain;  
-  background-repeat:no-repeat; 
+}
+
+.edit-link {   
+  text-align: center!important;
+  padding: 0!important;
+}
+
+.edit-link img {   
+  width:1.3em;
 }
 
 .chat p {

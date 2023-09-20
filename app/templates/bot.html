@@ -10,9 +10,9 @@
 
   <div id="bot_nr" hidden>{{bot_nr}}</div>
   <div v-if="bot">
-    <h2>
+    <h1 class="h2">
       ${ bot.title }
-    </h2>
+    </h1>
     <p>
       ${ bot.ingress }
     </p>
@@ -20,15 +20,28 @@
     <div class="card border-dark">
       <ul class="list-group list-group-flush">
         <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
-          <span id="lastline" v-if="msg_nr === messages.length - 1"></span>
-          <li v-if="message_line.role != 'system'" class="list-group-item response" :class="message_line.role">
-            <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 ? 'type-writer' : ''" ></span>
+          <li v-if="message_line.role != 'system'" class="container-fluid list-group-item response" :class="message_line.role">
+            <span class="row">
+              <div class="col-1 avatar">
+                <img v-if="message_line.role === 'user'" src="{{ url_for('static', filename='img/user.svg') }}" alt="du:">
+                <img v-else src="{{ url_for('static', filename='img/oslobot.svg') }}" alt="bot:">
+              </div>
+              <div class="col">
+                <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''" >
+                </span>
+              </div>
+              <div class="col-1 edit-link invisible">
+                <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
+                  <img src="{{ url_for('static', filename='img/rediger.svg') }}" alt="rediger">
+                </a>
+              </div>
+            </span>
           </li>
         </span>
       </ul>
     </div>
     <div id="input_line" class="mt-3">
-      <textarea id="text-input" type="text" rows="5" v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
+      <textarea id="text-input" type="text" rows="5" aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger." v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
       <div class="card">
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
