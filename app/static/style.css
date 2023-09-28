@@ -68,6 +68,14 @@ nav a:hover {
     color: inherit;
 }
 
+#header a:hover {
+    color: inherit;
+}
+
+.logo img {
+  height: 70px;
+}
+
 ul .user {
   list-style-type: none;
   background-color: #FFFFFF
@@ -177,7 +185,7 @@ ul .assistant {
 }
 
 .oslo-bg-light {
-    background-color: #E7E7E7!important;
+    background-color: #f5f5f5!important;
 }
 
 .oslo-bg-blue {
@@ -207,6 +215,10 @@ ul .assistant {
 
 .oslo-text-info {
     color: #B3F5FF!important;
+}
+
+.oslo-text-light {
+    color: #818181!important;
 }
 
 .oslo-fill-green {

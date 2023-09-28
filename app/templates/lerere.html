@@ -4,12 +4,18 @@
   {{config['SITENAME']}}
 {% endblock %}
 
+{% set page = 'lerere' %}
+{% block nav scoped %}
+  {{ super() }}
+    <div class="p-3">
+        <a href="{{url_for('main.index')}}">Startside</a>
+    </div>
+{% endblock %}
+
 {% block content %}
 
 <div id="lerer_page">
 
-  {% set page = 'lerere' %}
-  {% include "info_menu.html" %}
 
   <div class="tutorial">
     <h3 class="mb-3">Tips til bruk for lærere</h3>
