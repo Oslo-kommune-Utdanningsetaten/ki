@@ -35,7 +35,7 @@
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
             <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-primary">Åpne</a>
-            {% if g.admin %} 
+            {% if g.admin or (bot.bot_nr in g.p_bots) %} 
               <a href="{{url_for('main.adminbot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-secondary">Rediger</a>
             {% endif %}
           </div>

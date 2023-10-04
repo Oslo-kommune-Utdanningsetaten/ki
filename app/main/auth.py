@@ -30,7 +30,7 @@ def load_logged_in_user():
             g.username = username
             g.name = session.get('user.name')
             g.bots = session.get('user.bots')
-            g.token = session.get('user.auth')
+            g.p_bots = session.get('user.p_bots')
 
 
             # temp admin access
@@ -100,13 +100,14 @@ def feidecallback():
         access = models.BotAccess.query.all()
         schools = []
         levels = []
+        subjects = {}
         employee = False
         bots = []
+        p_bots = []
         # get user's school info
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         uri, headers, body = client.add_token(groupinfo_endpoint)
         groupinfo_response = requests.get(uri, headers=headers, data=body)
-        # print(groupinfo_response.json())
 
         for group in groupinfo_response.json():
             # role empoyee from parent org
@@ -124,6 +125,14 @@ def feidecallback():
             if (group.get('type') == "fc:grep" and 
                         group.get('grep_type') == "aarstrinn"):
                 levels.append(group['code'])
+            # access from subject
+            if group.get('type') == "fc:gogroup":
+                subject_id = group.get('id')
+                subject_accesses = models.SubjectAccess.query.filter_by(subject_id=subject_id).all()
+                for line in subject_accesses:
+                    if line.bot_nr not in bots:
+                        bots.append(line.bot_nr)
+
         for line in access:
             for school in schools:
                 if (line.school_id == school.org_nr) or (line.school_id == '*'):
@@ -136,12 +145,21 @@ def feidecallback():
                                 if line.bot_nr not in bots:
                                     bots.append(line.bot_nr)
 
+
+        personal_bots = models.Bot.query.filter_by(owner=username).all()
+        for line in personal_bots:
+            if line.bot_nr not in bots:
+                bots.append(line.bot_nr)
+                p_bots.append(line.bot_nr)
+
+
         if bots:
             name = userinfo_response.json()["name"]
             session['user.username'] = username
             session['user.name'] = name
             session['user.bots'] = bots
-            session['user.auth'] = tokens['id_token']
+            session['user.p_bots'] = p_bots
+            session['user.auth'] = tokens
         else:
             session.clear()
             flash('Du har dessverre ikke tilgang til denne løsningen.', 'alert-danger')
@@ -158,12 +176,14 @@ def logout():
     g.username = None
     g.name = None
     g.bots = []
-    if g.logged_on and g.token:
+    g.p_bots = []
+    id_token = session.get('user.auth')['id_token']
+    if g.logged_on and id_token:
         g.logged_on = False
         feide_provider_cfg = get_provider_cfg()
         end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
         site_url = request.referrer
-        return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={g.token}"
+        return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={id_token}"
         return redirect(return_uri)
     else:
         return redirect(url_for('main.index'))

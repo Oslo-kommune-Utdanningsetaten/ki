@@ -20,7 +20,9 @@ class Bot(db.Model):
     prompt = db.Column(db.Text)
     model = db.Column(db.String(20))
     image = db.Column(db.String(20))
+    owner = db.Column(db.String(50))
     accesses = db.relationship('BotAccess', backref='bot')
+    subjects = db.relationship('SubjectAccess', backref='bot')
 
 
 class BotAccess(db.Model):
@@ -32,6 +34,10 @@ class BotAccess(db.Model):
     def __repr__(self):
         return f"{self.bot_nr}-{self.school}{self.level}"
 
+
+class SubjectAccess(db.Model):
+    bot_nr = db.Column(db.Integer, db.ForeignKey('bot.bot_nr'), primary_key=True)
+    subject_id = db.Column(db.String(200), primary_key=True)
 
 class School(db.Model):
     org_nr = db.Column(db.String(20), primary_key=True)

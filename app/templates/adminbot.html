@@ -6,7 +6,7 @@
 
 {% block content %}
 
-{% set levels = ({ "aarstrinn1": "1. trinn", "aarstrinn2": "2. trinn", "aarstrinn3": "3. trinn", "aarstrinn4": "4. trinn", "aarstrinn5": "5. trinn", "aarstrinn6": "6. trinn", "aarstrinn7": "7. trinn", "aarstrinn8": "8. trinn", "aarstrinn9": "9. trinn", "vg1": "1. vgs", "vg2": "2. vgs", "vg3": "3. vgs"}) %}
+{% set levels = ({ "aarstrinn1": "1. trinn", "aarstrinn2": "2. trinn", "aarstrinn3": "3. trinn", "aarstrinn4": "4. trinn", "aarstrinn5": "5. trinn", "aarstrinn6": "6. trinn", "aarstrinn7": "7. trinn", "aarstrinn8": "8. trinn", "aarstrinn9": "9. trinn", "aarstrinn10": "10. trinn", "vg1": "1. vgs", "vg2": "2. vgs", "vg3": "3. vgs"}) %}
 
 
 <div class="container mt-3" >
@@ -32,62 +32,66 @@
         <textarea class="form-control" id="bot_promt" rows="5" name="prompt">{{bot.prompt}}</textarea>
       </div>
     </div>
-    <fieldset class="row mb-3">
-      <legend class="col-form-label col-sm-2 pt-0">Modell som brukes</legend>
-      <div class="col-sm-10">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="model" id="model_35" value="gpt-3.5-turbo" {{ 'checked' if bot.model == 'gpt-3.5-turbo' }} >
-          <label class="form-check-label" for="model_35">
-            GPT 3.5
-          </label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="model" id="model_4" value="gpt-4" {{ 'checked' if bot.model == 'gpt-4' }}>
-          <label class="form-check-label" for="model_4">
-            GPT 4
-          </label>
-        </div>
-      </div>
-    </fieldset>
-    <div class="row mb-3">
-      <label for="accesses" class="col-sm-2 col-form-label">Tilganger</label>
-      <div class="col-sm-10">
-        {% for line in bot.accesses %}
-        <div>
-          <select name="access">
-            <option value="s:{{line.access_id}}:del"></option>
-            <option value="s:{{line.access_id}}:*" {{ 'selected' if line.school_id == '*' }}>Alle skoler</option>
-            {% for school in schools %}  
-            <option value="s:{{line.access_id}}:{{school.org_nr}}" {{ 'selected' if line.school_id == school.org_nr }}>{{ school.school_name }}</option>
-            {% endfor %}
-          </select>
-          <select name="access">
-            <option value="l:{{line.access_id}}:-" {{ 'selected' if line.level == '-' }}>Kun lærere</option>
-            <option value="l:{{line.access_id}}:*" {{ 'selected' if line.level == '*' }}>Alle</option>
-            {% for l_code, l_name in levels.items() %}
-            <option value="l:{{line.access_id}}:{{l_code}}" {{ 'selected' if line.level == l_code }}>{{ l_name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        {% endfor %}
-        <div>
-          <select name="access">
-            <option value="s:new:-" selected></option>
-            <option value="s:new:*">Alle skoler</option>
-            {% for school in schools %}  
-            <option value="s:new:{{school.org_nr}}">{{ school.school_name }}</option>
-            {% endfor %}
-          </select>
-          <select name="access">
-            <option value="l:new:-">Kun lærere</option>
-            <option value="l:new:*" selected>Alle</option>
-            {% for l_code, l_name in levels.items() %}
-            <option value="l:new:{{l_code}}">{{ l_name }}</option>
-            {% endfor %}
-          </select>
+
+
+    {% if g.admin %}
+      <div class="row mb-3">
+        <label for="accesses" class="col-sm-2 col-form-label">Tilganger</label>
+        <div class="col-sm-10">
+          {% for line in bot.accesses %}
+          <div>
+            <select name="access">
+              <option value="s:{{line.access_id}}:del">Slett</option>
+              <option value="s:{{line.access_id}}:*" {{ 'selected' if line.school_id == '*' }}>Alle skoler</option>
+              {% for school in schools %}  
+              <option value="s:{{line.access_id}}:{{school.org_nr}}" {{ 'selected' if line.school_id == school.org_nr }}>{{ school.school_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="access">
+              <option value="l:{{line.access_id}}:-" {{ 'selected' if line.level == '-' }}>Kun lærere</option>
+              <option value="l:{{line.access_id}}:*" {{ 'selected' if line.level == '*' }}>Alle</option>
+              {% for l_code, l_name in levels.items() %}
+              <option value="l:{{line.access_id}}:{{l_code}}" {{ 'selected' if line.level == l_code }}>{{ l_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+          <div>
+            <select name="access">
+              <option value="s:new:-" selected></option>
+              <option value="s:new:*">Alle skoler</option>
+              {% for school in schools %}  
+              <option value="s:new:{{school.org_nr}}">{{ school.school_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="access">
+              <option value="l:new:-">Kun lærere</option>
+              <option value="l:new:*" selected>Alle</option>
+              {% for l_code, l_name in levels.items() %}
+              <option value="l:new:{{l_code}}">{{ l_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
       </div>
-    </div>
+    {% else %}
+      <div class="row mb-3">
+        <div class="col-sm-2">
+          Grupper som har tilgang
+        </div>
+        <div class="col-sm-10">
+          {% for group in groups|sort(attribute='displayName') %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="access" value="{{group.id}}" id="check{{loop.index}}" {{ 'checked' if group.checked }} >
+              <label class="form-check-label" for="check{{loop.index}}">
+                {{group.display_name}} {{ '(klasse)' if group.go_type == 'b' else '(faggruppe)' }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
     <button type="submit" class="btn oslo-btn-primary">Lagre</button>
   </form>
 
