@@ -2,33 +2,44 @@
 
 {% block header %}
   <header>
-    <nav class="navbar navbar-expand-lg oslo-bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand flex-grow-1 p-2" href="{{url_for('main.index')}}">
-          <img src="{{ url_for('static', filename='img/oslobot.svg') }}" width="32" height="32" alt="KI">
-          KI for Osloskolen
-        </a>
-        <div class="p-2">
-          <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">
-            <img alt="Creative Commons-lisens" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" />
-          </a>
-        </div>
+    <div id="header" class="d-flex justify-content-between p-4 oslo-bg-light">
+      <a href="{{url_for('main.index')}}">
+        <h1  class="h3 p-3">
+          Kunstig intelligens for Osloskolen
+        </h1>
+      </a>
+      <a class="logo" href="{{url_for('main.index')}}">
+        <img src="{{ url_for('static', filename='img/oslo_logo_sort.svg') }}" alt="Oslologo">
+      </a>
+    </div>
+      
+    <nav class="d-flex flex-row-reverse">
+      {% block nav %}
         {% if g.logged_on %}
-        <div class="p-2">
-            <a href="{{url_for('info.om')}}">Informasjon</a>
-        </div>
-        <div class="p-2">
-            <a href="{{url_for('auth.logout')}}">Logg ut </a>
-        </div>
+          <div class="p-3">
+              <a href="{{url_for('auth.logout')}}">Logg ut </a>
+          </div>
+          {% if g.employee %}
+            <div class="p-3">
+              <span class="{{ 'oslo-text-light' if page == 'lerere' }}">
+                <a href="{{url_for('info.lerere')}}">Tips til bruk</a>
+              </span>
+            </div>
+          {% endif %}
+          <div class="p-3">
+            <span class="{{ 'oslo-text-light' if page == 'om' }}">
+              <a href="{{url_for('info.om')}}">Om tjenesten</a>
+            </span>
+          </div>
         {% else %}
-        <div class="p-2">
-            <a href="{{url_for('auth.feidelogin')}}">Logg inn </a>
-        </div>
+          <div class="p-3">
+              <a href="{{url_for('auth.feidelogin')}}">Logg inn </a>
+          </div>
         {% endif %}
-      </div>
+      {% endblock nav %}
     </nav>
 
   </header>
 
 
-{% endblock %}
+{% endblock header %}

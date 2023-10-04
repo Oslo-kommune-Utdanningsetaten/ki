@@ -4,12 +4,19 @@
   {{config['SITENAME']}}
 {% endblock %}
 
+{% set page = 'om' %}
+{% block nav scoped %}
+  {{ super() }}
+    <div class="p-3">
+        <a href="{{url_for('main.index')}}">Startside</a>
+    </div>
+{% endblock %}
+
 {% block content %}
 
 <div id="om_page">
 
   {% set page = 'om' %}
-  {% include "info_menu.html" %}
 
   <div>
     <h3>Om tjenesten</h3>
@@ -23,9 +30,6 @@
     <p>KI i osloskolen er blant annet skapt for å være en lavterskel-inngang for lærere og elever, uavhengig av tidligere erfaring. Osloskolens chatbots er designet for å få brukere raskt i gang med KI på en hensiktsmessig måte.</p>
     <p>KI i osloskolen bruker den samme type FEIDE-innloggingen som resten av de digitale løsningene du er vant til i skolehverdagen. Løsningen er trygg og i henhold til GDPR.</p>
     <p>Det å skape en sikker løsning for bruk av KI som verken krever penger eller persondata åpner for at alle tilknyttet osloskolen skal få de samme forutsetningene til å lære om og med KI.</p>
-    <h3>Tilbakemelding</h3>
-    <p>Gi oss gjerne tilbakemelding på tjenesten:</p>
-    <a class="btn oslo-btn-primary" href="https://forms.office.com/e/BsRgRrgMmk" target="_blank">Gi tilbakemelding</a>
   </div>
   <div class="mt-5">
     <p>

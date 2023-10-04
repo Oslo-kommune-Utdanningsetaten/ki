@@ -29,6 +29,7 @@ def load_logged_in_user():
             g.logged_on = True
             g.username = username
             g.name = session.get('user.name')
+            g.employee = session.get('user.employee')
             g.bots = session.get('user.bots')
             g.p_bots = session.get('user.p_bots')
 
@@ -157,6 +158,7 @@ def feidecallback():
             name = userinfo_response.json()["name"]
             session['user.username'] = username
             session['user.name'] = name
+            session['user.employee'] = employee
             session['user.bots'] = bots
             session['user.p_bots'] = p_bots
             session['user.auth'] = tokens
