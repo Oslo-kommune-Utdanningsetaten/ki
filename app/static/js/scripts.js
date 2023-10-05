@@ -8,6 +8,7 @@ $(document).ready(function () {
         message: '',
         messages: [],
         showTypeWriter: false,
+        showSystemPrompt: false,
       }
     },
     computed: {
@@ -46,6 +47,9 @@ $(document).ready(function () {
       newThread() {
         startpromt()
       },
+      toggleStartPromt() {
+        vm.showSystemPrompt = !vm.showSystemPrompt
+      }
     }
   })
 

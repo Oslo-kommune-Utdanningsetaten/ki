@@ -87,6 +87,11 @@ ul .assistant {
   background-color: #B3F5FF
 } 
 
+ul .system {   
+  list-style:none; 
+  background-color: #F8F0DD
+} 
+
 .avatar {   
   text-align: center!important;
   padding: 0!important;
@@ -158,6 +163,18 @@ ul .assistant {
     color: #000;
     background-color: #D0BFAE;
     border-color: #D0BFAE;
+}
+
+.oslo-btn-warning {
+    color: #000;
+    background-color: #F9C66B;
+    border-color: #F9C66B;
+}
+
+.oslo-btn-warning:hover {
+    color: #000;
+    background-color: #FF8274;
+    border-color: #FF8274;
 }
 
 .oslo-bg-primary {

@@ -15,35 +15,43 @@ client = WebApplicationClient(current_app.config['FEIDE_CLIENT_ID'])
 
 @auth.before_app_request
 def load_logged_in_user():
-        username = session.get('user.username')
-        g.logged_on = False
-        g.admin = False
-        if username is None:
-            if ((request.blueprint in ['main'] or 
-                    request.blueprint in ['info']) and
-                    request.path != url_for('main.index')):
-                return redirect(url_for('auth.feidelogin'))
-            elif request.blueprint in ['api']:
-                abort(401) 
-        else:
-            g.logged_on = True
-            g.username = username
-            g.name = session.get('user.name')
-            g.employee = session.get('user.employee')
-            g.bots = session.get('user.bots')
-            g.p_bots = session.get('user.p_bots')
+    username = session.get('user.username')
+    g.logged_on = False
+    g.admin = False
+    if username is None:
+        if ((request.blueprint in ['main'] or 
+                request.blueprint in ['info']) and
+                request.path != url_for('main.index')):
+            return redirect(url_for('auth.feidelogin'))
+        elif request.blueprint in ['api']:
+            abort(401) 
+    else:
+        g.logged_on = True
+        g.username = username
+        g.name = session.get('user.name')
+        g.employee = session.get('user.employee')
+        g.bots = session.get('user.bots')
 
+        # load settings
+        settings_dict = {}
+        for item in models.Setting.query.all():
+            if item.int_val != None:
+                settings_dict[item.setting_key] = item.int_val
+            elif item.txt_val != None:
+                settings_dict[item.setting_key] = item.txt_val
+        g.settings = settings_dict
 
-            # temp admin access
-            admins = [
-                    "fnygard@feide.osloskolen.no", 
-                    "mawoa033@feide.osloskolen.no", 
-                    "jbnatvig@feide.osloskolen.no",
-                    ]
-            if username in admins:
-                bots = models.Bot.query.all()
-                g.bots = [bot.bot_nr for bot in bots]
-                g.admin = True
+        # temp admin access
+        admins = [
+                "fnygard@feide.osloskolen.no", 
+                "mawoa033@feide.osloskolen.no", 
+                "jbnatvig@feide.osloskolen.no",
+                ]
+        if username in admins:
+            bots = models.Bot.query.filter_by(owner=None).all()
+            # bots = models.Bot.query.all()
+            g.bots = [bot.bot_nr for bot in bots]
+            g.admin = True
 
 
 def get_provider_cfg():
@@ -104,7 +112,8 @@ def feidecallback():
         subjects = {}
         employee = False
         bots = []
-        p_bots = []
+        allow_groups = models.Setting.query.get('allow_groups').int_val
+        print(allow_groups)
         # get user's school info
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         uri, headers, body = client.add_token(groupinfo_endpoint)
@@ -127,7 +136,7 @@ def feidecallback():
                         group.get('grep_type') == "aarstrinn"):
                 levels.append(group['code'])
             # access from subject
-            if group.get('type') == "fc:gogroup":
+            if (group.get('type') == "fc:gogroup") and allow_groups:
                 subject_id = group.get('id')
                 subject_accesses = models.SubjectAccess.query.filter_by(subject_id=subject_id).all()
                 for line in subject_accesses:
@@ -146,13 +155,10 @@ def feidecallback():
                                 if line.bot_nr not in bots:
                                     bots.append(line.bot_nr)
 
-
         personal_bots = models.Bot.query.filter_by(owner=username).all()
         for line in personal_bots:
             if line.bot_nr not in bots:
                 bots.append(line.bot_nr)
-                p_bots.append(line.bot_nr)
-
 
         if bots:
             name = userinfo_response.json()["name"]
@@ -160,7 +166,6 @@ def feidecallback():
             session['user.name'] = name
             session['user.employee'] = employee
             session['user.bots'] = bots
-            session['user.p_bots'] = p_bots
             session['user.auth'] = tokens
         else:
             session.clear()
@@ -178,9 +183,9 @@ def logout():
     g.username = None
     g.name = None
     g.bots = []
-    g.p_bots = []
-    id_token = session.get('user.auth')['id_token']
-    if g.logged_on and id_token:
+    token = session.get('user.auth')
+    if g.logged_on and token:
+        id_token = token['id_token']
         g.logged_on = False
         feide_provider_cfg = get_provider_cfg()
         end_session_endpoint = feide_provider_cfg["end_session_endpoint"]

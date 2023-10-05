@@ -6,8 +6,32 @@
 
 {% block content %}
 
-
 <div id="home">
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="delete_bot" tabindex="-1" aria-labelledby="delete_bot_label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="delete_bot_label">Slette bot</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Vi du virkelig slette denne boten?
+        </div>
+        <div class="modal-footer">
+          <form method="post">
+            <input type="hidden" id="delete_bot_nr" name="delete_bot_nr" value="">
+            <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+            <input type="submit" id="delete_ok"  class="btn oslo-btn-warning" value="Ja jeg vil slette">
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <div>
     <h3>Velkommen til Osloskolens KI-løsning</h3>
     <p>Denne løsningen er under pilotering for utvalgte brukere i Oslokolen</p>
@@ -26,17 +50,24 @@
       <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
         <div class="card" >
           <div class="card-img-top text-center">
-            {% if bot.image %}
-              <img src="{{ url_for('static', filename='img/') + bot.image}}" alt="">
-            {% else %}
-              <img src="{{ url_for('static', filename='img/') + 'defaultbot.svg'}}" alt="">
-            {% endif %}
+            <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}">
+              {% if bot.image %}
+                <img src="{{ url_for('static', filename='img/') + bot.image}}" alt="Åpne {{ bot.title }}">
+              {% else %}
+                <img src="{{ url_for('static', filename='img/') + 'defaultbot.svg'}}" alt="Åpne {{ bot.title }}">
+              {% endif %}
+            </a>
           </div>
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
             <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-primary">Åpne</a>
-            {% if g.admin or (bot.bot_nr in g.p_bots) %} 
-              <a href="{{url_for('main.adminbot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-secondary">Rediger</a>
+            {% if g.employee %} 
+              <a href="{{url_for('main.adminbot', bot_nr=bot.bot_nr)}}" type="button" class="btn oslo-btn-secondary">Rediger</a>
+            {% endif %}
+            {% if bot.owner == g.username or g.admin %}
+              <button type="button" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot" data-bs-bot="{{bot.bot_nr}}">
+                Slett
+              </button>
             {% endif %}
           </div>
         </div>
@@ -46,6 +77,37 @@
         <a href="{{url_for('auth.feidelogin')}}" role="button" class="btn oslo-btn-primary">Logg inn </a>
       </div>
     {% endfor %}
+
+    {% if g.employee or g.admin %}
+      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+        <div class="card" >
+          <div class="card-img-top text-center">
+            <a href="{{url_for('main.adminbot', bot_nr='new')}}">
+              <img src="{{ url_for('static', filename='img/') + 'pluss.svg'}}" alt="Lag ny bot">
+            </a>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">Lag ny bot</h5>
+            <a href="{{url_for('main.adminbot', bot_nr='new')}}" class="btn oslo-btn-secondary">Ny</a>
+          </div>
+        </div>
+      </div>
+
+    {% endif %}
+
+
   </div>
+
+  <script type="text/javascript">
+    const delete_bot = document.getElementById('delete_bot')
+    if (delete_bot) {
+      delete_bot.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget
+        const bot_nr = button.getAttribute('data-bs-bot')
+        const delete_bot_nr = delete_bot.querySelector('#delete_bot_nr')
+        delete_bot_nr.value = bot_nr
+      })
+    }
+  </script>
 
 {% endblock %}

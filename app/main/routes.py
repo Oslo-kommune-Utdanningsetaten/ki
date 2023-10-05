@@ -6,18 +6,30 @@ from app.main import models
 
 main = Blueprint('main', __name__)
 
-@main.route('/')
+@main.route('/', methods=['GET', 'POST'])
 def index():
-    bots = models.Bot.query.all()
 
+    if request.method == 'POST':
+        bot_nr = int(request.form.get('delete_bot_nr'))
+        bot = models.Bot.query.get(bot_nr)
+        if not bot:
+            abort(404)
+        if not g.admin and not bot.owner == g.username:
+            abort(403)
+        db.session.delete(bot)
+        db.session.commit()
+
+        if bot_nr in g.bots:
+            g.bots.remove(bot_nr)
+            session['user.bots'] = g.bots
+
+    bots = models.Bot.query.all()
     if g.logged_on:
         users_bots = [bot for bot in bots if bot.bot_nr in g.bots]
-    elif g.admin:
-        users_bots = bots
     else:
         users_bots = []
 
-    return render_template('index.html', bots=users_bots)
+    return render_template('index.html', bots=users_bots, page='index')
 
 
 @main.route('/bot/<bot_nr>')
@@ -29,23 +41,15 @@ def bot(bot_nr):
     if not int(bot_nr) in g.bots:
         return redirect(url_for('main.index'))
 
-    return render_template('bot.html', bot_nr=bot_nr)
+    return render_template('bot.html', bot_nr=bot_nr, page='bot')
 
 
-@main.route('/adminbot/<bot_nr>', methods=['GET','POST'])
+@main.route('/adminbot/<bot_nr>', methods=['GET', 'POST'])
 def adminbot(bot_nr):
-
-    bot = models.Bot.query.get(bot_nr)
-    teacher = bot.owner == g.username
-
-    if not bot:
-        abort(404)
-    if not teacher and not g.admin:
-        abort(403)
 
     def get_groups():
         subjects = []
-        access_list = [subj.subject_id for subj in bot.subjects]
+        # access_list = [subj.subject_id for subj in bot.subjects]
         access_token = session.get('user.auth')['access_token']
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         headers = {
@@ -55,7 +59,7 @@ def adminbot(bot_nr):
         try:
             groupinfo_response = requests.get(groupinfo_endpoint, headers=headers)
         except requests.exceptions.ConnectionError as e:
-            return None
+            return []
         else:
             if groupinfo_response.status_code == 200:
 
@@ -65,16 +69,35 @@ def adminbot(bot_nr):
                             'id': group.get('id'),
                             'display_name': group.get('displayName'),
                             'go_type': group.get('go_type'),
-                            'checked': group.get('id') in access_list,
+                            # 'checked': group.get('id') in access_list,
                             })
-                return subjects
+            return subjects
+
+    if not g.employee and not g.admin:
+        abort(403)
+
+    if bot_nr == 'new':
+        bot = models.Bot()
+        if not g.admin:
+            bot.owner = g.username
+
+    else:
+        bot = models.Bot.query.get(bot_nr)
+        if not bot:
+            abort(404)
 
     if request.method == 'POST':
-        # accesses = bot.accesses
-        bot.title = request.form.get('title')
-        bot.ingress = request.form.get('ingress')
-        bot.prompt = request.form.get('prompt')
-        bot.model = request.form.get('model') or 'gpt-3.5-turbo'
+        if bot.owner == g.username or g.admin:
+            bot.title = request.form.get('title')
+            bot.ingress = request.form.get('ingress')
+            bot.prompt = request.form.get('prompt')
+            bot.model = request.form.get('model') or 'gpt-3.5-turbo'
+            db.session.add(bot)
+            db.session.commit()
+
+        if bot_nr == 'new':
+            g.bots.append(bot.bot_nr)
+            session['user.bots'] = g.bots
 
         if g.admin:
             acc_dict = {}
@@ -100,27 +123,56 @@ def adminbot(bot_nr):
                         bot_access.level = values['l']
                         db.session.add(bot_access)
 
-        elif teacher:
+        elif g.settings['allow_groups']:
             acc_dict = {}
             acc_req = request.form.getlist('access')
-            acls_to_remove = list(bot.subjects)
-            for subject_id in acc_req:
-                if acl := models.SubjectAccess.query.filter_by(bot_nr=bot_nr, subject_id=subject_id).first():
-                    acls_to_remove.remove(acl)
-                else:
-                    acl = models.SubjectAccess(bot_nr=bot_nr, subject_id=subject_id)
+            if bot_nr == 'new':
+                for subject_id in acc_req:
+                    acl = models.SubjectAccess(bot_nr=bot.bot_nr, subject_id=subject_id)
                     db.session.add(acl)
-            for acl in acls_to_remove:
-                db.session.delete(acl)
+            else:
+                acls_to_remove = list(bot.subjects)
+                for subject_id in acc_req:
+                    if acl := models.SubjectAccess.query.filter_by(bot_nr=bot_nr, subject_id=subject_id).first():
+                        acls_to_remove.remove(acl)
+                    else:
+                        acl = models.SubjectAccess(bot_nr=bot_nr, subject_id=subject_id)
+                        db.session.add(acl)
+                for acl in acls_to_remove:
+                    db.session.delete(acl)
 
-        db.session.add(bot)
         db.session.commit()
+        return redirect(url_for('main.index'))
 
     if g.admin:
         schools = models.School.query.all()
-        return render_template('adminbot.html', bot=bot, schools=schools)
-    elif teacher:
+        return render_template('adminbot.html', bot=bot, schools=schools, page='adminbot')
+    else:
+        access_list = [subj.subject_id for subj in bot.subjects]
         groups = get_groups()
-        return render_template('adminbot.html', bot=bot, groups=groups)
+        groups = [dict(group, checked=group.get('id') in access_list) for group in groups]
+        return render_template('adminbot.html', bot=bot, groups=groups, page='adminbot')
 
 
+@main.route("/settings", methods=['GET','POST'])
+def settings():
+    if not g.admin:
+        abort(403)
+
+    settings = models.Setting.query.all()
+    if request.method == 'POST':
+        if request.form.get('save_settings') == 'ok':
+            for setting in settings:
+                if request.form.get(setting.setting_key):
+                    if setting.is_txt:
+                        setting.txt_val = request.form.get(setting.setting_key)
+                    else:
+                        setting.int_val = int(request.form.get(setting.setting_key))
+                    db.session.add(setting)
+        db.session.commit()
+        return redirect(url_for('main.settings'))
+
+    return render_template('settings.html', 
+                            settings = settings,
+                            page = 'settings'
+                            )

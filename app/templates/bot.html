@@ -16,15 +16,17 @@
     <p>
       ${ bot.ingress }
     </p>
+    <button class="btn oslo-btn-secondary" @click="toggleStartPromt">Vis ledetekst</button>
 
     <div class="card border-dark">
       <ul class="list-group list-group-flush">
         <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
-          <li v-if="message_line.role != 'system'" class="container-fluid list-group-item response" :class="message_line.role">
+          <li v-if="message_line.role != 'system' || showSystemPrompt" class="container-fluid list-group-item response" :class="message_line.role">
             <span class="row">
               <div class="col-1 avatar">
+                <img v-if="message_line.role === 'system'" src="{{ url_for('static', filename='img/system.svg') }}" alt="ledetekst:">
                 <img v-if="message_line.role === 'user'" src="{{ url_for('static', filename='img/user.svg') }}" alt="du:">
-                <img v-else src="{{ url_for('static', filename='img/oslobot.svg') }}" alt="bot:">
+                <img v-if="message_line.role === 'assistant'" src="{{ url_for('static', filename='img/oslobot.svg') }}" alt="bot:">
               </div>
               <div class="col">
                 <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''" >

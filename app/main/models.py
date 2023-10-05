@@ -14,15 +14,15 @@ class Setting(db.Model):
 
 
 class Bot(db.Model):
-    bot_nr = db.Column(db.Integer, primary_key=True)
+    bot_nr = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(20))
     ingress = db.Column(db.Text)
     prompt = db.Column(db.Text)
     model = db.Column(db.String(20))
     image = db.Column(db.String(20))
     owner = db.Column(db.String(50))
-    accesses = db.relationship('BotAccess', backref='bot')
-    subjects = db.relationship('SubjectAccess', backref='bot')
+    accesses = db.relationship('BotAccess', backref='bot', cascade="all, delete")
+    subjects = db.relationship('SubjectAccess', backref='bot', cascade="all, delete")
 
 
 class BotAccess(db.Model):

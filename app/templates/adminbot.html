@@ -11,27 +11,47 @@
 
 <div class="container mt-3" >
 
+  <form  method="post">
 
-
-  <form method="post">
-    <div class="row mb-3">
-      <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" id="bot_title" value="{{bot.title}}" name="title">
+    {% if bot.owner == g.username or g.admin %}
+      <div class="row mb-3">
+        <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="bot_title" value="{{bot.title if bot.title else ''}}" name="title">
+        </div>
       </div>
-    </div>
-    <div class="row mb-3">
-      <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" id="bot_ingress" value="{{bot.ingress}}" name="ingress">
+      <div class="row mb-3">
+        <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="bot_ingress" value="{{bot.ingress if bot.ingress else ''}}" name="ingress">
+        </div>
       </div>
-    </div>
-    <div class="row mb-3">
-      <label for="bot_promt" class="col-sm-2 col-form-label">Start-promt (ikke synlig for bruker)</label>
-      <div class="col-sm-10">
-        <textarea class="form-control" id="bot_promt" rows="5" name="prompt">{{bot.prompt}}</textarea>
+      <div class="row mb-3">
+        <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
+        <div class="col-sm-10">
+          <textarea class="form-control" id="bot_promt" rows="5" name="prompt">{{bot.prompt if bot.prompt else ''}}</textarea>
+        </div>
       </div>
-    </div>
+    {% else %}
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Tittel på boten</div>
+        <div class="col-sm-10">
+          {{bot.title if bot.title else ''}}
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Ingress</div>
+        <div class="col-sm-10">
+          {{bot.ingress if bot.ingress else ''}}
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Ledetekst</div>
+        <div class="col-sm-10">
+          {{bot.prompt if bot.prompt else ''}}
+        </div>
+      </div>
+    {% endif %}
 
 
     {% if g.admin %}
@@ -74,7 +94,7 @@
           </div>
         </div>
       </div>
-    {% else %}
+    {% elif g.settings['allow_groups'] %}
       <div class="row mb-3">
         <div class="col-sm-2">
           Grupper som har tilgang
@@ -93,6 +113,7 @@
     {% endif %}
 
     <button type="submit" class="btn oslo-btn-primary">Lagre</button>
+    <a href="{{url_for('main.index')}}" role="button" class="btn oslo-btn-secondary">Avbryt</a>
   </form>
 
 
