@@ -112,8 +112,8 @@ def feidecallback():
         subjects = {}
         employee = False
         bots = []
-        allow_groups = models.Setting.query.get('allow_groups').int_val
-        print(allow_groups)
+        allow_groups = bool(models.Setting.query.get('allow_groups').int_val)
+        allow_personal = bool(models.Setting.query.get('allow_personal').int_val)
         # get user's school info
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         uri, headers, body = client.add_token(groupinfo_endpoint)
@@ -154,11 +154,11 @@ def feidecallback():
                             if line.level == level:
                                 if line.bot_nr not in bots:
                                     bots.append(line.bot_nr)
-
-        personal_bots = models.Bot.query.filter_by(owner=username).all()
-        for line in personal_bots:
-            if line.bot_nr not in bots:
-                bots.append(line.bot_nr)
+        if allow_personal:
+            personal_bots = models.Bot.query.filter_by(owner=username).all()
+            for line in personal_bots:
+                if line.bot_nr not in bots:
+                    bots.append(line.bot_nr)
 
         if bots:
             name = userinfo_response.json()["name"]

@@ -61,7 +61,7 @@
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
             <a href="{{url_for('main.bot', bot_nr=bot.bot_nr)}}" class="btn oslo-btn-primary">Åpne</a>
-            {% if g.employee %} 
+            {% if (g.employee and g.settings['allow_groups']) or (g.employee and g.settings['allow_personal'] and bot.owner == g.username) or g.admin %}
               <a href="{{url_for('main.adminbot', bot_nr=bot.bot_nr)}}" type="button" class="btn oslo-btn-secondary">Rediger</a>
             {% endif %}
             {% if bot.owner == g.username or g.admin %}
@@ -78,7 +78,7 @@
       </div>
     {% endfor %}
 
-    {% if g.employee or g.admin %}
+    {% if (g.employee and g.settings['allow_personal']) or g.admin %}
       <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
         <div class="card" >
           <div class="card-img-top text-center">
