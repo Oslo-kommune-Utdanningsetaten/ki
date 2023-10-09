@@ -26,13 +26,6 @@
               </span>
             </div>
           {% endif %}
-          {% if g.employee %}
-            <div class="p-3">
-              <span class="{{ 'oslo-text-light' if page == 'lerere' }}">
-                <a href="{{url_for('info.lerere')}}">Tips til bruk</a>
-              </span>
-            </div>
-          {% endif %}
           <div class="p-3">
             <span class="{{ 'oslo-text-light' if page == 'om' }}">
               <a href="{{url_for('info.om')}}">Om tjenesten</a>
