@@ -2,3 +2,9 @@
 pw.txt
 db/*
 compose.yml
+!log/compose.yml
+log/grafana/grafana/*
+log/grafana/datasources/*
+log/prometheus/*
+!/log/prometheus/prometheus.yml
+!/log/grafana/datasources/prometheus_ds.yml
