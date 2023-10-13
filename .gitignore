@@ -8,3 +8,5 @@ log/grafana/datasources/*
 log/prometheus/*
 !/log/prometheus/prometheus.yml
 !/log/grafana/datasources/prometheus_ds.yml
+__pycache__/
+.vscode/

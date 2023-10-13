@@ -1,0 +1,37 @@
+{% block head %}
+<!doctype html>
+<html lang="no">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8"/>
+  <title>{% block title %}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" href="{{ static('logo/favicon_16.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ static('addons/bootstrap.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ static('style.css') }}">
+</head>
+{% endblock %}
+
+<body>
+  {% block header %}{% endblock %}
+
+  <div class="container mt-3">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+  <script src="{{ static('addons/marked.umd.min.js') }}"></script>
+  <script src="{{ static('addons/jquery-3.7.0.min.js') }}"></script>
+  <script src="{{ static('addons/bootstrap.min.js') }}"></script>
+  {% if debug %}
+    <script src="{{ static('addons/vue.global.js') }}"></script>
+  {% else %}
+    <script src="{{ static('addons/vue.global.prod.js') }}"></script>
+  {% endif %}
+  {% block scripts %}{% endblock %}
+
+
+</body>
+</html>
+
+

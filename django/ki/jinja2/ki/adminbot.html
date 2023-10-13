@@ -1,0 +1,122 @@
+{% extends "ki/header.html" %}
+
+{% block title %}
+  {{ sitename }}
+{% endblock %}
+
+{% block content %}
+
+{% set levels = ({ "aarstrinn1": "1. trinn", "aarstrinn2": "2. trinn", "aarstrinn3": "3. trinn", "aarstrinn4": "4. trinn", "aarstrinn5": "5. trinn", "aarstrinn6": "6. trinn", "aarstrinn7": "7. trinn", "aarstrinn8": "8. trinn", "aarstrinn9": "9. trinn", "aarstrinn10": "10. trinn", "vg1": "1. vgs", "vg2": "2. vgs", "vg3": "3. vgs"}) %}
+
+
+<div class="container mt-3" >
+
+  <form  method="post">
+
+    {% if bot.owner == request.g.username or request.g.admin %}
+      <div class="row mb-3">
+        <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="bot_title" value="{{bot.title if bot.title else ''}}" name="title">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="bot_ingress" value="{{bot.ingress if bot.ingress else ''}}" name="ingress">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
+        <div class="col-sm-10">
+          <textarea class="form-control" id="bot_promt" rows="5" name="prompt">{{bot.prompt if bot.prompt else ''}}</textarea>
+        </div>
+      </div>
+    {% else %}
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Tittel på boten</div>
+        <div class="col-sm-10">
+          {{bot.title if bot.title else ''}}
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Ingress</div>
+        <div class="col-sm-10">
+          {{bot.ingress if bot.ingress else ''}}
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Ledetekst</div>
+        <div class="col-sm-10">
+          {{bot.prompt if bot.prompt else ''}}
+        </div>
+      </div>
+    {% endif %}
+
+
+    {% if request.g.admin %}
+      <div class="row mb-3">
+        <label for="accesses" class="col-sm-2 col-form-label">Tilganger</label>
+        <div class="col-sm-10">
+          {% for line in bot.accesses %}
+          <div>
+            <select name="access">
+              <option value="s:{{line.access_id}}:del">Slett</option>
+              <option value="s:{{line.access_id}}:*" {{ 'selected' if line.school_id == '*' }}>Alle skoler</option>
+              {% for school in schools %}  
+              <option value="s:{{line.access_id}}:{{school.org_nr}}" {{ 'selected' if line.school_id == school.org_nr }}>{{ school.school_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="access">
+              <option value="l:{{line.access_id}}:-" {{ 'selected' if line.level == '-' }}>Kun lærere</option>
+              <option value="l:{{line.access_id}}:*" {{ 'selected' if line.level == '*' }}>Alle</option>
+              {% for l_code, l_name in levels.items() %}
+              <option value="l:{{line.access_id}}:{{l_code}}" {{ 'selected' if line.level == l_code }}>{{ l_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+          <div>
+            <select name="access">
+              <option value="s:new:-" selected></option>
+              <option value="s:new:*">Alle skoler</option>
+              {% for school in schools %}  
+              <option value="s:new:{{school.org_nr}}">{{ school.school_name }}</option>
+              {% endfor %}
+            </select>
+            <select name="access">
+              <option value="l:new:-">Kun lærere</option>
+              <option value="l:new:*" selected>Alle</option>
+              {% for l_code, l_name in levels.items() %}
+              <option value="l:new:{{l_code}}">{{ l_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    {% elif request.g.settings['allow_groups'] %}
+      <div class="row mb-3">
+        <div class="col-sm-2">
+          Grupper som har tilgang
+        </div>
+        <div class="col-sm-10">
+          {% for group in groups|sort(attribute='displayName') %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="access" value="{{group.id}}" id="check{{loop.index}}" {{ 'checked' if group.checked }} >
+              <label class="form-check-label" for="check{{loop.index}}">
+                {{group.display_name}} {{ '(klasse)' if group.go_type == 'b' else '(faggruppe)' }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <button type="submit" class="btn oslo-btn-primary">Lagre</button>
+    <a href="{{url_for('main.index')}}" role="button" class="btn oslo-btn-secondary">Avbryt</a>
+  </form>
+
+
+</div>
+{% endblock %}
+

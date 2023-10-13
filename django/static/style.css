@@ -1,0 +1,267 @@
+@font-face {
+  font-family: "OsloSans";
+  src: url("fonts/OsloSans-Light.woff") format('woff');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: "OsloSans";
+  src: url("fonts/OsloSans-LightItalic.woff") format('woff');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "OsloSans";
+  src: url("fonts/OsloSans-Regular.woff") format('woff');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "OsloSans";
+  src: url("fonts/OsloSans-RegularItalic.woff") format('woff');
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "OsloSans";
+  src: url("fonts/OsloSans-Medium.woff") format('woff');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: "OsloSans";
+  src: url("fonts/OsloSans-MediumItalic.woff") format('woff');
+  font-weight: bold;
+  font-style: italic;
+}
+
+
+:root {
+  --bs-border-radius: 0;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+body {
+  font-family: "OsloSans", Arial, sans-serif;
+}
+
+a {
+    font-weight: 500;
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    color: #007eff;
+    text-decoration: none!important;
+}
+
+nav a {
+    font-weight: inherit;
+}
+nav a:hover {
+    color: inherit;
+}
+
+#header a:hover {
+    color: inherit;
+}
+
+.logo img {
+  height: 70px;
+}
+
+ul .user {
+  list-style-type: none;
+  background-color: #FFFFFF
+}
+
+
+ul .assistant {   
+  list-style:none; 
+  background-color: #B3F5FF
+} 
+
+ul .system {   
+  list-style:none; 
+  background-color: #F8F0DD
+} 
+
+.avatar {   
+  text-align: center!important;
+  padding: 0!important;
+}
+
+.avatar img {   
+  width:2em;  
+}
+
+.edit-link {   
+  text-align: center!important;
+  padding: 0!important;
+}
+
+.edit-link img {   
+  width:1.3em;
+}
+
+.chat p {
+    margin-bottom: 0;
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+@keyframes blink {
+    0%, 100% { border-color: black; }
+    50% { border-color: transparent; }
+}
+
+.type-writer {
+    overflow: hidden;
+    border-right: .75em solid black;
+    width: 0;
+    animation: 
+        typing 1s forwards,
+        blink .8s infinite;
+}
+
+.response {
+    white-space: pre-wrap;
+}
+
+.name {
+  justify-self: end;
+}
+
+.oslo-btn-primary, .oslo-btn-primary.active:hover {
+    color: #2A2859;
+    background-color: #6FE9FF;
+    border-color: #6FE9FF;
+}
+
+.oslo-btn-primary:hover, .oslo-btn-primary.active {
+    color: #6FE9FF;
+    background-color: #2A2859;
+    border-color: #2A2859;
+}
+
+.oslo-btn-secondary {
+    color: #000;
+    background-color: #F8F0DD;
+    border-color: #F8F0DD;
+}
+
+.oslo-btn-secondary:hover {
+    color: #000;
+    background-color: #D0BFAE;
+    border-color: #D0BFAE;
+}
+
+.oslo-btn-warning {
+    color: #000;
+    background-color: #F9C66B;
+    border-color: #F9C66B;
+}
+
+.oslo-btn-warning:hover {
+    color: #000;
+    background-color: #FF8274;
+    border-color: #FF8274;
+}
+
+.oslo-bg-primary {
+    background-color: #B3F5FF!important;
+}
+
+.oslo-bg-secondary {
+    background-color: #F8F0DD!important;
+}
+
+.oslo-bg-success {
+    background-color: #C7F6C9!important;
+}
+
+.oslo-bg-danger {
+    background-color: #FF8274!important;
+}
+
+.oslo-bg-warning {
+    background-color: #F9C66B!important;
+}
+
+.oslo-bg-info {
+    background-color: #B3F5FF!important;
+}
+
+.oslo-bg-light {
+    background-color: #f5f5f5!important;
+}
+
+.oslo-bg-blue {
+    background-color: #6FE9FF!important;
+}
+
+.oslo-text-primary {
+    color: #2A2859!important;
+}
+
+.oslo-text-secondary {
+    color: #D0BFAE!important;
+}
+
+.oslo-text-success {
+    /*color: #43F8B6!important;*/
+    color: #034B45!important;
+}
+
+.oslo-text-danger {
+    color: #FF8274!important;
+}
+
+.oslo-text-warning {
+    color: #F9C66B!important;
+}
+
+.oslo-text-info {
+    color: #B3F5FF!important;
+}
+
+.oslo-text-light {
+    color: #818181!important;
+}
+
+.oslo-fill-green {
+    fill: #43f8b6;
+}
+
+.oslo-fill-dark-green {
+    fill: #034b45;
+}
+
+.oslo-fill-blue {
+    fill: #6fe9ff;
+}
+
+.oslo-fill-dark-blue {
+    fill: #2A2859;
+}
+
+.oslo-fill-yellow {
+    fill: #f9c66b;
+}
+
+.oslo-fill-light-green {
+    fill: #c7f6c9;
+}
+
+.oslo-fill-red {
+    fill: #ff8274;
+}
