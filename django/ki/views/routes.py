@@ -3,16 +3,16 @@ import os
 from app.settings import DEBUG
 
 # TODO: move g to proper place (request.g set during auth/pre_processor)
-g = {
-    'employee': False,
-    'admin': True,
-    'settings': {},
-    'logged_on': True,
-}
+# g = {
+#     'employee': False,
+#     'admin': False,
+#     'settings': {},
+#     'logged_on': False,
+# }
 
 # Main:
 def index(request):
-    request.g = g
+    # request.g = g
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
         "debug": DEBUG,
@@ -21,7 +21,7 @@ def index(request):
 
 
 def bot(request, bot_nr):
-    request.g = g
+    # request.g = g
     context = {
         "bot_nr": bot_nr
     }
@@ -29,7 +29,7 @@ def bot(request, bot_nr):
 
 
 def adminbot(request, bot_nr):
-    request.g = g
+    # request.g = g
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
         "bot_nr": bot_nr
