@@ -1,7 +1,7 @@
-{% extends "header.html" %}
+{% extends "ki/header.html" %}
 
 {% block title %}
-  {{config['SITENAME']}}
+  {{ sitename }}
 {% endblock %}
 
 {% block content %}
@@ -24,9 +24,9 @@
           <li v-if="message_line.role != 'system' || showSystemPrompt" class="container-fluid list-group-item response" :class="message_line.role">
             <span class="row">
               <div class="col-1 avatar">
-                <img v-if="message_line.role === 'system'" src="{{ url_for('static', filename='img/system.svg') }}" alt="ledetekst:">
-                <img v-if="message_line.role === 'user'" src="{{ url_for('static', filename='img/user.svg') }}" alt="du:">
-                <img v-if="message_line.role === 'assistant'" src="{{ url_for('static', filename='img/oslobot.svg') }}" alt="bot:">
+                <img v-if="message_line.role === 'system'" src="{{ static('img/system.svg') }}" alt="ledetekst:">
+                <img v-if="message_line.role === 'user'" src="{{ static('img/user.svg') }}" alt="du:">
+                <img v-if="message_line.role === 'assistant'" src="{{ static('img/oslobot.svg') }}" alt="bot:">
               </div>
               <div class="col">
                 <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''" >
@@ -34,7 +34,7 @@
               </div>
               <div class="col-1 edit-link invisible">
                 <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
-                  <img src="{{ url_for('static', filename='img/rediger.svg') }}" alt="rediger">
+                  <img src="{{ static('img/rediger.svg') }}" alt="rediger">
                 </a>
               </div>
             </span>
@@ -61,5 +61,5 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="{{url_for('static', filename='js/scripts.js')}}"></script>
+  <script src="{{ static('js/scripts.js') }}"></script>
 {% endblock %}

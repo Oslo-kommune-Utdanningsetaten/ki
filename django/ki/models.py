@@ -42,8 +42,10 @@ class School(models.Model):
 
 class BotAccess(models.Model):
     access_id = models.AutoField(primary_key=True)
-    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr')
-    school_id = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr')
+    # bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr')
+    bot_nr = models.IntegerField()
+    # school_id = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr')
+    school_id = models.CharField(max_length=20)
     level = models.CharField(max_length=20)
 
     def __str__(self):

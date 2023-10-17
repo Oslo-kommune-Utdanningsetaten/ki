@@ -19,6 +19,7 @@ django = "*"
 djangorestframework = "*"
 mysqlclient = "*"
 jinja2 = "*"
+uvicorn = "*"
 
 [requires]
 python_version = "3.10"

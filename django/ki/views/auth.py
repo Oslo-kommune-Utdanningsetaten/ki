@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import redirect, resolve_url
 from django.urls import resolve
 import requests
@@ -10,24 +11,24 @@ from .. import models
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
 
 
-# @auth.before_app_request
 def auth_middleware(get_response):
     def load_logged_in_user(request):
-        response = get_response(request)
-
-        if request.g is None:
-          request.g = {}
+        request.g = {}
 
         username = request.session.get('user.username')
         request.g['logged_on'] = False
         request.g['admin'] = False
         if username is None:
-            if ((resolve(request.path_info).url_name.split('.')[0] == 'main' or
-                    resolve(request.path_info).url_name.split('.')[0] == 'info') and
+            url_name = resolve(request.path_info).url_name
+            if (url_name is None):
+                response = get_response(request)
+                return response
+            elif ((url_name.split('.')[0] == 'main' or
+                    url_name.split('.')[0] == 'info') and
                     request.path != resolve_url('main.index')):
                 return redirect(resolve_url('auth.feidelogin'))
-            elif resolve(request.path_info).url_name.split('.')[0] == 'api':
-                abort(401)
+            elif url_name.split('.')[0] == 'api':
+                return HttpResponse('Unauthorized', status=401)
         else:
             request.g['logged_on'] = True
             request.g['username'] = username
@@ -37,7 +38,7 @@ def auth_middleware(get_response):
 
             # load settings
             settings_dict = {}
-            for item in models.Setting.query.all():
+            for item in models.Setting.objects.all():
                 if item.int_val != None:
                     settings_dict[item.setting_key] = item.int_val
                 elif item.txt_val != None:
@@ -51,22 +52,20 @@ def auth_middleware(get_response):
                 "jbnatvig@feide.osloskolen.no",
             ]
             if username in admins:
-                bots = models.Bot.query.filter_by(owner=None).all()
-                # bots = models.Bot.query.all()
+                bots = models.Bot.objects.filter(owner=None)
                 request.g['bots'] = [bot.bot_nr for bot in bots]
                 request.g['admin'] = True
 
-        
-
+        response = get_response(request)
         return response
 
     return load_logged_in_user
+
 
 def get_provider_cfg():
     return requests.get(os.environ.get('FEIDE_DISCOVERY_URL')).json()
 
 
-# @auth.route("/feidelogin")
 def feidelogin(request):
     # Find out what URL to hit for Feide login
     feide_provider_cfg = get_provider_cfg()
@@ -84,7 +83,6 @@ def feidelogin(request):
     return redirect(request_uri)
 
 
-# @auth.route('feidecallback')
 def feidecallback(request):
     # Get authorization code Feide sent back to you
     code = request.GET.get("code", "")
@@ -193,3 +191,21 @@ def feidecallback(request):
         request.session.clear()
 
     return redirect(resolve_url('main.index'))
+
+
+def logout(request):
+    request.session.clear()
+    request.g['username'] = None
+    request.g['name'] = None
+    request.g['bots'] = []
+    token = request.session.get('user.auth', False)
+    if request.g['logged_on'] and token:
+        id_token = token['id_token']
+        request.g['logged_on'] = False
+        feide_provider_cfg = get_provider_cfg()
+        end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
+        site_url = request.referrer
+        return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={id_token}"
+        return redirect(return_uri)
+    else:
+        return redirect(resolve_url('main.index'))

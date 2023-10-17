@@ -1,23 +1,27 @@
 from django.urls import path
-from .views import auth, routes
+from .views import api, auth, routes
 
 routeurls = [
-    # Main:
-    path("", routes.index, name='main.index'),
-    path("bot/", routes.bot, name='main.bot'),
-    path("adminbot/<str:bot_nr>", routes.adminbot, name="main.adminbot"),
-    path("adminbot/<int:bot_nr>", routes.adminbot, name="main.adminbot"),
+  # Main:
+  path("", routes.index, name='main.index'),
+  path("bot/<int:bot_nr>", routes.bot, name='main.bot'),
+  path("adminbot/<str:bot_nr>", routes.adminbot, name="main.adminbot"),
+  path("adminbot/<int:bot_nr>", routes.adminbot, name="main.adminbot"),
 
-    # WIP:
-    path("wip/", routes.wip, name="main.settings"),
-    # path("wip/", routes.wip, name="auth.feidelogin"),
-    path("wip/", routes.wip, name="auth.logout"),
-    path("wip/", routes.wip, name="info.om"),
+  # WIP:
+  path("wip/", routes.wip, name="main.settings"),
+  path("wip/", routes.wip, name="info.om")
 ]
 
 authurls = [
   path("feidelogin/", auth.feidelogin, name="auth.feidelogin"),
-  path("auth/feidecallback", auth.feidecallback, name="feidecallback")
+  path("auth/feidecallback", auth.feidecallback, name="feidecallback"),
+  path("logout/", auth.logout, name="auth.logout")
 ]
 
-urlpatterns = routeurls + authurls
+apiurls = [
+  path("api/bot/<int:bot_nr>", api.start_message, name="api.start_message"),
+  path("api/send_message", api.send_message, name="api.send_message")
+]
+
+urlpatterns = routeurls + authurls + apiurls
