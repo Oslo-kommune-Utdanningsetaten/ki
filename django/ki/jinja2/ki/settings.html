@@ -1,7 +1,7 @@
-{% extends "header.html" %}
+{% extends "ki/header.html" %}
 
 {% block title %}
-  {{config['SITENAME']}}
+  {{ sitename }}
 {% endblock %}
 
 {% block content %}
@@ -11,6 +11,7 @@
   <div class="card">
     <div class="card-body">
       <form method="post">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         {% for setting in settings %}
           <div class="form-group row">
             <label for="{{ setting.setting_key }}" class="col-sm-3 col-form-label">{{ setting.label }}:</label>
@@ -25,7 +26,7 @@
         {% endfor %}
 
         <button type="submit" class="btn oslo-btn-primary" name="save_settings" value="ok"> Lagre endringer</button>
-        <a href="{{ url_for('main.index') }}" type="button" class="btn oslo-btn-secondary" >Avbryt</a>
+        <a href="{{ url('main.index') }}" type="button" class="btn oslo-btn-secondary" >Avbryt</a>
 
       </form>
     </div>

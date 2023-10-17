@@ -7,10 +7,10 @@ routeurls = [
   path("bot/<int:bot_nr>", routes.bot, name='main.bot'),
   path("adminbot/<str:bot_nr>", routes.adminbot, name="main.adminbot"),
   path("adminbot/<int:bot_nr>", routes.adminbot, name="main.adminbot"),
+  path("settings/", routes.settings, name="main.settings"),
 
-  # WIP:
-  path("wip/", routes.wip, name="main.settings"),
-  path("wip/", routes.wip, name="info.om")
+  # Info:
+  path("info/om", routes.info, name="info.om"),
 ]
 
 authurls = [

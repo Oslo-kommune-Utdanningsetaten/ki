@@ -12,7 +12,7 @@
 <div class="container mt-3" >
 
   <form  method="post">
-
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     {% if bot.owner == request.g.username or request.g.admin %}
       <div class="row mb-3">
         <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
@@ -113,7 +113,7 @@
     {% endif %}
 
     <button type="submit" class="btn oslo-btn-primary">Lagre</button>
-    <a href="{{url_for('main.index')}}" role="button" class="btn oslo-btn-secondary">Avbryt</a>
+    <a href="{{url('main.index')}}" role="button" class="btn oslo-btn-secondary">Avbryt</a>
   </form>
 
 

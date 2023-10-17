@@ -20,8 +20,8 @@ class Bot(models.Model):
     ingress = models.TextField()
     prompt = models.TextField()
     model = models.CharField(max_length=20)
-    image = models.CharField(max_length=20)
-    owner = models.CharField(max_length=50)
+    image = models.CharField(max_length=20, null=True)
+    owner = models.CharField(max_length=50, null=True)
 
     class Meta:
         managed = False
@@ -56,7 +56,7 @@ class BotAccess(models.Model):
         db_table = 'bot_access'
 
 class SubjectAccess(models.Model):
-    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE)
+    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr', to_field='bot_nr')
     subject_id = models.CharField(max_length=200)
 
     class Meta:

@@ -1,6 +1,7 @@
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect
 import os
+import requests
 from app.settings import DEBUG
 from .. import models
 
@@ -9,6 +10,19 @@ from .. import models
 
 # Main:
 def index(request):
+    if request.method == 'POST':
+        bot_nr = int(request.POST.get('delete_bot_nr'))
+        bot = models.Bot.objects.get(bot_nr=bot_nr)
+        if not bot:
+            return HttpResponseNotFound()
+        if not request.g.get('admin', False) and not bot.owner == request.g['username']:
+            return HttpResponseForbidden()
+        bot.delete()
+
+        if bot_nr in request.g.get('bots', []):
+            request.g['bots'].remove(bot_nr)
+            request.session['user.bots'] = request.g['bots']
+
     bots = models.Bot.objects.all()
     if request.g.get('logged_on', False):
         users_bots = [bot for bot in bots if bot.bot_nr in request.g.get('bots', [])]
@@ -18,7 +32,8 @@ def index(request):
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
         "debug": DEBUG,
-        "bots": users_bots
+        "bots": users_bots,
+        "page": "index"
     }
     return render(request, 'ki/index.html', context)
 
@@ -41,11 +56,161 @@ def bot(request, bot_nr):
 
 
 def adminbot(request, bot_nr):
+    def get_groups():
+        subjects = []
+        # access_list = [subj.subject_id for subj in bot.subjects]
+        access_token = request.session.get('user.auth')['access_token']
+        groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + access_token
+            }
+        try:
+            groupinfo_response = requests.get(groupinfo_endpoint, headers=headers)
+        except requests.exceptions.ConnectionError as e:
+            return []
+        else:
+            if groupinfo_response.status_code == 200:
+
+                for group in groupinfo_response.json():
+                    if group.get('type') == "fc:gogroup":
+                        subjects.append({
+                            'id': group.get('id'),
+                            'display_name': group.get('displayName'),
+                            'go_type': group.get('go_type'),
+                            # 'checked': group.get('id') in access_list,
+                            })
+            return subjects
+
+    if not request.g.get('employee', False) and not request.g.get('admin', False):
+        return HttpResponseForbidden()
+
+    if bot_nr == 'new':
+        bot = models.Bot()
+        print(bot)
+        if not request.g.get('admin', False):
+            bot.owner = request.g.get('username')
+    else:
+        bot = models.Bot.objects.get(bot_nr=bot_nr)
+        if not bot:
+            return HttpResponseNotFound()
+
+    if request.method == 'POST':
+        if bot.owner == request.g.get('username') or request.g.get('admin'):
+            bot.title = request.POST.get('title')
+            bot.ingress = request.POST.get('ingress')
+            bot.prompt = request.POST.get('prompt')
+            bot.model = request.POST.get('model') or 'gpt-3.5-turbo'
+            bot.save()
+            bot.bot_nr = bot.pk
+
+        if bot_nr == 'new':
+            request.g['bots'].append(bot.bot_nr)
+            request.session['user.bots'] = request.g['bots']
+
+        if request.g.get('admin', False):
+            acc_dict = {}
+            acc_req = request.POST.getlist('access')
+            for request_line in acc_req:
+                field, access_id, value = request_line.split(':', 3)
+                if access_id not in acc_dict:
+                    acc_dict[access_id] = {field: value}
+                else:
+                    acc_dict[access_id].update({field: value})
+            for access_id, values in acc_dict.items():
+                print("access_id", access_id)
+                print("values['s']", values['s'])
+                if access_id == 'new' and (values['s'] != '-'):
+                    bot_access = models.BotAccess()
+                    bot_access.bot_nr = bot_nr
+                else:
+                    try:
+                        bot_access = models.BotAccess.objects.get(access_id=access_id)
+                    except ValueError:
+                        bot_access = None
+
+                if bot_access:
+                    if values['s'] == 'del':
+                        bot_access.delete()
+                    else:
+                        bot_access.school_id = values['s']
+                        bot_access.level = values['l']
+                        bot_access.save()
+
+        elif request.g['settings']['allow_groups']:
+            acc_dict = {}
+            acc_req = request.POST.getlist('access')
+            if bot_nr == 'new':
+                for subject_id in acc_req:
+                    acl = models.SubjectAccess(bot_nr=bot.bot_nr, subject_id=subject_id)
+                    acl.save()
+            else:
+                acls_to_remove = list(bot.subjects)
+                for subject_id in acc_req:
+                    if acl := models.SubjectAccess.query.filter_by(bot_nr=bot_nr, subject_id=subject_id).first():
+                        acls_to_remove.remove(acl)
+                    else:
+                        acl = models.SubjectAccess(bot_nr=bot_nr, subject_id=subject_id)
+                        acl.save()
+                for acl in acls_to_remove:
+                    acl.delete()
+
+        return redirect('main.index')
+
+    if request.g.get('admin', False):
+        schools = models.School.objects.all()
+        context = {
+            "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
+            "bot_nr": bot_nr,
+            "bot": bot,
+            "schools": sorted(schools, key=lambda school: school.school_name)
+        }
+    else:
+        access_list = [subj.subject_id for subj in bot.subjects]
+        groups = get_groups()
+        groups = [dict(group, checked=group.get('id') in access_list) for group in groups]
+        context = {
+            "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
+            "bot_nr": bot_nr,
+            "bot": bot,
+            "groups": groups
+        }
+
+    return render(request, "ki/adminbot.html", context)
+
+
+def settings(request):
+    if not request.g.get('admin', False):
+        return HttpResponseForbidden()
+
+    settings = models.Setting.objects.all()
+    if request.method == 'POST':
+        print(request.POST.get('save_settings'))
+        if request.POST.get('save_settings') == 'ok':
+            for setting in settings:
+                if request.POST.get(setting.setting_key):
+                    if setting.is_txt:
+                        setting.txt_val = request.POST.get(setting.setting_key)
+                    else:
+                        setting.int_val = int(request.POST.get(setting.setting_key))
+                    setting.save()
+
+        return redirect('main.settings')
+
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
-        "bot_nr": bot_nr
+        "settings": settings
     }
-    return render(request, "ki/adminbot.html", context)
+
+    return render(request, 'ki/settings.html', context)
+
+
+# Info:
+def info(request):
+    context = {
+        "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
+    }
+    return render(request, "ki/om.html", context)
 
 
 # WIP:
