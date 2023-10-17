@@ -32,6 +32,23 @@ def index():
     return render_template('index.html', bots=users_bots, page='index')
 
 
+@main.route('/info/<page>', methods=['GET', 'POST'])
+def info(page):
+    if page == 'how_to' and not g.employee:
+        abort(404)
+    text_line = models.PageText.query.get(page)
+    
+    if request.method == 'POST':
+        if not g.admin:
+            abort(403)
+        content_text = request.form.get('page_text')
+        text_line.page_text = content_text
+        db.session.add(text_line)
+        db.session.commit()
+
+    return render_template('info.html', page=page, content_text=text_line.page_text)
+
+
 @main.route('/bot/<bot_nr>')
 def bot(bot_nr):
 
