@@ -14,8 +14,9 @@ deployment_name = os.environ.get('OPENAI_API_DEPLOYMENT')
 
 @api_view(["POST"])
 def start_message(request, bot_nr):
-    bot = models.Bot.objects.get(bot_nr=bot_nr)
-    if not bot:
+    try:
+        bot = models.Bot.objects.get(bot_nr=bot_nr)
+    except models.Bot.DoesNotExist:
         # abort(404)
         return Response(status=404)
 
@@ -33,8 +34,9 @@ def send_message(request):
     messages = request.data.get('messages')
     if not bot_nr in request.g.get('bots', []):
         return Response(status=403)
-    bot = models.Bot.objects.get(bot_nr=bot_nr)
-    if not bot:
+    try:
+        bot = models.Bot.objects.get(bot_nr=bot_nr)
+    except models.Bot.DoesNotExist:
         return Response(status=404)
 
     async def stream():

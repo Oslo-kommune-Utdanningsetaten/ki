@@ -58,13 +58,13 @@
       <div class="row mb-3">
         <label for="accesses" class="col-sm-2 col-form-label">Tilganger</label>
         <div class="col-sm-10">
-          {% for line in bot.accesses %}
+          {% for line in (bot.accesses.all() if bot.pk else []) %}
           <div>
             <select name="access">
               <option value="s:{{line.access_id}}:del">Slett</option>
-              <option value="s:{{line.access_id}}:*" {{ 'selected' if line.school_id == '*' }}>Alle skoler</option>
+              <option value="s:{{line.access_id}}:*" {{ 'selected' if line.school_id_id == '*' }}>Alle skoler</option>
               {% for school in schools %}  
-              <option value="s:{{line.access_id}}:{{school.org_nr}}" {{ 'selected' if line.school_id == school.org_nr }}>{{ school.school_name }}</option>
+              <option value="s:{{line.access_id}}:{{school.org_nr}}" {{ 'selected' if line.school_id_id == school.org_nr }}>{{ school.school_name }}</option>
               {% endfor %}
             </select>
             <select name="access">

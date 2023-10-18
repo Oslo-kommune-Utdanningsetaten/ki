@@ -117,7 +117,6 @@ def feidecallback(request):
     username = userinfo_response.json(
     )["https://n.feide.no/claims/eduPersonPrincipalName"]
     if username:
-        print(models.BotAccess.objects.all())
         access = models.BotAccess.objects.all()
         schools = []
         levels = []
@@ -156,25 +155,25 @@ def feidecallback(request):
                 subject_accesses = models.SubjectAccess.objects.filter(
                     subject_id=subject_id)
                 for line in subject_accesses:
-                    if line.bot_nr not in bots:
-                        bots.append(line.bot_nr)
+                    if line.bot_nr_id not in bots:
+                        bots.append(line.bot_nr_id)
 
         for line in access:
             for school in schools:
-                if (line.school_id == school.org_nr) or (line.school_id == '*'):
+                if (line.school_id_id == school.org_nr) or (line.school_id_id == '*'):
                     if employee or (line.level == '*'):
-                        if line.bot_nr not in bots:
-                            bots.append(line.bot_nr)
+                        if line.bot_nr_id not in bots:
+                            bots.append(line.bot_nr_id)
                     else:
                         for level in levels:
                             if line.level == level:
-                                if line.bot_nr not in bots:
-                                    bots.append(line.bot_nr)
+                                if line.bot_nr_id not in bots:
+                                    bots.append(line.bot_nr_id)
         if allow_personal:
             personal_bots = models.Bot.objects.filter(owner=username)
             for line in personal_bots:
-                if line.bot_nr not in bots:
-                    bots.append(line.bot_nr)
+                if line.bot_nr_id not in bots:
+                    bots.append(line.bot_nr_id)
 
         if bots:
             name = userinfo_response.json()["name"]
