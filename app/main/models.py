@@ -39,6 +39,7 @@ class SubjectAccess(db.Model):
     bot_nr = db.Column(db.Integer, db.ForeignKey('bot.bot_nr'), primary_key=True)
     subject_id = db.Column(db.String(200), primary_key=True)
 
+
 class School(db.Model):
     org_nr = db.Column(db.String(20), primary_key=True)
     # school_id = db.Column(db.Integer, primary_key=True)
@@ -47,3 +48,6 @@ class School(db.Model):
     accesses = db.relationship('BotAccess', backref='school')
 
 
+class PageText(db.Model):
+    page_id = db.Column(db.String(10), primary_key=True)
+    page_text = db.Column(db.Text)

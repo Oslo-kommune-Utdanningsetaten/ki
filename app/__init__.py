@@ -13,10 +13,8 @@ def create_app():
         from app.main.routes import main
         from app.main.auth import auth
         from app.main.api import api
-        from app.main.info import info
         app.register_blueprint(main)
         app.register_blueprint(auth)
         app.register_blueprint(api)
-        app.register_blueprint(info)
 
     return app

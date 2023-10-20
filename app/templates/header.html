@@ -13,8 +13,8 @@
       </a>
     </div>
       
-    <nav class="d-flex flex-row-reverse">
-      {% block nav %}
+    {% block nav %}
+      <nav class="d-flex flex-row-reverse">
         {% if g.logged_on %}
           <div class="p-3">
               <a href="{{url_for('auth.logout')}}">Logg ut </a>
@@ -28,9 +28,16 @@
           {% endif %}
           <div class="p-3">
             <span class="{{ 'oslo-text-light' if page == 'om' }}">
-              <a href="{{url_for('info.om')}}">Om tjenesten</a>
+              <a href="{{url_for('main.info', page='about')}}">Om tjenesten</a>
             </span>
           </div>
+          {% if g.employee %}
+          <div class="p-3">
+            <span class="{{ 'oslo-text-light' if page == 'how_to' }}">
+              <a href="{{url_for('main.info', page='how_to')}}">Tips</a>
+            </span>
+          </div>
+          {% endif %}
           {% if page != 'index' %}
           <div class="p-3">
               <a href="{{url_for('main.index')}}">Startside</a>
@@ -41,8 +48,8 @@
               <a href="{{url_for('auth.feidelogin')}}">Logg inn </a>
           </div>
         {% endif %}
-      {% endblock nav %}
-    </nav>
+      </nav>
+    {% endblock nav %}
 
   </header>
 
