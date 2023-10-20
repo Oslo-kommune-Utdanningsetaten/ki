@@ -1,9 +1,11 @@
 from .. import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden
 import openai
 import os
+import json
+# from ..mock import mock_acreate
 
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 openai.api_version = os.environ.get('OPENAI_API_VERSION')
@@ -17,7 +19,6 @@ def start_message(request, bot_nr):
     try:
         bot = models.Bot.objects.get(bot_nr=bot_nr)
     except models.Bot.DoesNotExist:
-        # abort(404)
         return Response(status=404)
 
     return Response({'bot': {
@@ -28,16 +29,16 @@ def start_message(request, bot_nr):
     }})
 
 
-@api_view(["POST"])
-def send_message(request):
-    bot_nr = request.data.get('bot_nr')
-    messages = request.data.get('messages')
+async def send_message(request):
+    body = json.loads(request.body)
+    bot_nr = body.get('bot_nr')
+    messages = body.get('messages')
     if not bot_nr in request.g.get('bots', []):
-        return Response(status=403)
+        return HttpResponseForbidden()
     try:
-        bot = models.Bot.objects.get(bot_nr=bot_nr)
+        bot = await models.Bot.objects.aget(bot_nr=bot_nr)
     except models.Bot.DoesNotExist:
-        return Response(status=404)
+        return HttpResponseNotFound()
 
     async def stream():
         completion = await openai.ChatCompletion.acreate(
@@ -45,6 +46,8 @@ def send_message(request):
             messages=messages,
             deployment_id=deployment_name,
             stream=True)
+        # Mock function for loadtesting etc.:
+        # completion = await mock_acreate()
         async for line in completion:
             chunk = line['choices'][0].get('delta', {}).get('content', '')
             if chunk:

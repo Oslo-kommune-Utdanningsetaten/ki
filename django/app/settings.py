@@ -27,9 +27,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+print("DEBUG:", DEBUG)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskolen.no']
 
 
 # Application definition
@@ -54,6 +55,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'ki.views.auth.auth_middleware'
 ]
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
+                        'https://ki-dev.osloskolen.no', 'https://ki.osloskolen.no']
 
 ROOT_URLCONF = 'app.urls'
 
@@ -101,7 +105,8 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASSWORD'),
         'HOST': os.environ.get('DB_HOST'),
         'PORT': os.environ.get('DB_PORT'),
-        'CONN_MAX_AGE': 3600,
+        # Persistent DB connections in ASGI does not work, keep this at 0 to disable
+        'CONN_MAX_AGE': 0,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'connect_timeout': 60,
