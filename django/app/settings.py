@@ -30,13 +30,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 print("DEBUG:", DEBUG)
 
+ADMIN_ENABLED = False
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskolen.no']
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -44,6 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ki',
 ]
+
+if ADMIN_ENABLED:
+    INSTALLED_APPS.append('django.contrib.admin')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -150,6 +154,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = 'public/'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",

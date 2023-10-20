@@ -10,3 +10,4 @@ log/prometheus/*
 !/log/grafana/datasources/prometheus_ds.yml
 __pycache__/
 .vscode/
+public/

@@ -17,12 +17,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import os
-from app.settings import DEBUG
+from app.settings import DEBUG, ADMIN_ENABLED
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include('ki.urls')),
 ]
 
 if DEBUG:
     urlpatterns += staticfiles_urlpatterns()
+
+if ADMIN_ENABLED:
+    urlpatterns += [path('admin/', admin.site.urls)]
