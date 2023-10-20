@@ -8,9 +8,7 @@ routeurls = [
   path("adminbot/<str:bot_nr>", routes.adminbot, name="main.adminbot"),
   path("adminbot/<int:bot_nr>", routes.adminbot, name="main.adminbot"),
   path("settings/", routes.settings, name="main.settings"),
-
-  # Info:
-  path("info/om", routes.info, name="info.om"),
+  path("info/<str:page>", routes.info, name="main.info"),
 ]
 
 authurls = [

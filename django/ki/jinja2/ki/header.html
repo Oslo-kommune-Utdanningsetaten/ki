@@ -1,50 +1,57 @@
 {% extends "ki/base.html" %}
 
 {% block header %}
-  <header>
-    <div id="header" class="d-flex justify-content-between p-4 oslo-bg-light">
-      <a href="{{ url('main.index') }}">
-        <h1  class="h3 p-3">
-          Kunstig intelligens for Osloskolen
-        </h1>
-      </a>
-      <a class="logo" href="{{ url('main.index') }}">
-        <img src="{{ static('img/oslo_logo_sort.svg') }}" alt="Oslologo">
-      </a>
-    </div>
-      
-    <nav class="d-flex flex-row-reverse">
-      {% block nav %}
-        {% if request.g.logged_on %}
-          <div class="p-3">
-              <a href="{{ url('auth.logout')}}">Logg ut </a>
-          </div>
-          {% if request.g.admin %}
-            <div class="p-3">
-              <span class="{{ 'oslo-text-light' if page == 'settings' }}">
-                <a href="{{ url('main.settings')}}">Innstillinger</a>
-              </span>
-            </div>
-          {% endif %}
-          <div class="p-3">
-            <span class="{{ 'oslo-text-light' if page == 'om' }}">
-              <a href="{{ url('info.om')}}">Om tjenesten</a>
-            </span>
-          </div>
-          {% if page != 'index' %}
-          <div class="p-3">
-              <a href="{{ url('main.index') }}">Startside</a>
-          </div>
-          {% endif %}
-        {% else %}
-          <div class="p-3">
-              <a href="{{ url('auth.feidelogin') }}">Logg inn </a>
-          </div>
-        {% endif %}
-      {% endblock nav %}
-    </nav>
+<header>
+  <div id="header" class="d-flex justify-content-between p-4 oslo-bg-light">
+    <a href="{{ url('main.index') }}">
+      <h1 class="h3 p-3">
+        Kunstig intelligens for Osloskolen
+      </h1>
+    </a>
+    <a class="logo" href="{{ url('main.index') }}">
+      <img src="{{ static('img/oslo_logo_sort.svg') }}" alt="Oslologo">
+    </a>
+  </div>
 
-  </header>
+  {% block nav %}
+  <nav class="d-flex flex-row-reverse">
+    {% if request.g.logged_on %}
+    <div class="p-3">
+      <a href="{{ url('auth.logout')}}">Logg ut </a>
+    </div>
+    {% if request.g.admin %}
+    <div class="p-3">
+      <span class="{{ 'oslo-text-light' if page == 'settings' }}">
+        <a href="{{ url('main.settings')}}">Innstillinger</a>
+      </span>
+    </div>
+    {% endif %}
+    <div class="p-3">
+      <span class="{{ 'oslo-text-light' if page == 'om' }}">
+        <a href="{{ url('main.info', kwargs={'page': 'about'})}}">Om tjenesten</a>
+      </span>
+    </div>
+    {% if request.g.employee %}
+    <div class="p-3">
+      <span class="{{ 'oslo-text-light' if page == 'how_to' }}">
+        <a href="{{ url('main.info', kwargs={'page': 'how_to'}) }}">Tips</a>
+      </span>
+    </div>
+    {% endif %}
+    {% if page != 'index' %}
+    <div class="p-3">
+      <a href="{{ url('main.index') }}">Startside</a>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="p-3">
+      <a href="{{ url('auth.feidelogin') }}">Logg inn </a>
+    </div>
+    {% endif %}
+  </nav>
+  {% endblock nav %}
+
+</header>
 
 
 {% endblock header %}

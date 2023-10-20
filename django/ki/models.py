@@ -72,3 +72,12 @@ class SubjectAccess(models.Model):
         managed = False
         db_table = 'subject_access'
         unique_together = ('bot_nr', 'subject_id')
+
+
+class PageText(models.Model):
+    page_id = models.CharField(max_length=10, primary_key=True)
+    page_text = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'page_text'

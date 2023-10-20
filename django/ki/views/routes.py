@@ -207,9 +207,24 @@ def settings(request):
     return render(request, 'ki/settings.html', context)
 
 
-# Info:
-def info(request):
+def info(request, page):
+    if page == "how_to" and not request.g.get('employee', False):
+        return HttpResponseNotFound()
+    try:
+        text_line = models.PageText.objects.get(page_id=page)
+    except models.PageText.DoesNotExist:
+        return HttpResponseNotFound()
+
+    if request.method == 'POST':
+        if not request.g.get('admin', False):
+            return HttpResponseForbidden()
+        content_text = request.POST.get('page_text')
+        text_line.page_text = content_text
+        text_line.save()
+
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
+        "page": page,
+        "content_text": text_line.page_text
     }
-    return render(request, "ki/om.html", context)
+    return render(request, "ki/info.html", context)
