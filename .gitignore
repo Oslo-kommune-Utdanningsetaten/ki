@@ -1,7 +1,6 @@
 .env*
 pw.txt
 db/*
-compose.yml
 !log/compose.yml
 log/grafana/grafana/*
 log/grafana/datasources/*

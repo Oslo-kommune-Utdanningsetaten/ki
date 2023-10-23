@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    ports:
+      - 3306:3306 # For dev (make sure port is not exposed on prod host)
+    volumes:
+      - ./db:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    profiles:
+      - dev
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    environment:
+      ADMINER_DESIGN: 'dracula'
+    extra_hosts:
+      - "db:host-gateway"
+    profiles:
+      - dev
+      - prod
+  backend:
+    build: ./
+    command:
+      - bash 
+      - -c 
+      - |
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+        gunicorn app.asgi:application -b :8000 --worker-class uvicorn.workers.UvicornWorker -w 9
+    volumes:
+      - ./:/code
+    ports:
+      - 5000:8000
+    env_file:
+      - ./.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles:
+      - prod
+    restart: always
+  backend-dev:
+    build: ./
+    command:
+      - bash 
+      - -c 
+      - |
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+        gunicorn app.asgi:application -b :8000 --worker-class uvicorn.workers.UvicornWorker -w 9
+    volumes:
+      - ./:/code
+    ports:
+      - 5000:8000
+    env_file:
+      - ./.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db
+    profiles:
+      - dev-backend
+    restart: always
