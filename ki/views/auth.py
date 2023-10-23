@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import redirect, resolve_url
 from django.urls import resolve
@@ -184,7 +185,7 @@ def feidecallback(request):
             request.session['user.auth'] = tokens
         else:
             request.session.clear()
-            # flash('Du har dessverre ikke tilgang til denne løsningen.', 'alert-danger')
+            messages.error(request, 'Du har dessverre ikke tilgang til denne løsningen.', 'alert-danger')
 
     else:
         request.session.clear()
