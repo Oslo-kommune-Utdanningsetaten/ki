@@ -10,3 +10,4 @@ log/prometheus/*
 __pycache__/
 .vscode/
 public/
+env/
