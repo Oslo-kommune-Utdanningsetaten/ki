@@ -172,9 +172,10 @@ def feidecallback(request):
                                     bots.append(line.bot_nr_id)
         if allow_personal:
             personal_bots = models.Bot.objects.filter(owner=username)
+            print(personal_bots)
             for line in personal_bots:
-                if line.bot_nr_id not in bots:
-                    bots.append(line.bot_nr_id)
+                if line.bot_nr not in bots:
+                    bots.append(line.bot_nr)
 
         if bots:
             name = userinfo_response.json()["name"]
