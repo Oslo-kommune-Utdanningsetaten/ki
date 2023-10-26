@@ -94,7 +94,7 @@
           </div>
         </div>
       </div>
-    {% elif request.g.settings['allow_groups'] %}
+    {% elif request.g.settings['allow_groups'] and request.g['dist_to_groups'] %}
       <div class="row mb-3">
         <div class="col-sm-2">
           Grupper som har tilgang

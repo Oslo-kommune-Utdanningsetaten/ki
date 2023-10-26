@@ -35,6 +35,7 @@ def auth_middleware(get_response):
             request.g['username'] = username
             request.g['name'] = request.session.get('user.name')
             request.g['employee'] = request.session.get('user.employee')
+            request.g['dist_to_groups'] = request.session.get('user.dist_to_groups')
             request.g['bots'] = request.session.get('user.bots')
 
             # load settings
@@ -118,10 +119,12 @@ def feidecallback(request):
     username = userinfo_response.json(
     )["https://n.feide.no/claims/eduPersonPrincipalName"]
     if username:
-        access = models.BotAccess.objects.all()
+        bot_access = models.BotAccess.objects.all()
+        school_access = models.SchoolAccess.objects.all()
+        access = False
         schools = []
         levels = []
-        subjects = {}
+        dist_to_groups = False
         employee = False
         bots = []
         allow_groups = bool(models.Setting.objects.get(
@@ -159,7 +162,7 @@ def feidecallback(request):
                     if line.bot_nr_id not in bots:
                         bots.append(line.bot_nr_id)
 
-        for line in access:
+        for line in bot_access:
             for school in schools:
                 if (line.school_id_id == school.org_nr) or (line.school_id_id == '*'):
                     if employee or (line.level == '*'):
@@ -172,16 +175,31 @@ def feidecallback(request):
                                     bots.append(line.bot_nr_id)
         if allow_personal:
             personal_bots = models.Bot.objects.filter(owner=username)
-            print(personal_bots)
             for line in personal_bots:
                 if line.bot_nr not in bots:
                     bots.append(line.bot_nr)
+
+        for line in school_access:
+            for school in schools:
+                if (line.school_id_id == school.org_nr) or (line.school_id_id == '*'):
+                    if employee or (line.level == '*'):
+                        access = True
+                    else:
+                        for level in levels:
+                            if line.level == level:
+                                access = True
+                    if employee and line.level != '-':
+                        dist_to_groups = True
+
+        if not access:
+            bots = []
 
         if bots:
             name = userinfo_response.json()["name"]
             request.session['user.username'] = username
             request.session['user.name'] = name
             request.session['user.employee'] = employee
+            request.session['user.dist_to_groups'] = dist_to_groups
             request.session['user.bots'] = bots
             request.session['user.auth'] = tokens
         else:

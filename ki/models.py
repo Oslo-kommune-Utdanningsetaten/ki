@@ -62,6 +62,21 @@ class BotAccess(models.Model):
         db_table = 'bot_access'
 
 
+class SchoolAccess(models.Model):
+    access_id = models.AutoField(primary_key=True)
+    school_id = models.ForeignKey(
+        School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="school_accesses")
+    # school_id = models.CharField(max_length=20)
+    level = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"global-{self.school_id}{self.level}"
+
+    class Meta:
+        managed = False
+        db_table = 'school_access'
+
+
 class SubjectAccess(models.Model):
     id = models.AutoField(primary_key=True)
     bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE,

@@ -139,7 +139,7 @@ def adminbot(request, bot_nr):
                         bot_access.level = values['l']
                         bot_access.save()
 
-        elif request.g['settings']['allow_groups']:
+        elif request.g['settings']['allow_groups'] and request.g['dist_to_groups']:
             acc_dict = {}
             acc_req = request.POST.getlist('access')
             if bot_nr == 'new':
