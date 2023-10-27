@@ -5,6 +5,7 @@ from django.urls import resolve
 import requests
 import json
 import os
+from datetime import datetime, timedelta
 from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 
@@ -131,6 +132,8 @@ def feidecallback(request):
             setting_key='allow_groups').int_val)
         allow_personal = bool(models.Setting.objects.get(
             setting_key='allow_personal').int_val)
+        lifespan = models.Setting.objects.get(
+            setting_key='lifespan').int_val
         # get user's school info
         groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
         uri, headers, body = client.add_token(groupinfo_endpoint)
@@ -159,7 +162,10 @@ def feidecallback(request):
                 subject_accesses = models.SubjectAccess.objects.filter(
                     subject_id=subject_id)
                 for line in subject_accesses:
-                    if line.bot_nr_id not in bots:
+                    if (line.created and 
+                            (line.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
+                        line.delete()
+                    elif line.bot_nr_id not in bots:
                         bots.append(line.bot_nr_id)
 
         for line in bot_access:

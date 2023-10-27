@@ -63,10 +63,8 @@
           <div class="card-body">
             <h5 class="card-title">{{ bot.title }}</h5>
             <a href="{{ url('main.bot', kwargs={'bot_nr': bot.bot_nr}) }}" class="btn oslo-btn-primary">Åpne</a>
-            {% if (request.g.employee and request.g.settings['allow_groups']) or (request.g.employee and request.g.settings['allow_personal'] and bot.owner == request.g.username) or request.g.admin %}
-              <a href="{{ url('main.adminbot', kwargs={'bot_nr': bot.bot_nr}) }}" type="button" class="btn oslo-btn-secondary">Rediger</a>
-            {% endif %}
             {% if bot.owner == request.g.username or request.g.admin %}
+              <a href="{{ url('main.adminbot', kwargs={'bot_nr': bot.bot_nr}) }}" type="button" class="btn oslo-btn-secondary">Rediger</a>
               <button type="button" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot" data-bs-bot="{{bot.bot_nr}}">
                 Slett
               </button>

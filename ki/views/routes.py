@@ -175,7 +175,8 @@ def adminbot(request, bot_nr):
             "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
             "bot_nr": bot_nr,
             "bot": bot,
-            "groups": groups
+            "groups": groups,
+            "lifespan": models.Setting.objects.get(setting_key='lifespan').int_val
         }
 
     return render(request, "ki/adminbot.html", context)

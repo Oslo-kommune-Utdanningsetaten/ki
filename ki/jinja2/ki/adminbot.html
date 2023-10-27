@@ -94,8 +94,16 @@
           </div>
         </div>
       </div>
-    {% elif request.g.settings['allow_groups'] and request.g['dist_to_groups'] %}
+    {% elif request.g.settings['allow_groups'] and request.g['dist_to_groups'] and bot.owner == request.g.username %}
       <div class="row mb-3">
+        <div class="col-sm-2">
+        </div>
+        <div class="col-sm-10">
+          <p>
+            Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
+            Tilgangen til boten varer i {{lifespan}} timer fra du lagrer.
+          </p>
+        </div>
         <div class="col-sm-2">
           Grupper som har tilgang
         </div>

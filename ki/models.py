@@ -82,6 +82,7 @@ class SubjectAccess(models.Model):
     bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE,
                                db_column='bot_nr', to_field='bot_nr', related_name="subjects")
     subject_id = models.CharField(max_length=200)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
