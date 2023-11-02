@@ -53,7 +53,8 @@ def bot(request, bot_nr):
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
         "bot_nr": bot_nr,
-        "bot": bot
+        "bot": bot,
+        "debug": DEBUG,
     }
     return render(request, "ki/bot.html", context)
 
@@ -187,22 +188,79 @@ def settings(request):
         return HttpResponseForbidden()
 
     settings = models.Setting.objects.all()
+    schools = models.School.objects.all()
+    schools_list = [] 
     if request.method == 'POST':
-        print(request.POST.get('save_settings'))
         if request.POST.get('save_settings') == 'ok':
             for setting in settings:
-                if request.POST.get(setting.setting_key):
+                if setting_key := request.POST.get(setting.setting_key):
                     if setting.is_txt:
-                        setting.txt_val = request.POST.get(setting.setting_key)
+                        setting.txt_val = setting_key
                     else:
-                        setting.int_val = int(request.POST.get(setting.setting_key))
+                        setting.int_val = int(setting_key)
                     setting.save()
+        for school in schools:
+            if acc_key := request.POST.get('acc_' + school.org_nr):
+                school.access = acc_key
+                school.save()
+            
+            if school.access == 'levels':
+                acc_to_remove = list(school.school_accesses.all())
+                for level in request.POST.getlist('lev_' + school.org_nr):
+                    try:
+                        acc = school.school_accesses.get(level=level)
+                        acc_to_remove.remove(acc)
+                    except models.SchoolAccess.DoesNotExist:
+                        acc = models.SchoolAccess(school_id=school, level=level)
+                        acc.save()
+                ids_to_remove = [acc.access_id for acc in acc_to_remove]
+                school.school_accesses.filter(access_id__in=ids_to_remove).delete()
 
         return redirect('main.settings')
 
+    levels = { 
+        "aarstrinn1": "1. trinn", 
+        "aarstrinn2": "2. trinn", 
+        "aarstrinn3": "3. trinn", 
+        "aarstrinn4": "4. trinn", 
+        "aarstrinn5": "5. trinn", 
+        "aarstrinn6": "6. trinn", 
+        "aarstrinn7": "7. trinn", 
+        "aarstrinn8": "8. trinn", 
+        "aarstrinn9": "9. trinn", 
+        "aarstrinn10": "10. trinn", 
+        "vg1": "1. vgs", 
+        "vg2": "2. vgs", 
+        "vg3": "3. vgs"
+    }
+    for school in schools:
+        level_list = []
+        for level_code, level_text in levels.items():
+            selected = ''
+            if school.access == 'levels':
+                if level_code in [acc.level for acc in school.school_accesses.all()]:
+                    selected = 'selected'
+            level_dict = {
+                "code": level_code,
+                "text": level_text,
+                "selected": selected,
+            }
+            level_list.append(level_dict)
+
+        school_dict = {
+            "org_nr":  school.org_nr,
+            "school_name":  school.school_name,
+            "school_code":  school.school_code,
+            "access":  school.access,
+            "levels": level_list,
+        }
+        schools_list.append(school_dict)
+
     context = {
         "sitename": os.environ.get('SITENAME', 'KI for Osloskolen'),
-        "settings": settings
+        "settings": settings,
+        "schools": schools_list,
+        "debug": DEBUG,
     }
 
     return render(request, 'ki/settings.html', context)

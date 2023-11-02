@@ -31,9 +31,16 @@ class Bot(models.Model):
 
 
 class School(models.Model):
+    class AccessEnum(models.TextChoices):
+        NONE = 'none'
+        EMP = 'emp'
+        ALL = 'all'
+        LEVELS = 'levels'
+
     org_nr = models.CharField(max_length=20, primary_key=True)
     school_name = models.CharField(max_length=50)
     school_code = models.CharField(max_length=3)
+    access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
 
     def __repr__(self):
         return f"{self.org_nr}"

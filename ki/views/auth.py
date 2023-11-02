@@ -185,17 +185,20 @@ def feidecallback(request):
                 if line.bot_nr not in bots:
                     bots.append(line.bot_nr)
 
-        for line in school_access:
-            for school in schools:
-                if (line.school_id_id == school.org_nr) or (line.school_id_id == '*'):
-                    if employee or (line.level == '*'):
-                        access = True
-                    else:
-                        for level in levels:
-                            if line.level == level:
-                                access = True
-                    if employee and line.level != '-':
+        for school in schools:
+            if employee:
+                if school.access in ['emp', 'all', 'levels']:
+                    access = True
+                    if school_access != 'emp':
                         dist_to_groups = True
+            else:
+                if school.access == 'all':
+                    access = True
+                elif school.access == 'levels':
+                    for line in school.accesses:
+                        if line.level in levels:
+                            access = True
+
 
         if not access:
             bots = []

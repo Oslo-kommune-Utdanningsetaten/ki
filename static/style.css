@@ -141,6 +141,10 @@ ul .system {
   justify-self: end;
 }
 
+.levelselect {
+    width: 30rem;
+}
+
 .oslo-btn-primary, .oslo-btn-primary.active:hover {
     color: #2A2859;
     background-color: #6FE9FF;
