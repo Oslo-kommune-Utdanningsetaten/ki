@@ -195,7 +195,7 @@ def feidecallback(request):
                 if school.access == 'all':
                     access = True
                 elif school.access == 'levels':
-                    for line in school.accesses:
+                    for line in school.school_accesses.all():
                         if line.level in levels:
                             access = True
 
