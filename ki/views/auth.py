@@ -5,6 +5,7 @@ from django.urls import resolve
 import requests
 import json
 import os
+import urllib.parse
 from datetime import datetime, timedelta
 from oauthlib.oauth2 import WebApplicationClient
 from .. import models
@@ -222,18 +223,22 @@ def feidecallback(request):
 
 
 def logout(request):
+    token = request.session.get('user.auth', False)
     request.session.clear()
     request.g['username'] = None
     request.g['name'] = None
     request.g['bots'] = []
-    token = request.session.get('user.auth', False)
     if request.g['logged_on'] and token:
         id_token = token['id_token']
         request.g['logged_on'] = False
         feide_provider_cfg = get_provider_cfg()
-        end_session_endpoint = feide_provider_cfg["end_session_endpoint"]
-        site_url = request.referrer
-        return_uri = f"{end_session_endpoint}?post_logout_redirect_uri={site_url}&id_token_hint={id_token}"
+        end_session_endpoint = feide_provider_cfg["end_session_endpoint"]+'?'
+        site_url = request.build_absolute_uri('/')
+        params = {
+            "post_logout_redirect_uri": site_url, 
+            "id_token_hint": id_token,
+        }
+        return_uri = end_session_endpoint + urllib.parse.urlencode(params)
         return redirect(return_uri)
     else:
         return redirect(resolve_url('main.index'))
