@@ -189,7 +189,7 @@ def feidecallback(request):
             if employee:
                 if school.access in ['emp', 'all', 'levels']:
                     access = True
-                    if school_access != 'emp':
+                    if school.access != 'emp':
                         dist_to_groups = True
             else:
                 if school.access == 'all':
