@@ -232,10 +232,10 @@ def logout(request):
         id_token = token['id_token']
         request.g['logged_on'] = False
         feide_provider_cfg = get_provider_cfg()
+        redirect_uri=os.environ.get('FEIDE_LOGOUT_REDIR')
         end_session_endpoint = feide_provider_cfg["end_session_endpoint"]+'?'
-        site_url = request.build_absolute_uri('/')
         params = {
-            "post_logout_redirect_uri": site_url, 
+            "post_logout_redirect_uri": redirect_uri, 
             "id_token_hint": id_token,
         }
         return_uri = end_session_endpoint + urllib.parse.urlencode(params)
