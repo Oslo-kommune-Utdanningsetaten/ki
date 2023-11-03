@@ -157,7 +157,7 @@ def feidecallback(request):
                     group.get('grep_type') == "aarstrinn"):
                 levels.append(group['code'])
             # access from subject
-            if (group.get('type') == "fc:gogroup") and allow_groups:
+            if (group.get('type') == "fc:gogroup") and allow_groups and not employee:
                 subject_id = group.get('id')
                 subject_accesses = models.SubjectAccess.objects.filter(
                     subject_id=subject_id)
