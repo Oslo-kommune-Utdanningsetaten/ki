@@ -26,10 +26,9 @@ def auth_middleware(get_response):
             if (url_name is None):
                 response = get_response(request)
                 return response
-            elif ((url_name.split('.')[0] == 'main' or
-                    url_name.split('.')[0] == 'info') and
+            elif (url_name.split('.')[0] == 'main' and
                     request.path != resolve_url('main.index')):
-                return redirect(resolve_url('auth.feidelogin'))
+                return redirect('auth.feidelogin')
             elif url_name.split('.')[0] == 'api':
                 return HttpResponse('Unauthorized', status=401)
         else:
@@ -219,7 +218,7 @@ def feidecallback(request):
     else:
         request.session.clear()
 
-    return redirect(resolve_url('main.index'))
+    return redirect('main.index')
 
 
 def logout(request):
@@ -241,9 +240,9 @@ def logout(request):
         return_uri = end_session_endpoint + urllib.parse.urlencode(params)
         return redirect(return_uri)
     else:
-        return redirect(resolve_url('main.index'))
+        return redirect('main.index')
 
 
 def logged_out(request):
     messages.error(request, 'Du er nå logget ut.', 'alert-info')
-    return redirect(resolve_url('main.index'))
+    return redirect('main.index')
