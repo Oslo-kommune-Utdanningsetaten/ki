@@ -242,3 +242,8 @@ def logout(request):
         return redirect(return_uri)
     else:
         return redirect(resolve_url('main.index'))
+
+
+def logged_out(request):
+    messages.error(request, 'Du er nå logget ut.', 'alert-info')
+    return redirect(resolve_url('main.index'))

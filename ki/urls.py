@@ -14,7 +14,8 @@ routeurls = [
 authurls = [
   path("feidelogin/", auth.feidelogin, name="auth.feidelogin"),
   path("auth/feidecallback", auth.feidecallback, name="feidecallback"),
-  path("logout/", auth.logout, name="auth.logout")
+  path("logout/", auth.logout, name="auth.logout"),
+  path("logged_out/", auth.logged_out, name="auth.logged_out")
 ]
 
 apiurls = [
