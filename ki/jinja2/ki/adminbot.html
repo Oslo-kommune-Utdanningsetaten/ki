@@ -51,10 +51,27 @@
           {{bot.prompt if bot.prompt else ''}}
         </div>
       </div>
-    {% endif %}
-
-
-    {% if request.g.admin %}
+      {% endif %}
+      
+      
+      {% if request.g.admin %}
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Modell</div>
+        <div class="col-sm-10">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="model" id="gpt-35-turbo-radio" value="gpt-35-turbo" {{ 'checked' if bot.model == "gpt-35-turbo" }}>
+            <label class="form-check-label" for="gpt-35-turbo-radio">Gpt-3.5</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="model" id="gpt-35-turbo-16k-radio" value="gpt-35-turbo-16k" {{ 'checked' if bot.model == "gpt-35-turbo-16k" }}>
+            <label class="form-check-label" for="gpt-35-turbo-16k-radio">Gpt-3.5 16k</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="model" id="gpt-4-32k-radio" value="gpt-4-32k" {{ 'checked' if bot.model == "gpt-4-32k" }}>
+            <label class="form-check-label" for="gpt-4-32k-radio">Gpt-4 32k</label>
+          </div>
+        </div>
+      </div>
       <div class="row mb-3">
         <label for="accesses" class="col-sm-2 col-form-label">Tilganger</label>
         <div class="col-sm-10">
