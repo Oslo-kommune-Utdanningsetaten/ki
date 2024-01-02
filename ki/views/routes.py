@@ -104,9 +104,9 @@ def adminbot(request, bot_nr):
             bot.ingress = request.POST.get('ingress')
             bot.prompt = request.POST.get('prompt')
             if request.g.get('admin', False):
-                bot.model = request.POST.get('model') or 'gpt-35-turbo'
+                bot.model = request.POST.get('model') or 'gpt-35-turbo-16k'
             else:
-                bot.model = 'gpt-35-turbo'
+                bot.model = 'gpt-35-turbo-16k'
             bot.save()
             bot.bot_nr = bot.pk
 
