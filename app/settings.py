@@ -166,4 +166,5 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SESSION_COOKIE_AGE = 28800  # 8 hours, matching Feide expires_in
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
