@@ -18,7 +18,7 @@ class Setting(models.Model):
 
 class Bot(models.Model):
     bot_nr = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=20)
+    title = models.CharField(max_length=40)
     ingress = models.TextField()
     prompt = models.TextField()
     model = models.CharField(max_length=20)

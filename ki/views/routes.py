@@ -100,7 +100,7 @@ def adminbot(request, bot_nr):
 
     if request.method == 'POST':
         if bot.owner == request.g.get('username') or request.g.get('admin'):
-            bot.title = request.POST.get('title')
+            bot.title = request.POST.get('title')[0:40]
             bot.ingress = request.POST.get('ingress')
             bot.prompt = request.POST.get('prompt')
             if request.g.get('admin', False):
@@ -124,8 +124,6 @@ def adminbot(request, bot_nr):
                 else:
                     acc_dict[access_id].update({field: value})
             for access_id, values in acc_dict.items():
-                print("access_id", access_id)
-                print("values['s']", values['s'])
                 if access_id == 'new' and (values['s'] != '-'):
                     bot_access = models.BotAccess()
                     bot_access.bot_nr_id = bot.pk

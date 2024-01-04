@@ -31,7 +31,6 @@ def get_user_bots(request, username):
     if not (tokens := request.session.get('user.auth', False)):
         return [], False, False
     # get user's grups from dataporten
-    tokens['access_token'] = 'abcdef'
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
     groupinfo_response = requests.get(

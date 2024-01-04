@@ -17,7 +17,7 @@
       <div class="row mb-3">
         <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="bot_title" value="{{bot.title if bot.title else ''}}" name="title">
+          <input type="text" class="form-control" id="bot_title" value="{{bot.title if bot.title else ''}}" name="title" maxlength="40">
         </div>
       </div>
       <div class="row mb-3">

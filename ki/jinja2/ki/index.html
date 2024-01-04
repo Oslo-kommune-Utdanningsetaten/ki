@@ -47,10 +47,10 @@
       <p>Osloskolens løsning er inspirert av Randabergskolens AI-løsning. Løsningen utvikles av Utdanningsetaten og veilederteamet for bruk av læringsteknologi i Osloskolen.</p>
     {% endif %}
   </div>
-  <div class="row">
+  <div class="row align-items-stretch">
     {% for bot in bots %}
       <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="card" >
+        <div class="card text-center h-100" >
           <div class="card-img-top text-center">
             <a href="{{ url('main.bot', kwargs={'bot_nr': bot.bot_nr}) }}">
               {% if bot.image %}
@@ -60,16 +60,18 @@
               {% endif %}
             </a>
           </div>
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ bot.title }}</h5>
-            <a href="{{ url('main.bot', kwargs={'bot_nr': bot.bot_nr}) }}" class="btn oslo-btn-primary">Åpne</a>
-            {% if bot.owner == request.g.username or request.g.admin %}
-              <a href="{{ url('main.adminbot', kwargs={'bot_nr': bot.bot_nr}) }}" type="button" class="btn oslo-btn-secondary">Rediger</a>
-              <button type="button" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot" data-bs-bot="{{bot.bot_nr}}">
-                Slett
-              </button>
-            {% endif %}
-          </div>
+              <div class="mt-auto">
+                <a href="{{ url('main.bot', kwargs={'bot_nr': bot.bot_nr}) }}" class="btn oslo-btn-primary">Åpne</a>
+                {% if bot.owner == request.g.username or request.g.admin %}
+                  <a href="{{ url('main.adminbot', kwargs={'bot_nr': bot.bot_nr}) }}" type="button" class="btn oslo-btn-secondary">Rediger</a>
+                  <button type="button" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot" data-bs-bot="{{bot.bot_nr}}">
+                    Slett
+                  </button>
+                {% endif %}
+              </div>
+            </div>
         </div>
       </div>
     {% else %}
@@ -91,7 +93,7 @@
 
     {% if (request.g.employee and request.g.settings['allow_personal']) or request.g.admin %}
       <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="card" >
+        <div class="card text-center h-100" >
           <div class="card-img-top text-center">
             <a href="{{ url('main.adminbot', kwargs={'bot_nr': 'new'}) }}">
               <img src="{{ static('img/' + 'pluss.svg') }}" alt="Lag ny bot">
