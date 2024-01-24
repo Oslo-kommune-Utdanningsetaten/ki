@@ -13,6 +13,8 @@ from .. import models
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
 
+access_message = 'Du har dessverre ikke tilgang til denne løsningen. Du er nå logget ut'
+
 def get_user_bots(request, username):
     bot_access = models.BotAccess.objects.all()
     access = False
@@ -149,12 +151,11 @@ def auth_middleware(get_response):
             bots, employee, dist_to_groups = get_user_bots(request, username)
             request.g['employee'] = employee
             request.g['dist_to_groups'] = dist_to_groups
+            logged_on = True
             if not bots:
-                logged_on = False
-                messages.error(request, 'Du har dessverre ikke tilgang til denne løsningen.', 'alert-danger')
-                return redirect('main.index')
-            else:
-                logged_on = True
+                request.g['logged_on'] = logged_on
+                messages.error(request, access_message, 'alert-danger')
+                return logout(request)
 
         request.g['bots'] = bots
         request.g['admin'] = admin
@@ -267,5 +268,12 @@ def logout(request):
 
 
 def logged_out(request):
+    # Return access message instead of logout message if logged out due to access
+    message_list = messages.get_messages(request)
+    for message in message_list:
+        if message.message == access_message:
+            messages.error(request, access_message, 'alert-danger')
+            return redirect('main.index')
+
     messages.error(request, 'Du er nå logget ut.', 'alert-info')
     return redirect('main.index')
