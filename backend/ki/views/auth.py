@@ -271,5 +271,6 @@ def logout(request):
 
 
 def logged_out(request):
+    # TODO: Change messages to something that works with Vue frontend
     messages.error(request, 'Du er nå logget ut.', 'alert-info')
     return redirect('http://localhost:5173/' if DEBUG else '/')
