@@ -43,7 +43,7 @@ class School(models.Model):
     access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
 
     def __repr__(self):
-        return f"{self.org_nr}"
+        return f"{self.org_nr}-{self.school_name}"
 
     class Meta:
         managed = False
@@ -77,7 +77,7 @@ class SchoolAccess(models.Model):
     level = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"global-{self.school_id}{self.level}"
+        return f"global-{self.access_id}:{self.school_id}{self.level}"
 
     class Meta:
         managed = False
@@ -99,7 +99,9 @@ class SubjectAccess(models.Model):
 
 class PageText(models.Model):
     page_id = models.CharField(max_length=10, primary_key=True)
+    page_title = models.CharField(max_length=50)
     page_text = models.TextField()
+    public = models.BooleanField()
 
     class Meta:
         managed = False

@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect, resolve_url
 from django.urls import resolve
 import requests
@@ -12,6 +12,7 @@ from .. import models
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
+
 
 def get_user_bots(request, username):
     bot_access = models.BotAccess.objects.all()
@@ -136,8 +137,9 @@ def auth_middleware(get_response):
             elif (url_name.split('.')[0] == 'main' and
                     request.path != resolve_url('main.index')):
                 return redirect('auth.feidelogin')
-            elif url_name.split('.')[0] == 'api':
-                return HttpResponse('Unauthorized', status=401)
+            # elif url_name.split('.')[0] == 'api':
+            #     if not url_name.split('.')[1] == 'menu_items':
+            #         return HttpResponse('Unauthorized', status=401)
 
         # get user's bots
         elif username in admins:
@@ -241,7 +243,8 @@ def feidecallback(request):
     else:
         request.session.clear()
 
-    return redirect('main.index')
+    return redirect('http://localhost:5173/')
+    # return redirect('main.index')
 
 
 def logout(request):
@@ -263,9 +266,9 @@ def logout(request):
         return_uri = end_session_endpoint + urllib.parse.urlencode(params)
         return redirect(return_uri)
     else:
-        return redirect('main.index')
+        return redirect('http://localhost:5173/')
 
 
 def logged_out(request):
     messages.error(request, 'Du er nå logget ut.', 'alert-info')
-    return redirect('main.index')
+    return redirect('http://localhost:5173/')

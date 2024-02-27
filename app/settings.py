@@ -61,7 +61,10 @@ MIDDLEWARE = [
 ]
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
-                        'https://ki-dev.osloskolen.no', 'https://ki.osloskolen.no']
+                        'https://ki-dev.osloskolen.no', 
+                        'https://ki.osloskolen.no',
+                        'http://localhost:5173']
+                        
 
 ROOT_URLCONF = 'app.urls'
 
