@@ -9,6 +9,7 @@ import urllib.parse
 from datetime import datetime, timedelta
 from oauthlib.oauth2 import WebApplicationClient
 from .. import models
+from app.settings import DEBUG
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
@@ -243,7 +244,7 @@ def feidecallback(request):
     else:
         request.session.clear()
 
-    return redirect('http://localhost:5173/')
+    return redirect('http://localhost:5173/' if DEBUG else '/')
     # return redirect('main.index')
 
 
@@ -266,9 +267,9 @@ def logout(request):
         return_uri = end_session_endpoint + urllib.parse.urlencode(params)
         return redirect(return_uri)
     else:
-        return redirect('http://localhost:5173/')
+        return redirect('http://localhost:5173/' if DEBUG else '/')
 
 
 def logged_out(request):
     messages.error(request, 'Du er nå logget ut.', 'alert-info')
-    return redirect('http://localhost:5173/')
+    return redirect('http://localhost:5173/' if DEBUG else '/')
