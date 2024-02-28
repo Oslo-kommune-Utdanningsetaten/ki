@@ -39,10 +39,10 @@ async function getBots() {
       <div class="card text-center h-100" >
         <div class="card-img-top text-center">
           <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/0">
-            <img :src="'src/assets/img/'+bot.bot_img" alt="Ny bot">
+            <img :src="'/static/img/'+bot.bot_img" alt="Ny bot">
           </RouterLink>
           <RouterLink v-else active-class="active" class="" :to="'bot/'+bot.bot_nr">
-            <img :src="'src/assets/img/'+bot.bot_img" :alt="'Åpne '+bot.bot_title">
+            <img :src="'/static/img/'+bot.bot_img" :alt="'Åpne '+bot.bot_title">
           </RouterLink>
         </div>
         <div class="card-body d-flex flex-column">

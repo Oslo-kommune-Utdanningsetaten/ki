@@ -44,6 +44,14 @@ const getSettings = async () => {
     }
 }
 
+const settingsChange = async (setting) => {
+    try {
+        const { data } = await axios.put('/api/settings', { setting });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 const getSchoolAccess = async () => {
     try {
         const { data } = await axios.get('/api/school_access');
@@ -79,7 +87,7 @@ const schoolAccessFiltered = computed(() => {
         <div v-for="setting in settings" class="form-group row">
           <label :for="setting.setting_key" class="col-sm-3 col-form-label">{{ setting.label }}</label>
           <div class="col-sm-3">
-            <input :type="setting.type" :id="setting.setting_key" class="form-control" v-model="setting.value">
+            <input :type="setting.type" :id="setting.setting_key" class="form-control" v-model="setting.value" @change="settingsChange(setting)">
           </div>
         </div>
     </div>

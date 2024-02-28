@@ -141,13 +141,17 @@ def bot_info(request, bot_nr):
         bot.delete()
         return Response(status=200)
 
+    edit_g = (bot.owner == request.g.get('username', '')
+                and request.g['settings']['allow_groups']
+                and request.g['dist_to_groups'])
+
     return Response({'bot': {
         'bot_nr': bot.bot_nr,
         'title': bot.title,
         'ingress': bot.ingress,
         'prompt': bot.prompt,
         'model': bot.model,
-        'edit_g': bot.owner == request.g.get('username', ''),
+        'edit_g': edit_g,
         'edit_s': request.g.get('admin', False),
     }})
 
@@ -284,11 +288,16 @@ def settings(request):
     
         if request.method == "PUT":
             body = json.loads(request.body)
-            for key in body:
-                setting = models.Setting.objects.get(setting_key=key)
-                setting.int_val = body[key]
+            if setting_body := body.get('setting', False):
+                setting = models.Setting.objects.get(setting_key=setting_body.get('setting_key'))
+                if setting.is_txt:
+                    setting.txt_val = setting_body.get('value', setting.txt_val)
+                else:
+                    setting.int_val = setting_body.get('value', setting.int_val)
                 setting.save()
-            return Response(status=200)
+                return Response(status=200)
+            else:    
+                return Response(status=400)
     
         settings = models.Setting.objects.all()
         setting_response = [
