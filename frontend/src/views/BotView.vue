@@ -175,7 +175,7 @@ async function callChatStream(url = "", data = {}, messages) {
       <button class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
         Vis ledetekst
       </button>
-      <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
+      <RouterLink v-if="bot.edit_g || bot.edit_s" active-class="active" class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
         Rediger
       </RouterLink>
       <!-- TODO: Add delete function -->
