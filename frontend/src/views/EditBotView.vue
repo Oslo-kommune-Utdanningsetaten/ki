@@ -32,6 +32,13 @@ const models = [
   { id: "35t-16k", value: "gpt-35-turbo-16k", label: "GPT-3.5 Turbo 16k"},
   { id: "4-32k", value: "gpt-4-32k", label: "GPT-4 32k"}
 ];
+const botImages = [
+  { id: 'bot1.svg', text: 'Blå'},
+  { id: 'bot2.svg', text: 'Gul'},
+  { id: 'bot3.svg', text: 'Grønn'},
+  { id: 'bot4.svg', text: 'Rød'},
+  { id: 'bot5.svg', text: 'Grå'},
+];
 botNr.value = route.params.id;
 
 onMounted(() => {
@@ -178,6 +185,17 @@ const schoolAccessSorted = computed(() => {
     <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
     <div class="col-sm-10">
       <textarea v-model="bot.prompt" @change="update" class="form-control" id="bot_promt" rows="5" name="prompt"></textarea>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-sm-2 col-form-label">Farge på bot</div>
+    <div class="col-sm-10">
+      <div v-for="image in botImages" class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" :id="image.id" :value="image.id" v-model="bot.bot_img" @change="update">
+        <label class="form-check-label" :for="image.id">
+          {{ image.text }}
+        </label>
+      </div>
     </div>
   </div>
 

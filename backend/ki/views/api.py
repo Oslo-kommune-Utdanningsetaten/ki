@@ -128,6 +128,7 @@ def bot_info(request, bot_nr):
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
+        bot.image = body.get('bot_img', bot.image)
         default_model = models.Setting.objects.get(setting_key='default_model').txt_val
         if bot.model == '':
             bot.model = default_model
@@ -150,6 +151,7 @@ def bot_info(request, bot_nr):
         'title': bot.title,
         'ingress': bot.ingress,
         'prompt': bot.prompt,
+        'bot_img': bot.image,
         'model': bot.model,
         'edit_g': edit_g,
         'edit_s': request.g.get('admin', False),

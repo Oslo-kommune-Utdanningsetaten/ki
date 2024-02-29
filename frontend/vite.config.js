@@ -23,6 +23,12 @@ export default defineConfig(({ mode }) => {
       secure: false
       // rewrite: (path: string) => path.replace(/^\/api/, ''),
     },
+    '/static/': {
+      target: process.env.VITE_API_BASE_URL,
+      changeOrigin: true,
+      secure: false
+      // rewrite: (path: string) => path.replace(/^\/api/, ''),
+    },
   } : undefined;
 
   return {
