@@ -30,6 +30,15 @@ async function getBots() {
         </a>
       </p>
       <p>Osloskolens løsning er inspirert av Randabergskolens AI-løsning. Løsningen utvikles av Utdanningsetaten og veilederteamet for bruk av læringsteknologi i Osloskolen.</p>
+      <div>
+        <a href="/auth/feidelogin" role="button" class="btn oslo-btn-primary">Logg inn </a>
+      </div>
+      <div class="mt-3">
+        <p>
+          <a href="https://uustatus.no/nb/erklaringer/publisert/a049250e-d0fb-4510-8f7c-29427e8876e8" target="_blank">Tilgjengelighetserklæring</a>
+        </p>
+      </div>
+
   </div>
   <div v-else class="mb-3">
     <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleåret 2023/2024. Les mer under "Om tjenesten"</p>
