@@ -72,7 +72,7 @@ def user_bots(request):
             {
                 'bot_nr': bot.bot_nr,
                 'bot_title': bot.title,
-                'bot_img': bot.image or "bot1.svg",
+                'bot_img': bot.image or "bot5.svg",
             }
             for bot in bots if bot.bot_nr in request.g.get('bots', [])
         ]
@@ -129,6 +129,7 @@ def bot_info(request, bot_nr):
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
         bot.image = body.get('bot_img', bot.image)
+        bot.temperature = body.get('temperature', bot.temperature)
         default_model = models.Setting.objects.get(setting_key='default_model').txt_val
         if bot.model == '':
             bot.model = default_model
@@ -151,7 +152,8 @@ def bot_info(request, bot_nr):
         'title': bot.title,
         'ingress': bot.ingress,
         'prompt': bot.prompt,
-        'bot_img': bot.image,
+        'bot_img': bot.image or "bot5.svg",
+        'temperature': bot.temperature,
         'model': bot.model,
         'edit_g': edit_g,
         'edit_s': request.g.get('admin', False),
@@ -378,6 +380,7 @@ async def send_message(request):
         completion = await openai.ChatCompletion.acreate(
             engine=bot.model,
             messages=messages,
+            temperature=float(bot.temperature),
             stream=True,
             )
         # Mock function for loadtesting etc.:

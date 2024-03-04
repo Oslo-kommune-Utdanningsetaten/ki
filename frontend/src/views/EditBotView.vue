@@ -198,11 +198,21 @@ const schoolAccessSorted = computed(() => {
       </div>
     </div>
   </div>
+  <div class="row mb-3">
+    <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
+    <div class="col-sm-1">
+      <input type="range" class="form-range" min="0" max="2" step="0.1" id="temperature" v-model="bot.temperature" @change="update">
+    </div>
+    <div class="col-sm-1">
+      {{ bot.temperature }}
+    </div>
+    <div class="col">
+        Temperatur er et mål på hvor kreativ boten skal være. Høy temperatur gir mer kreative svar.
+    </div>
+  </div>
 
   <div v-if="bot.edit_g" class="row mb-3">
-    <div class="col-sm-2">
-    </div>
-    <div class="col-sm-10">
+    <div >
       <p>
         Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
         Tilgangen til boten varer i {{ lifeSpan }} timer fra du lagrer.

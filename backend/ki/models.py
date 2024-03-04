@@ -22,6 +22,7 @@ class Bot(models.Model):
     ingress = models.TextField()
     prompt = models.TextField()
     model = models.CharField(max_length=20)
+    temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
     image = models.CharField(max_length=20, null=True)
     owner = models.CharField(max_length=50, null=True)
 
