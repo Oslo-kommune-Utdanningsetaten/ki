@@ -4,14 +4,18 @@ from rest_framework.response import Response
 from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
 import requests
-import openai
+from openai import AsyncAzureOpenAI
 import os
 import json
 # from ..mock import mock_acreate
 
-openai.api_key = os.environ.get('OPENAI_API_KEY')
-openai.api_base = os.environ.get('OPENAI_API_BASE')
-openai.api_type = os.environ.get('OPENAI_API_TYPE')
+
+azureClient = AsyncAzureOpenAI(
+    azure_endpoint=os.environ.get('OPENAI_API_BASE'),
+    api_key=os.environ.get('OPENAI_API_KEY'),
+    api_version=os.environ.get('OPENAI_API_VERSION'),
+    )
+
 
 @api_view(["GET"])
 def page_text(request, page):
@@ -377,8 +381,8 @@ async def send_message(request):
         return HttpResponseNotFound()
 
     async def stream():
-        completion = await openai.ChatCompletion.acreate(
-            engine=bot.model,
+        completion = await azureClient.chat.completions.create(
+            model=bot.model,
             messages=messages,
             temperature=float(bot.temperature),
             stream=True,
@@ -386,8 +390,9 @@ async def send_message(request):
         # Mock function for loadtesting etc.:
         # completion = await mock_acreate()
         async for line in completion:
-            if line['choices']:
-                chunk = line['choices'][0].get('delta', {}).get('content', '')
+            if line.choices:
+                print(line.choices[0].delta.content or "", end="")
+                chunk = line.choices[0].delta.content or ""
                 if chunk:
                     yield chunk
 

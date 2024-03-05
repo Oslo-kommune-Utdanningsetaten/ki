@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
@@ -115,8 +116,8 @@ def get_user_bots(request, username):
     return list(bots), employee, dist_to_groups
 
 
-
 def auth_middleware(get_response):
+    @ensure_csrf_cookie
     def load_logged_in_user(request):
         request.g = {}
         bots = []
@@ -244,8 +245,8 @@ def feidecallback(request):
     else:
         request.session.clear()
 
+    # return redirect('http://localhost:5173/')
     return redirect('http://localhost:5173/' if DEBUG else '/')
-    # return redirect('main.index')
 
 
 def logout(request):
