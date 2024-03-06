@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "ki"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "../README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-dotenv = "^1.0.1"
+oauthlib = "^3.2.2"
+requests = "^2.31.0"
+pyopenssl = "^24.0.0"
+openai = "^1.13.3"
+pymysql = "^1.1.0"
+gunicorn = "^21.2.0"
+uvicorn = "^0.27.1"
+django = "^4.2.6"
+djangorestframework = "^3.14.0"
+mysqlclient = "^2.2.4"
+
+[tool.poetry.group.dev.dependencies]
+daphne = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

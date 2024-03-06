@@ -37,7 +37,12 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskole
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = []
+
+if DEBUG:
+    INSTALLED_APPS.append('daphne')
+
+INSTALLED_APPS += [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -68,36 +73,6 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
                         
 
 ROOT_URLCONF = 'app.urls'
-
-TEMPLATES = [
-    {
-		"BACKEND": "django.template.backends.jinja2.Jinja2",
-		"DIRS": [],
-		"APP_DIRS": True,
-		"OPTIONS": {
-			"environment": "app.jinja2.environment",
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-		}
-	},
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = 'app.wsgi.application'
 ASGI_APPLICATION = "app.asgi.application"

@@ -391,7 +391,7 @@ async def send_message(request):
         # completion = await mock_acreate()
         async for line in completion:
             if line.choices:
-                print(line.choices[0].delta.content or "", end="")
+                # print(line.choices[0].delta.content or "", end="")
                 chunk = line.choices[0].delta.content or ""
                 if chunk:
                     yield chunk
