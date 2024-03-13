@@ -46,8 +46,8 @@ async function getBots() {
   <div class="row align-items-stretch">
     <div v-for="bot in bots" :key="bot.bot_nr" class="col-lg-3 col-md-4 col-sm-6 mb-3">
       <div class="card text-center h-100" >
-        <div class="card-img-top text-center">
-          <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/0">
+        <div class="card-img-top text-center pt-3">
+          <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/">
             <img :src="'/static/img/'+bot.bot_img" alt="Ny bot">
           </RouterLink>
           <RouterLink v-else active-class="active" class="" :to="'bot/'+bot.bot_nr">

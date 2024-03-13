@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watchEffect } from 'vue'
 import $ from 'jquery'
 
 const route = useRoute()
@@ -13,10 +13,6 @@ const message = ref('');
 const showTypeWriter = ref(false);
 const showSystemPrompt = ref(false);
 botNr.value = route.params.id;
-
-onMounted(() => {
-  startpromt()
-});
 
 
 const startpromt = async () => {
@@ -58,87 +54,88 @@ const sendMessage = async () => {
       }
 
 
+const callChatStream = async (url = "", data = {}, messages) => {
+  const csrf = getCookie('csrftoken');
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrf,
+    },
+    body: JSON.stringify(data),
+  });
 
+  if (!response.body) return;
 
-async function callChatStream(url = "", data = {}, messages) {
-    const csrf = getCookie('csrftoken');
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrf,
-      },
-      body: JSON.stringify(data),
-    });
+  const reader = response.body
+    .pipeThrough(new TextDecoderStream())
+    .getReader();
 
-    if (!response.body) return;
+  // Read the eventstream until done
+  while (true) {
+    var { value, done } = await reader.read();
+    if (done) {
+      $("#input_line").removeClass("d-none")
+      $(".edit-link").removeClass("invisible");
+      showTypeWriter.value = false;
 
-    const reader = response.body
-      .pipeThrough(new TextDecoderStream())
-      .getReader();
-
-    // Read the eventstream until done
-    while (true) {
-      var { value, done } = await reader.read();
-      if (done) {
-        $("#input_line").removeClass("d-none")
-        $(".edit-link").removeClass("invisible");
-        showTypeWriter.value = false;
-
-        // Handle markdown parsing
-        let updatedMessage = messages[messages.length - 1];
-        // updatedMessage.content = marked.parse(updatedMessage.content);
-        messages[messages.length - 1] = updatedMessage;
-
-        break;
-      }
-
-      // Append response to last message object
+      // Handle markdown parsing
       let updatedMessage = messages[messages.length - 1];
-      updatedMessage.content += value;
+      // updatedMessage.content = marked.parse(updatedMessage.content);
       messages[messages.length - 1] = updatedMessage;
 
-      // Scroll to bottom of page
-      // const scrollingElement = (document.scrollingElement || document.body);
-      // scrollingElement.scrollTop = scrollingElement.scrollHeight;
+      break;
     }
-  }
 
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
+    // Append response to last message object
+    let updatedMessage = messages[messages.length - 1];
+    updatedMessage.content += value;
+    messages[messages.length - 1] = updatedMessage;
+
+    // Scroll to bottom of page
+    // const scrollingElement = (document.scrollingElement || document.body);
+    // scrollingElement.scrollTop = scrollingElement.scrollHeight;
+  }
+}
+
+const getCookie = (name) => {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
       }
     }
-    return cookieValue;
   }
+  return cookieValue;
+}
 
-  function editPrompt(response_nr) {
-    messages.value.splice(response_nr + 1);
-    message.value = messages.value.pop()["content"];
-    showTypeWriter.value = false;
-  }
+const editPrompt = (response_nr) => {
+  messages.value.splice(response_nr + 1);
+  message.value = messages.value.pop()["content"];
+  showTypeWriter.value = false;
+}
 
+const toggleStartPrompt = () => {
+  showSystemPrompt.value = !showSystemPrompt.value;
+}
 
-  function toggleStartPrompt() {
-    showSystemPrompt.value = !showSystemPrompt.value;
-  }
+const deleteBot = () => {
+  axios.delete('/api/bot_info/' + botNr.value)
+    .then(response => {
+      router.push({ name: 'home' });
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}
 
-  function deleteBot() {
-    axios.delete('/api/bot_info/' + botNr.value)
-      .then(response => {
-        router.push({ name: 'home' });
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  }
+watchEffect(() => {
+  startpromt()
+});
 
 
 </script>
@@ -175,11 +172,10 @@ async function callChatStream(url = "", data = {}, messages) {
       <button class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
         Vis ledetekst
       </button>
-      <RouterLink v-if="bot.edit_g || bot.edit_s" active-class="active" class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
+      <RouterLink v-if="bot.edit" active-class="active" class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
         Rediger
       </RouterLink>
-      <!-- TODO: Add delete function -->
-      <button v-if="bot.edit_g || bot.edit_s" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
+      <button v-if="bot.edit" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
         Slett
       </button>
     </div>

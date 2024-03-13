@@ -1,18 +1,19 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watchEffect } from 'vue'
 
 const route = useRoute();
+const $router = useRouter();
 const bot = ref({});
+const newBot = ref(false);
+const edit_g = ref(false);
 const groups = ref();
 const lifeSpan = ref(0);
 const schoolAccess = ref([]);
-const botNr = ref(0);
+const botNr = ref();
 const sort_by = ref('school_name');
 const levels = [
-  // { id: '-', name: 'L' },
-  // { id: '*', name: 'A' },
   { id: 'aarstrinn1', name: '1.' },
   { id: 'aarstrinn2', name: '2.' },
   { id: 'aarstrinn3', name: '3.' },
@@ -39,38 +40,37 @@ const botImages = [
   { id: 'bot4.svg', text: 'Rød'},
   { id: 'bot5.svg', text: 'Grå'},
 ];
-botNr.value = route.params.id;
 
-onMounted(() => {
-  startpromt()
-});
-
-
-async function startpromt() {
+const getBotInfo = async () => {
   try {
     const { data } = await axios.get('/api/bot_info/' + botNr.value);
     bot.value = data.bot;
   } catch (error) {
     console.log(error);
   }
-  if (bot.value.edit_g) {
+  }
+  if (edit_g.value) {
     getGroupList()
   } else if (bot.value.edit_s) {  
     getAccessList()
   }
-}
 
-async function getGroupList() {
+const getGroupList = async () => {
+  var url = '/api/bot_groups/';
+  if (!newBot.value) {
+    url += botNr.value;
+  }
   try {
-    const { data } = await axios.get('/api/bot_groups/' + botNr.value);
+    const { data } = await axios.get(url);
     groups.value = data.groups;
     lifeSpan.value = data.lifespan;
+    edit_g.value = data.edit_g;
   } catch (error) {
     console.log(error);
   }
 }
 
-async function getAccessList() {
+const getAccessList = async () => {
   try {
     const { data } = await axios.get('/api/bot_access/' + botNr.value);
     schoolAccess.value = data.schoolAccess;
@@ -84,58 +84,55 @@ async function getAccessList() {
   });
 }
 
-function update() {
-  if (bot.value.bot_nr == 0) {
-    axios.post('/api/bot_info/0', bot.value)
-      .then(response => {
-        bot.value = response.data.bot;
-        botNr.value = response.data.bot.bot_nr;
-      })
-      .catch(error => {
-        console.log(error);
-      });
+const update = async () => {
+  if (newBot.value) {
+    try {
+      const response = await axios.post('/api/bot_info/', bot.value)
+      bot.value = response.data.bot;
+      botNr.value = response.data.bot.bot_nr;
+      newBot.value = false;
+      if (edit_g.value) {
+        groupUpdate()
+      }
+    } catch (error) {
+      console.log(error);
+    }
   } else {
-    axios.put('/api/bot_info/' + botNr.value, bot.value)
-    .then(response => {
-      // console.log(response);
-    })
-    .catch(error => {
+    try {
+      const response = await axios.put('/api/bot_info/' + botNr.value, bot.value)
+      if (edit_g.value) {
+        groupUpdate()
+      }
+    } catch (error) {
       console.log(error);
-    });
-  } 
+    }
+  }
+  $router.push('/bot/' + botNr.value);
 }
 
+const groupUpdate = async () => {
+  try {
+    const response = await axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
+  } catch (error) {
+    console.log(error);
+  }
+}
 
-function groupUpdate() {
-  if (botNr.value == 0) {
+const accessUpdate = async (school) => {
+  if (newBot.value) {
     update();
   }
-  axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
-    .then(response => {
-      // console.log(response);
+  try {
+    const response = await axios.put('/api/bot_access/' + botNr.value, {
+      'school_access':school.access_list,
+      'org_nr':school.org_nr
     })
-    .catch(error => {
-      console.log(error);
-    });
-}
-
-function accessUpdate(school) {
-  if (botNr.value === 0) {
-    update();
+  } catch (error) {
+    console.log(error);
   }
-  axios.put('/api/bot_access/' + botNr.value, {
-        'school_access':school.access_list,
-        'org_nr':school.org_nr
-      })
-    .then(response => {
-      // console.log(response);
-    })
-    .catch(error => {
-      console.log(error);
-    });
 }
 
-function viewToggle(school) {
+const viewToggle = (school) => {
   if (school.view_levels === false) {
     school.access_list = school.access_list.filter(access => access === '*' || access === '-');
     accessUpdate(school);
@@ -155,43 +152,64 @@ const schoolAccessSorted = computed(() => {
   });
 });
 
+watchEffect(() => {
+  if (route.params.id == null) {
+    newBot.value = true;
+  } else {
+    botNr.value = route.params.id;
+  }
+  if (!newBot.value) {
+    getBotInfo()
+  }
+  getGroupList()
+});
+
+
+
 </script>
 
 <template>
 
-  
   <h1 class="h2">
     {{ bot.title }}
   </h1>
-  <div class="d-flex flex-row-reverse">
-    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="'/bot/'+bot.bot_nr">
-      Vis bot
+  <div class="d-flex flex-row-reverse mb-3">
+    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+      Avbryt
     </RouterLink>
+    <button @click="update" class="btn oslo-btn-primary">
+      Lagre
+    </button>
+    <!-- <button v-if="field_updated" class="btn oslo-btn-secondary" data-bs-toggle="modal" data-bs-target="#exit_modal">
+      Vis bot
+    </button>
+    <RouterLink v-else active-class="active" class="btn oslo-btn-secondary" :to="botNr ? '/bot/'+botNr : '/'">
+      Vis bot
+    </RouterLink> -->
   </div>
-
   <div class="row mb-3">
     <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
     <div class="col-sm-10">
-      <input v-model="bot.title" @change="update" type="text" class="form-control" id="bot_title" name="title" maxlength="40">
+      <input v-model="bot.title" type="text" class="form-control" id="bot_title" name="title" maxlength="40">
     </div>
   </div>
   <div class="row mb-3">
     <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
     <div class="col-sm-10">
-      <input v-model="bot.ingress" @change="update" type="text" class="form-control" id="bot_ingress" name="ingress">
+      <input v-model="bot.ingress" type="text" class="form-control" id="bot_ingress" name="ingress">
     </div>
   </div>
   <div class="row mb-3">
     <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
     <div class="col-sm-10">
-      <textarea v-model="bot.prompt" @change="update" class="form-control" id="bot_promt" rows="5" name="prompt"></textarea>
+      <textarea v-model="bot.prompt" class="form-control" id="bot_promt" rows="5" name="prompt"></textarea>
     </div>
   </div>
   <div class="row mb-3">
     <div class="col-sm-2 col-form-label">Farge på bot</div>
     <div class="col-sm-10">
       <div v-for="image in botImages" class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" :id="image.id" :value="image.id" v-model="bot.bot_img" @change="update">
+        <input class="form-check-input" type="radio" :id="image.id" :value="image.id" v-model="bot.bot_img">
         <label class="form-check-label" :for="image.id">
           {{ image.text }}
         </label>
@@ -201,7 +219,7 @@ const schoolAccessSorted = computed(() => {
   <div class="row mb-3">
     <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
     <div class="col-sm-1">
-      <input type="range" class="form-range" min="0" max="2" step="0.1" id="temperature" v-model="bot.temperature" @change="update">
+      <input type="range" class="form-range" min="0" max="2" step="0.1" id="temperature" v-model="bot.temperature">
     </div>
     <div class="col-sm-1">
       {{ bot.temperature }}
@@ -211,7 +229,7 @@ const schoolAccessSorted = computed(() => {
     </div>
   </div>
 
-  <div v-if="bot.edit_g" class="row mb-3">
+  <div v-if="edit_g" class="row mb-3">
     <div >
       <p>
         Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
@@ -223,7 +241,7 @@ const schoolAccessSorted = computed(() => {
     </div>
     <div class="col-sm-10">
         <div v-for="group in groups" class="form-check">
-          <input class="form-check-input" type="checkbox" name="access" v-model="group.checked" @change="groupUpdate" :id="'check'+group.id">
+          <input class="form-check-input" type="checkbox" name="access" v-model="group.checked" :id="'check'+group.id">
           <label class="form-check-label" :for="'check'+group.id">
             {{group.display_name}} {{ group.go_type == 'b' ? '(klasse)' : '(faggruppe)' }}
           </label>
@@ -236,12 +254,23 @@ const schoolAccessSorted = computed(() => {
       <div class="col-sm-2 ">Modell</div>
       <div class="col-sm-10">
         <div v-for="model in models" :key="model.id" class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" :id="model.id" :value="model.value" v-model="bot.model" @change="update">
+          <input class="form-check-input" type="radio" :id="model.id" :value="model.value" v-model="bot.model">
           <label class="form-check-label" :for="model.id">{{ model.label }}</label>
         </div>
       </div>
     </div>
+  </div>
 
+  <div class="d-flex flex-row-reverse mb-3">
+    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+      Avbryt
+    </RouterLink>
+    <button @click="update" class="btn oslo-btn-primary">
+      Lagre
+    </button>
+  </div>
+
+  <div v-if="bot.edit_s" class="mb-3">
     <div v-for="school in schoolAccessSorted" >
       <div class="row">
         <div class="col-3">
@@ -273,16 +302,15 @@ const schoolAccessSorted = computed(() => {
         </div>
         <div class="col">
           <span v-for="level in levels" class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" :id="'check'+school.org_nr+level.id" :value="level.id" v-model="school.access_list" @change="accessUpdate(school)">
+            <input class="form-check-input" type="checkbox" :id="'check'+school.org_nr+level.id" :value="level.id" v-model="school.access_list">
             <label class="form-check-label" :for="'check'+school.org_nr+level.id">
               {{level.name}}
             </label>
           </span>
         </div>
       </div>
-
-
     </div>
   </div>
+
 
 </template>

@@ -95,9 +95,9 @@ def user_bots(request):
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
-def bot_info(request, bot_nr):
+def bot_info(request, bot_nr=None):
 
-    if not bot_nr in request.g.get('bots', []) and bot_nr != 0:
+    if bot_nr and not bot_nr in request.g.get('bots', []):
         return Response(status=403)
 
     # Make new bot on POST
@@ -105,20 +105,7 @@ def bot_info(request, bot_nr):
         bot = models.Bot()
         if not request.g.get('admin', False):
             bot.owner = request.g.get('username')
-        # TODO: remove this?
-        request.g['bots'].append(bot.bot_nr)
-        request.session['user.bots'] = request.g['bots']
     else:
-        if request.method == "GET" and bot_nr == 0:
-            return Response({'bot': {
-                'bot_nr': 0,
-                'title': "",
-                'ingress': "",
-                'prompt': "",
-                'model': models.Setting.objects.get(setting_key='default_model').txt_val,
-                'edit_g': not request.g.get('admin', False),
-                'edit_s': request.g.get('admin', False),
-            }})
         try:
             bot = models.Bot.objects.get(bot_nr=bot_nr)
         except models.Bot.DoesNotExist:
@@ -147,9 +134,8 @@ def bot_info(request, bot_nr):
         bot.delete()
         return Response(status=200)
 
-    edit_g = (bot.owner == request.g.get('username', '')
-                and request.g['settings']['allow_groups']
-                and request.g['dist_to_groups'])
+    edit = (bot.owner == request.g.get('username', '')
+              or request.g.get('admin', False))
 
     return Response({'bot': {
         'bot_nr': bot.bot_nr,
@@ -159,7 +145,7 @@ def bot_info(request, bot_nr):
         'bot_img': bot.image or "bot5.svg",
         'temperature': bot.temperature,
         'model': bot.model,
-        'edit_g': edit_g,
+        'edit': edit,
         'edit_s': request.g.get('admin', False),
     }})
 
@@ -213,7 +199,7 @@ def bot_access(request, bot_nr):
 
 
 @api_view(["GET", "PUT"])
-def bot_groups(request, bot_nr):
+def bot_groups(request, bot_nr = None):
 
     def get_groups():
         subjects = []
@@ -242,11 +228,24 @@ def bot_groups(request, bot_nr):
     if not request.g.get('employee', False) and not request.g.get('admin', False):
         return HttpResponseForbidden()
 
-    if bot_nr != 0:
+    new_bot = True if bot_nr is None else False
+
+    if not new_bot:
         try:
             bot = models.Bot.objects.get(bot_nr=bot_nr)
         except models.Bot.DoesNotExist:
             return Response(status=404)
+
+    # user is allowed to edit groups
+    edit_g = ((new_bot or bot.owner == request.g.get('username', ''))
+            and request.g['settings']['allow_groups']
+            and request.g['dist_to_groups'])
+
+    if not edit_g:
+        return Response( {
+            'edit_g': False,
+            'groups': []
+        })
 
     if request.method == "PUT":
         body = json.loads(request.body)
@@ -274,7 +273,7 @@ def bot_groups(request, bot_nr):
 
     access_list = []
     lifespan = models.Setting.objects.get(setting_key='lifespan').int_val
-    if bot_nr != 0 and bot.pk:
+    if not new_bot and bot.pk:
         for subj in bot.subjects.all():
             if (subj.created and 
                     (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
@@ -284,6 +283,7 @@ def bot_groups(request, bot_nr):
     groups = get_groups()
     groups = [dict(group, checked=group.get('id') in access_list) for group in groups]
     return Response({
+        'edit_g': True,
         'groups': groups,
         'lifespan': lifespan,
         })

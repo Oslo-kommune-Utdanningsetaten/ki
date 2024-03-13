@@ -19,6 +19,11 @@ const router = createRouter({
       component: BotView
     },
     {
+      path: '/editbot',
+      name: 'newbot',
+      component: EditBotView
+    },
+    {
       path: '/editbot/:id',
       name: 'editbot',
       component: EditBotView
