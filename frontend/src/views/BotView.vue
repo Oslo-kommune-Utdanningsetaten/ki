@@ -133,6 +133,27 @@ const deleteBot = () => {
     });
 }
 
+const clipboard = (response_nr) => {
+  try {
+    navigator.clipboard.writeText(messages.value[response_nr].content);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const clipboardAll = () => {
+  const roles = {
+    "system": "Ledetekst",
+    "user": "Du",
+    "assistant": "Bot",
+  }
+  try {
+    navigator.clipboard.writeText(messages.value.map(x => `${roles[x.role]}: ${x.content}`).join('\n'));
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 watchEffect(() => {
   startpromt()
 });
@@ -199,6 +220,11 @@ watchEffect(() => {
                   <img src="@/components/icons/rediger.svg" alt="rediger">
                 </a>
               </div>
+              <div class="col-1 clipboard">
+                <a  href="#" @click="clipboard(msg_nr)">
+                  <img src="@/components/icons/clipboard.svg" alt="kopier">
+                </a>
+              </div>
             </span>
           </li>
         </span>
@@ -210,6 +236,10 @@ watchEffect(() => {
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
         <button class="btn oslo-btn-secondary" type="button" id="button-new" @click="startpromt()">Ny samtale</button>
+        <button class="btn oslo-btn-secondary" type="button" id="button-clipboard" @click="clipboardAll()">
+          <img src="@/components/icons/clipboard.svg" alt="">
+          Kopier samtalen
+        </button>
         <div><small>Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med virkeligheten, og den gir ikke beskjed om når den gjør det.</small></div>
       </div>
     </div>
