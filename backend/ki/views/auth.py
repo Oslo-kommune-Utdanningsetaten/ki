@@ -1,4 +1,3 @@
-from django.contrib import messages
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect, resolve_url
 from django.urls import resolve
@@ -15,7 +14,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
 
-access_message = 'Du har dessverre ikke tilgang til denne løsningen. Du er nå logget ut'
+message_redirect = 'http://localhost:5173/message' if DEBUG else '/message'
 
 def get_user_bots(request, username):
     bot_access = models.BotAccess.objects.all()
@@ -82,9 +81,9 @@ def get_user_bots(request, username):
                     if line.level in levels:
                         access = True
     if not access:
-        return [], False, False
+        return None, False, False
     
-    # access from subject
+    # bots from subject
     if allow_groups and not employee:
         for group_id in groups:
             subject_accesses = models.SubjectAccess.objects.filter(
@@ -96,7 +95,7 @@ def get_user_bots(request, username):
                 else:
                     bots.add(line.bot_nr_id)
 
-    # access from school
+    # bots from school
     for line in bot_access:
         for school in schools:
             if (line.school_id_id == school.org_nr) or (line.school_id_id == '*'):
@@ -107,7 +106,7 @@ def get_user_bots(request, username):
                         if line.level == level:
                             bots.add(line.bot_nr_id)
 
-    # access from personal bots
+    # bots from personal
     if allow_personal:
         personal_bots = models.Bot.objects.filter(owner=username)
         for line in personal_bots:
@@ -122,7 +121,7 @@ def auth_middleware(get_response):
         request.g = {}
         bots = []
         admin = False
-        logged_on = False
+        has_access = False
         # temp admin access
         admins = [
             "fnygard@feide.osloskolen.no",
@@ -132,7 +131,7 @@ def auth_middleware(get_response):
 
         username = request.session.get('user.username', None)
         if username is None:
-            logged_on = False
+            has_access = False
             url_name = resolve(request.path_info).url_name
             if (url_name is None):
                 response = get_response(request)
@@ -149,20 +148,17 @@ def auth_middleware(get_response):
             bots_obj = models.Bot.objects.filter(owner=None)
             bots = [bot.bot_nr for bot in bots_obj]
             admin = True
-            logged_on = True
+            has_access = True
         else:
             bots, employee, dist_to_groups = get_user_bots(request, username)
             request.g['employee'] = employee
             request.g['dist_to_groups'] = dist_to_groups
-            logged_on = True
-            if not bots:
-                request.g['logged_on'] = logged_on
-                messages.error(request, access_message, 'alert-danger')
-                return logout(request)
+            if bots is not None:
+                has_access = True
 
         request.g['bots'] = bots
         request.g['admin'] = admin
-        request.g['logged_on'] = logged_on
+        request.g['has_access'] = has_access
         request.g['username'] = username
         request.g['name'] = request.session.get('user.name')
 
@@ -241,12 +237,11 @@ def feidecallback(request):
         request.session['user.auth'] = tokens
         request.session['user.username'] = username
         request.session['user.name'] = userinfo_response.json()["name"]
+        return redirect('http://localhost:5173/' if DEBUG else '/')
 
     else:
         request.session.clear()
-
-    # return redirect('http://localhost:5173/')
-    return redirect('http://localhost:5173/' if DEBUG else '/')
+        return redirect(f'{message_redirect}/Feide login feilet./error')
 
 
 def logout(request):
@@ -255,9 +250,9 @@ def logout(request):
     request.g['username'] = None
     request.g['name'] = None
     request.g['bots'] = []
-    if request.g['logged_on'] and token:
+    request.g['has_access'] = False
+    if token:
         id_token = token['id_token']
-        request.g['logged_on'] = False
         feide_provider_cfg = get_provider_cfg()
         redirect_uri=os.environ.get('FEIDE_LOGOUT_REDIR')
         end_session_endpoint = feide_provider_cfg["end_session_endpoint"]+'?'
@@ -272,13 +267,4 @@ def logout(request):
 
 
 def logged_out(request):
-    # TODO: Change messages to something that works with Vue frontend
-    # Return access message instead of logout message if logged out due to access
-    message_list = messages.get_messages(request)
-    for message in message_list:
-        if message.message == access_message:
-            messages.error(request, access_message, 'alert-danger')
-            return redirect('main.index')
-
-    messages.error(request, 'Du er nå logget ut.', 'alert-info')
-    return redirect('http://localhost:5173/' if DEBUG else '/')
+    return redirect(f'{message_redirect}/Du er nå logget ut./info')

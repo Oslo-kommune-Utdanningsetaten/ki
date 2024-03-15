@@ -1,13 +1,13 @@
 <script setup>
 import { RouterView } from 'vue-router';
 import Navbar from '@/components/Navbar.vue';
+import Messages from '@/components/Messages.vue';
 </script>
 
 <template>
-  <header>
-    <Navbar />
-  </header>
+  <Navbar />
   <div class="container mt-3">   
+    <Messages />
     <RouterView />
   </div>
 </template>

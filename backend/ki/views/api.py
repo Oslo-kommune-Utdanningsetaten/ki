@@ -40,11 +40,7 @@ def menu_items(request):
     menu_items = []
     info_pages = models.PageText.objects.all()
     
-    if request.g.get('logged_on', False):
-        # menu_items.append({
-        #     'title': 'Logg ut',
-        #     'url': '/',
-        # })
+    if request.session.get('user.username', None):
         if request.g.get('admin', False):
             menu_items.append({
                 'title': 'Innstillinger',
@@ -60,38 +56,45 @@ def menu_items(request):
             'title': 'Startside',
             'url': '/',
         })
-    # else:
-    #     menu_items.append({
-    #         'title': 'Logg inn',
-    #         'url': '/auth/feidelogin',
-    #     })
 
     return Response({'menuItems': menu_items}, content_type='application/json')
 
 @api_view(["GET"])
 def user_bots(request):
-    bots = models.Bot.objects.all()
-    if request.g.get('logged_on', False):
-        users_bots = [
-            {
-                'bot_nr': bot.bot_nr,
-                'bot_title': bot.title,
-                'bot_img': bot.image or "bot5.svg",
-            }
-            for bot in bots if bot.bot_nr in request.g.get('bots', [])
-        ]
-        if (request.g.get('admin', False) or 
-                request.g.get('employee', False) and 
-                models.Setting.objects.get(setting_key='allow_personal')):
-            users_bots.append({
-                    'bot_nr': 0,
-                    'bot_title': "Ny bot",
-                    'bot_img': "pluss.svg",
-                })
-    else:
-        users_bots = []
+    if not request.session.get('user.username', None):
+        return Response({
+            'status': 'not_feide',
+            'bots': None,
+        })
 
-    return Response({'bots': users_bots})
+    if not request.g.get('has_access', False):
+        return Response({
+            'status': 'not_school',
+            'bots': None,
+        })
+    
+    bots = models.Bot.objects.all()
+    users_bots = [
+        {
+            'bot_nr': bot.bot_nr,
+            'bot_title': bot.title,
+            'bot_img': bot.image or "bot5.svg",
+        }
+        for bot in bots if bot.bot_nr in request.g.get('bots', [])
+    ]
+    if (request.g.get('admin', False) or 
+            request.g.get('employee', False) and 
+            models.Setting.objects.get(setting_key='allow_personal')):
+        users_bots.append({
+                'bot_nr': 0,
+                'bot_title': "Ny bot",
+                'bot_img': "pluss.svg",
+            })
+
+    return Response({
+        'bots': users_bots,
+        'status': 'ok',
+    })
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -334,7 +337,6 @@ def school_access(request):
             for level in school_body.get('access_list', []):
                 access = models.SchoolAccess(school_id=school, level=level)
                 access.save()
-                print(access)
         school.save()
         return Response(status=200)
     
@@ -391,7 +393,6 @@ async def send_message(request):
         # completion = await mock_acreate()
         async for line in completion:
             if line.choices:
-                # print(line.choices[0].delta.content or "", end="")
                 chunk = line.choices[0].delta.content or ""
                 if chunk:
                     yield chunk

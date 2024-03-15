@@ -26,7 +26,7 @@ def index(request):
             redirect('main.index')
 
     bots = models.Bot.objects.all()
-    if request.g.get('logged_on', False):
+    if request.g.get('has_access', False):
         users_bots = [bot for bot in bots if bot.bot_nr in request.g.get('bots', [])]
     else:
         users_bots = []

@@ -2,6 +2,7 @@
 import { RouterLink, useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { ref, onMounted, computed, watchEffect } from 'vue'
+import { store } from '../store.js';
 
 const route = useRoute();
 const $router = useRouter();
@@ -94,6 +95,7 @@ const update = async () => {
       if (edit_g.value) {
         groupUpdate()
       }
+      store.addMessage('Boten er opprettet!', 'info' );
     } catch (error) {
       console.log(error);
     }
@@ -103,6 +105,7 @@ const update = async () => {
       if (edit_g.value) {
         groupUpdate()
       }
+      store.addMessage('Endringene er lagret!', 'info' );
     } catch (error) {
       console.log(error);
     }

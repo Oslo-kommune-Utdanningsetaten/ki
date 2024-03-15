@@ -2,6 +2,7 @@
 import { RouterLink, useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import { ref, onMounted, watchEffect } from 'vue'
+import { store } from '../store.js';
 import $ from 'jquery'
 
 const route = useRoute()
@@ -126,6 +127,7 @@ const toggleStartPrompt = () => {
 const deleteBot = () => {
   axios.delete('/api/bot_info/' + botNr.value)
     .then(response => {
+      store.addMessage('Boten er nå slettet', 'info' );
       router.push({ name: 'home' });
     })
     .catch(error => {

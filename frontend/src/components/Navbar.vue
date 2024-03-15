@@ -3,24 +3,28 @@ import { RouterLink } from 'vue-router';
 import axios from 'axios';
 import { onMounted, computed, ref, watchEffect } from 'vue';
 import { useRoute } from 'vue-router';
+import { store } from '../store.js';
 
 
 const menuItems = ref([]);
+
+const getMenuItems = async () => {
+  try {
+    const { data } = await axios.get('/api/menu_items');
+    menuItems.value = data.menuItems;
+    // if (menuItems.value.length === 0) {
+    //   store.addMessage('Du har ikke tilgang til løsningen', 'danger');
+    // }
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 
 watchEffect(() => {
   const route = useRoute()
   getMenuItems()
-});
-
-async function getMenuItems() {
-  try {
-    const { data } = await axios.get('/api/menu_items');
-    menuItems.value = data.menuItems;
-  } catch (error) {
-    console.log(error);
-  }
-}
+});  
 
 
 </script>
