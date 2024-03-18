@@ -177,10 +177,10 @@ watchEffect(() => {
     {{ bot.title }}
   </h1>
   <div class="d-flex flex-row-reverse mb-3">
-    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+    <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
       Avbryt
     </RouterLink>
-    <button @click="update" class="btn oslo-btn-primary">
+    <button @click="update" class="btn oslo-btn-primary me-2">
       Lagre
     </button>
     <!-- <button v-if="field_updated" class="btn oslo-btn-secondary" data-bs-toggle="modal" data-bs-target="#exit_modal">
@@ -265,10 +265,10 @@ watchEffect(() => {
   </div>
 
   <div class="d-flex flex-row-reverse mb-3">
-    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+    <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
       Avbryt
     </RouterLink>
-    <button @click="update" class="btn oslo-btn-primary">
+    <button @click="update" class="btn oslo-btn-primary me-2">
       Lagre
     </button>
   </div>
