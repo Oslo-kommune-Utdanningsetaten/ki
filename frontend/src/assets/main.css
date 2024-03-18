@@ -99,6 +99,10 @@ ul .system {
   background-color: #F8F0DD
 } 
 
+button img {
+  width: 1.3em;
+}
+
 .avatar {   
   text-align: center!important;
   padding: 0!important;
@@ -108,12 +112,12 @@ ul .system {
   width:2em;  
 }
 
-.edit-link {   
+.edit-link, .clipboard {   
   text-align: center!important;
   padding: 0!important;
 }
 
-.edit-link img {   
+.edit-link, .clipboard img {   
   width:1.3em;
 }
 
