@@ -61,24 +61,26 @@ async function getBots() {
     </div>
     <div class="row align-items-stretch">
       <div v-for="bot in bots" :key="bot.bot_nr" class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="card text-center h-100" >
-          <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="bot_tile" to="editbot/">
+        <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/">
+          <div class="card oslo-bg-light text-center h-100" >
             <div class="card-img-top text-center pt-3">
               <img :src="'/static/img/'+bot.bot_img" alt="Ny bot">
             </div>
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">{{ bot.bot_title }}</h5>
             </div>
-          </RouterLink>
-          <RouterLink v-else active-class="active" class="bot_tile" :to="'bot/'+bot.bot_nr">
+          </div>
+        </RouterLink>
+        <RouterLink v-else active-class="active" class="bot_tile" :to="'bot/'+bot.bot_nr">
+          <div class="card oslo-bg-light text-center h-100" >
             <div class="card-img-top text-center pt-3">
               <img :src="'/static/img/'+bot.bot_img" :alt="'Åpne '+bot.bot_title">
             </div>
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">{{ bot.bot_title }}</h5>
             </div>
-          </RouterLink>
-        </div>
+          </div>
+        </RouterLink>
       </div>
     </div>
   </div>
