@@ -1,15 +1,6 @@
 from django.urls import path
-from .views import api, auth, routes
+from .views import api, auth
 
-routeurls = [
-  # Main:
-  path("", routes.index, name='main.index'),
-  path("bot/<int:bot_nr>", routes.bot, name='main.bot'),
-  path("adminbot/<str:bot_nr>", routes.adminbot, name="main.adminbot"),
-  path("adminbot/<int:bot_nr>", routes.adminbot, name="main.adminbot"),
-  path("settings/", routes.settings, name="main.settings"),
-  path("info/<str:page>", routes.info, name="main.info"),
-]
 
 authurls = [
   path("auth/feidelogin/", auth.feidelogin, name="auth.feidelogin"),
@@ -33,4 +24,4 @@ apiurls = [
   path("api/page_text/<str:page>", api.page_text, name="api.page_text"),
 ]
 
-urlpatterns = routeurls + authurls + apiurls
+urlpatterns = authurls + apiurls
