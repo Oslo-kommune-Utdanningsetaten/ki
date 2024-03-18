@@ -15,6 +15,7 @@ const showTypeWriter = ref(false);
 const showSystemPrompt = ref(false);
 botNr.value = route.params.id;
 
+const textInput = ref(null); // Add a ref for the text input element
 
 const startpromt = async () => {
   try {
@@ -52,6 +53,8 @@ const sendMessage = async () => {
           { bot_nr: bot.value.bot_nr, messages: messages.value },
           messages.value
         )
+        textInput.value.focus(); // Set focus to the text input element
+
       }
 
 
@@ -233,7 +236,7 @@ watchEffect(() => {
       </ul>
     </div>
     <div id="input_line" class="mt-3">
-      <textarea id="text-input" type="text" rows="5" aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger." v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
+      <textarea id="text-input" ref="textInput" type="text" rows="5" aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger." v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
       <div class="card">
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary me-2" type="button" id="button-send" @click="sendMessage()">Send</button>
