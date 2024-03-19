@@ -195,18 +195,18 @@ watchEffect(() => {
     </p>
 
     <div class="d-flex">
-      <button class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
+      <button v-if="bot.prompt_visibility || bot.edit" class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
         Vis ledetekst
       </button>
       <RouterLink v-if="bot.edit" active-class="active" class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
-        Rediger
+        Rediger bot
       </RouterLink>
       <button v-if="bot.edit" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
-        Slett
+        Slett bot
       </button>
     </div>
     
-    <div class="card border-dark">
+    <div class="card">
       <ul class="list-group list-group-flush">
         <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
           <li v-if="message_line.role != 'system' || showSystemPrompt" class="container-fluid list-group-item response" :class="message_line.role">

@@ -176,19 +176,13 @@ watchEffect(() => {
   <h1 class="h2">
     {{ bot.title }}
   </h1>
-  <div class="d-flex flex-row-reverse mb-3">
+  <div class="d-flex flex-row-reverse mb-3 border-bottom border-2">
     <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
       Avbryt
     </RouterLink>
     <button @click="update" class="btn oslo-btn-primary me-2">
       Lagre
     </button>
-    <!-- <button v-if="field_updated" class="btn oslo-btn-secondary" data-bs-toggle="modal" data-bs-target="#exit_modal">
-      Vis bot
-    </button>
-    <RouterLink v-else active-class="active" class="btn oslo-btn-secondary" :to="botNr ? '/bot/'+botNr : '/'">
-      Vis bot
-    </RouterLink> -->
   </div>
   <div class="row mb-3">
     <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
@@ -206,6 +200,14 @@ watchEffect(() => {
     <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
     <div class="col-sm-10">
       <textarea v-model="bot.prompt" class="form-control" id="bot_promt" rows="5" name="prompt"></textarea>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
+    <div class="col-sm-10">
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" id="prompt_visibility" v-model="bot.prompt_visibility">
+      </div>
     </div>
   </div>
   <div class="row mb-3">

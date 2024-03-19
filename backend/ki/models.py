@@ -24,6 +24,7 @@ class Bot(models.Model):
     model = models.CharField(max_length=20)
     temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
     image = models.CharField(max_length=20, null=True)
+    prompt_visibility = models.BooleanField(default=True)
     owner = models.CharField(max_length=50, null=True)
 
     class Meta:

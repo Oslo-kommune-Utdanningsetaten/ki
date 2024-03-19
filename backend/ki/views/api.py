@@ -122,6 +122,7 @@ def bot_info(request, bot_nr=None):
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
+        bot.prompt_visibility = body.get('prompt_visibility', bot.prompt_visibility)
         bot.image = body.get('bot_img', bot.image)
         bot.temperature = body.get('temperature', bot.temperature)
         default_model = models.Setting.objects.get(setting_key='default_model').txt_val
@@ -145,6 +146,7 @@ def bot_info(request, bot_nr=None):
         'title': bot.title,
         'ingress': bot.ingress,
         'prompt': bot.prompt,
+        'prompt_visibility': bot.prompt_visibility,
         'bot_img': bot.image or "bot5.svg",
         'temperature': bot.temperature,
         'model': bot.model,
