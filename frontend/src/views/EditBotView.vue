@@ -6,7 +6,16 @@ import { store } from '../store.js';
 
 const route = useRoute();
 const $router = useRouter();
-const bot = ref({});
+const bot = ref({
+  title: '',
+  ingress: '',
+  prompt: '',
+  prompt_visibility: true,
+  bot_img: 'bot1.svg',
+  temperature: '1',
+  model: 'gpt-35-turbo',
+  edit_s: false,
+  bot_nr: null});
 const newBot = ref(false);
 const edit_g = ref(false);
 const groups = ref();
@@ -224,10 +233,10 @@ watchEffect(() => {
   <div class="row mb-3">
     <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
     <div class="col-sm-1">
-      <input type="range" class="form-range" min="0" max="2" step="0.1" id="temperature" v-model="bot.temperature">
+      <input type="range" class="form-range" min="0.5" max="1.5" step="0.1" id="temperature" v-model="bot.temperature">
     </div>
     <div class="col-sm-1">
-      {{ bot.temperature }}
+      {{ bot.temperature * 10 - 5 }}
     </div>
     <div class="col">
         Temperatur er et mål på hvor kreativ boten skal være. Høy temperatur gir mer kreative svar.

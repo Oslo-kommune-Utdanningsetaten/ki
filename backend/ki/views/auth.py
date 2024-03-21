@@ -147,6 +147,7 @@ def auth_middleware(get_response):
         elif username in admins:
             bots_obj = models.Bot.objects.filter(owner=None)
             bots = [bot.bot_nr for bot in bots_obj]
+            request.g['dist_to_groups'] = False
             admin = True
             has_access = True
         else:
