@@ -130,6 +130,29 @@ def bot_info(request, bot_nr=None):
             bot.model = default_model
         if request.g.get('admin', False):
             bot.model = body.get('model', bot.model)
+            # delete all choices and options
+            for choice in bot.prompt_choices.all():
+                choice.options.all().delete()
+                choice.delete()            
+
+            for choice in body.get('choices', []):
+                prompt_choice = models.PromptChoice(
+                        id=choice.get('id'),
+                        bot_nr=bot,
+                        label=choice.get('label'), 
+                        text=choice.get('text')
+                )
+                prompt_choice.save()
+
+                for option in choice.get('options', []):
+                    choice_option = models.ChoiceOption(
+                            id=option.get('id'),
+                            choice_id=prompt_choice, 
+                            label=option.get('label'), 
+                            text=option.get('text'),
+                            is_default = choice.get('selected', {}).get('id', 0) == option.get('id')
+                    )
+                    choice_option.save()
         bot.save()
 
     if request.method == "DELETE":
@@ -140,6 +163,28 @@ def bot_info(request, bot_nr=None):
 
     edit = (bot.owner == request.g.get('username', '')
               or request.g.get('admin', False))
+
+    choices = []
+    for choice in bot.prompt_choices.all():
+        options = []
+        default_option = choice.options.filter(is_default=True).first()
+        for option in choice.options.all():
+            options.append({
+                'id': option.id,
+                'label': option.label,
+                'text': option.text,
+            })
+        choices.append({
+            'id': choice.id,
+            'label': choice.label,
+            'text': choice.text,
+            'options': options,
+            'selected': { 
+                'id': default_option.id,
+                'label': default_option.label,
+                'text': default_option.text,
+            } if default_option else None,
+        })
 
     return Response({'bot': {
         'bot_nr': bot.bot_nr,
@@ -152,6 +197,7 @@ def bot_info(request, bot_nr=None):
         'model': bot.model,
         'edit': edit,
         'edit_s': request.g.get('admin', False),
+        'choices': choices,
     }})
 
 @api_view(["GET", "PUT"])

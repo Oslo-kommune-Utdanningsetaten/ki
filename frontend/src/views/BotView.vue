@@ -21,16 +21,31 @@ const startpromt = async () => {
   try {
     const { data } = await axios.get('/api/bot_info/' + botNr.value);
     bot.value = data.bot;
-    messages.value = [{
-      "role": "system",
-      "content": bot.value.prompt,
-    }];
+    resetMessages();
+    // messages.value = [{
+    //   "role": "system",
+    //   "content": bot.value.prompt,
+    // }];
 
   } catch (error) {
     console.log(error);
   }
 }
 
+const resetMessages = () => {
+  let fullChoicesText = '';
+  if (bot.value.choices) {
+    bot.value.choices.forEach(choice => {
+      if (choice.selected !== null) {
+        fullChoicesText += choice.text + ' ' + choice.selected.text + ' ';
+      }
+    });
+  }
+  messages.value = [{
+    "role": "system",
+    "content": bot.value.prompt + ' ' + fullChoicesText,
+  }];
+}
 
 const sendMessage = async () => {
         messages.value.push(
@@ -192,20 +207,36 @@ watchEffect(() => {
     </h1>
     <p>
       {{ bot.ingress }}
-    </p>
-
-    <div class="d-flex">
-      <button v-if="bot.prompt_visibility || bot.edit" class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
-        Vis ledetekst
-      </button>
-      <RouterLink v-if="bot.edit" active-class="active" class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
-        Rediger bot
-      </RouterLink>
-      <button v-if="bot.edit" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
-        Slett bot
-      </button>
-    </div>
+    </p>  
     
+    <div v-if="bot.edit" class="d-flex justify-content-end mb-2">
+      <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
+        Rediger bot
+      </RouterLink>  
+      <button class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
+        Slett bot
+      </button>  
+    </div>
+
+    <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
+        <div v-for="choice in bot.choices" class="row mb-2">
+          <div class="col-4 col-form-label">{{ choice.label }}</div>
+          <div class="col btn-group" role="group">
+            <div v-for="option in choice.options" :key="option.id">
+              <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected" @change="resetMessages()">
+              <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+                {{ option.label }}
+              </label>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <button v-if="bot.prompt_visibility" class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
+      Vis ledetekst
+    </button>  
+    
+
     <div class="card">
       <ul class="list-group list-group-flush">
         <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
@@ -240,7 +271,7 @@ watchEffect(() => {
       <div class="card">
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary me-2" type="button" id="button-send" @click="sendMessage()">Send</button>
-        <button class="btn oslo-btn-secondary me-2" type="button" id="button-new" @click="startpromt()">Ny samtale</button>
+        <button class="btn oslo-btn-secondary me-2" type="button" id="button-new" @click="resetMessages()">Ny samtale</button>
         <button class="btn oslo-btn-secondary me-2" type="button" id="button-clipboard" @click="clipboardAll()">
           <img src="@/components/icons/clipboard.svg" alt="">
           Kopier samtalen

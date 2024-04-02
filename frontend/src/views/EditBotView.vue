@@ -151,6 +151,32 @@ const viewToggle = (school) => {
   }
 }
 
+const deleteChoice = (choice) => {
+  bot.value.choices = bot.value.choices.filter(c => c.id !== choice.id);
+}
+
+const addChoice = () => {
+  bot.value.choices.push({
+    id: Math.random().toString(36).substring(7),
+    label: '',
+    text: '',
+    options: [],
+    selected: false
+  });
+}
+
+const deleteOption = (choice, option) => {
+  choice.options = choice.options.filter(o => o.id !== option.id);
+}
+
+const addOption = (choice) => {
+  choice.options.push({
+    id: Math.random().toString(36).substring(7),
+    label: '',
+    text: ''
+  });
+}
+
 const schoolAccessSorted = computed(() => {
   return schoolAccess.value.sort((a, b) => {
     // console.log(a[sort_by.value]);
@@ -185,13 +211,13 @@ watchEffect(() => {
   <h1 class="h2">
     {{ bot.title }}
   </h1>
-  <div class="d-flex flex-row-reverse mb-3 border-bottom border-2">
-    <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
-      Avbryt
-    </RouterLink>
+  <div class="d-flex justify-content-end pb-2 mb-3 border-bottom border-2">
     <button @click="update" class="btn oslo-btn-primary me-2">
       Lagre
     </button>
+    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+      Avbryt
+    </RouterLink>
   </div>
   <div class="row mb-3">
     <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
@@ -271,6 +297,56 @@ watchEffect(() => {
           <input class="form-check-input" type="radio" :id="model.id" :value="model.value" v-model="bot.model">
           <label class="form-check-label" :for="model.id">{{ model.label }}</label>
         </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-sm-2 ">Forhåndsvalg</div>
+      <div class="col-sm-10">
+        <div v-for="choice in bot.choices" class="card mb-3 p-3" >
+          <div class="row mb-1">
+            <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">Etikett</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" :id="`choice_label${choice.id}`" v-model="choice.label">
+              </div>
+          </div>
+          <div class="row mb-1">
+            <label :for="`choice_text${choice.id}`" class="col-sm-2 col-form-label">Tekst</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" :id="`choice_text${choice.id}`" rows="1"  v-model="choice.text" ></textarea>
+            </div>
+          </div>
+          <div class="row mb-1">
+            <div class="col-sm-2 ">Alternativer</div>
+            <div class="col-sm-10">
+              <div v-for="option in choice.options">
+                <div class="row mb-1">
+                  <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Etikett</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" :id="`opt_label${option.id}`" v-model="option.label">
+                  </div>
+                </div>
+                <div class="row mb-1">
+                  <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Tekst</label>
+                  <div class="col-sm-10">
+                    <textarea class="form-control" :id="`opt_text${option.id}`" rows="1" v-model="option.text"></textarea>
+                  </div>
+                </div>
+                <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected">
+                <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">Standard</label>
+                <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">Slett alternativ</button>
+                <hr>
+              </div>
+              <button class="btn oslo-btn-primary" @click="addOption(choice)">Legg til alternativ</button>
+            </div>
+          </div>
+          <div class="mb-1">
+            <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">Slett valg</button>
+          </div>
+        </div>
+        <div class="mb-1">
+          <button class="btn oslo-btn-primary" @click="addChoice">Legg til valg</button>
+        </div>
+
       </div>
     </div>
   </div>

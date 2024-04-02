@@ -172,6 +172,18 @@ button img {
     border-color: #D0BFAE;
 }
 
+.btn-check + .oslo-btn-secondary:hover {
+  color: #000;
+  background-color: #D0BFAE;
+  border-color: #D0BFAE;
+}
+
+.btn-check:checked + .oslo-btn-secondary {
+  color: #000;
+  background-color: #F9C66B;
+  border-color: #F9C66B;
+}
+
 .oslo-btn-warning {
     color: #000;
     background-color: #F9C66B;

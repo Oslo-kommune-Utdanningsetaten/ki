@@ -1,4 +1,5 @@
 .env*
+frontend/.vite/*
 pw.txt
 db/*
 !log/compose.yml

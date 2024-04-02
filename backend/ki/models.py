@@ -31,6 +31,26 @@ class Bot(models.Model):
         managed = False
         db_table = 'bot'
 
+class PromptChoice(models.Model):
+    id = models.CharField(max_length=7, primary_key=True)
+    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr', to_field='bot_nr', related_name="prompt_choices")
+    label = models.CharField(max_length=50)
+    text = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'prompt_choice'
+
+class ChoiceOption(models.Model):
+    id = models.CharField(max_length=7, primary_key=True)
+    choice_id = models.ForeignKey(PromptChoice, on_delete=models.CASCADE, db_column='choice_id', to_field='id', related_name="options")
+    label = models.CharField(max_length=50)
+    text = models.TextField()
+    is_default = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = 'choice_option'
 
 class School(models.Model):
     class AccessEnum(models.TextChoices):
