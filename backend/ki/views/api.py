@@ -150,7 +150,8 @@ def bot_info(request, bot_nr=None):
                             choice_id=prompt_choice, 
                             label=option.get('label'), 
                             text=option.get('text'),
-                            is_default = choice.get('selected', {}).get('id', 0) == option.get('id')
+                            is_default=choice.get('selected').get('id', 0) == option.get('id')\
+                                if choice.get('selected', False) else False
                     )
                     choice_option.save()
         bot.save()
@@ -196,7 +197,6 @@ def bot_info(request, bot_nr=None):
         'temperature': bot.temperature,
         'model': bot.model,
         'edit': edit,
-        'edit_s': request.g.get('admin', False),
         'choices': choices,
     }})
 
@@ -291,11 +291,16 @@ def bot_groups(request, bot_nr = None):
     edit_g = ((new_bot or bot.owner == request.g.get('username', ''))
             and request.g['settings']['allow_groups']
             and request.g['dist_to_groups'])
+    
+    # user is allowed to edit school_access, aka is admin
+    # edit_s is returned here since bot_info is not called on new bot
+    edit_s = request.g.get('admin', False)
 
     if not edit_g:
         return Response( {
             'edit_g': False,
-            'groups': []
+            'groups': [],
+            'edit_s': edit_s,
         })
 
     if request.method == "PUT":
@@ -337,6 +342,7 @@ def bot_groups(request, bot_nr = None):
         'edit_g': True,
         'groups': groups,
         'lifespan': lifespan,
+        'edit_s': False,
         })
 
 @api_view(["GET", "PUT"])

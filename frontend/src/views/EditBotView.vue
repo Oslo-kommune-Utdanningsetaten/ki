@@ -14,10 +14,10 @@ const bot = ref({
   bot_img: 'bot1.svg',
   temperature: '1',
   model: 'gpt-35-turbo',
-  edit_s: false,
   bot_nr: null});
 const newBot = ref(false);
 const edit_g = ref(false);
+const edit_s = ref(false);
 const groups = ref();
 const lifeSpan = ref(0);
 const schoolAccess = ref([]);
@@ -61,7 +61,7 @@ const getBotInfo = async () => {
   }
   if (edit_g.value) {
     getGroupList()
-  } else if (bot.value.edit_s) {  
+  } else if (edit_s.value) {  
     getAccessList()
   }
 
@@ -75,6 +75,7 @@ const getGroupList = async () => {
     groups.value = data.groups;
     lifeSpan.value = data.lifespan;
     edit_g.value = data.edit_g;
+    edit_s.value = data.edit_s;
   } catch (error) {
     console.log(error);
   }
@@ -289,7 +290,7 @@ watchEffect(() => {
     </div>
   </div>
 
-  <div v-if="bot.edit_s" class="mb-3">
+  <div v-if="edit_s" class="mb-3">
     <div class="row mb-3">
       <div class="col-sm-2 ">Modell</div>
       <div class="col-sm-10">
