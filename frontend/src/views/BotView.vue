@@ -202,22 +202,22 @@ watchEffect(() => {
     </div>
   </div>
 
-<h1 class="h2">
-      {{ bot.title }}
-    </h1>
-    <p>
-      {{ bot.ingress }}
-    </p>  
+  
+  <div v-if="bot.edit" class="d-flex justify-content-end">
+    <RouterLink class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
+      Rediger bot
+    </RouterLink>  
+    <button class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
+      Slett bot
+    </button>  
+  </div>
+  <h1 class="h2 mb-3">
+    {{ bot.title }}
+  </h1>  
+  <p>
+    {{ bot.ingress }}
+  </p>    
     
-    <div v-if="bot.edit" class="d-flex justify-content-end mb-2">
-      <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
-        Rediger bot
-      </RouterLink>  
-      <button class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
-        Slett bot
-      </button>  
-    </div>
-
     <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
         <div v-for="choice in bot.choices" class="row mb-2">
           <div class="col-4 col-form-label">{{ choice.label }}</div>

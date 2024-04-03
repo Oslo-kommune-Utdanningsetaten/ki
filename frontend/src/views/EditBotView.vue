@@ -209,17 +209,17 @@ watchEffect(() => {
 
 <template>
 
-  <h1 class="h2">
-    {{ bot.title }}
-  </h1>
-  <div class="d-flex justify-content-end pb-2 mb-3 border-bottom border-2">
+  <div class="d-flex justify-content-end">
     <button @click="update" class="btn oslo-btn-primary me-2">
       Lagre
     </button>
-    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+    <RouterLink class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
       Avbryt
     </RouterLink>
   </div>
+  <h1 class="h2 mb-4">
+    {{ bot.title }}
+  </h1>
   <div class="row mb-3">
     <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
     <div class="col-sm-10">
