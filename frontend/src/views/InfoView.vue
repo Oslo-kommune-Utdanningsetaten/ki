@@ -4,9 +4,8 @@ import axios from 'axios';
 import { ref, onMounted, watchEffect } from 'vue'
 
 const contentText = ref('');
-const page = ref('');
 const route = useRoute();
-// page.value = route.params.page;
+const version = ref('');
 
 watchEffect(() => {
   getcontent()
@@ -16,7 +15,7 @@ async function getcontent() {
   try {
     const { data } = await axios.get('/api/page_text/' + route.params.page);
     contentText.value = data.content_text;
-    // page.value = data.page;
+    version.value = data.version;
   } catch (error) {
     console.log(error);
   }
@@ -26,4 +25,5 @@ async function getcontent() {
 
 <template>
   <span v-html="contentText"></span>
+  <p v-if="version">Versjon: {{ version }}</p>
 </template>

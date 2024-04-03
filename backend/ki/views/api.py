@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
 import requests
+import subprocess
 from openai import AsyncAzureOpenAI
 import os
 import json
@@ -30,9 +31,18 @@ def page_text(request, page):
         and not text_line.public):
         return Response(status=403)
 
+    # capture version number (git tag)
+    cmd = ['git', 'describe', '--tags', '--abbrev=0']
+    tag = subprocess.run(cmd, capture_output=True, text=True)
+    if tag.returncode == 0 and text_line.page_id == 'about':
+        version = tag.stdout.strip()
+    else:
+        version = ''
+
     return Response({
         "page": page,
-        "content_text": text_line.page_text
+        "content_text": text_line.page_text,
+        'version': version,
     })
 
 @api_view(["GET"])
