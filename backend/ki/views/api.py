@@ -67,7 +67,20 @@ def menu_items(request):
             'url': '/',
         })
 
-    return Response({'menuItems': menu_items}, content_type='application/json')
+
+    # user is allowed to edit groups
+    edit_g = bool(request.g['settings']['allow_groups']
+                and request.g['dist_to_groups'])
+    
+
+    return Response({
+        'menuItems': menu_items,
+        'role': {
+            'is_admin': request.g.get('admin', False),
+            'is_employee': request.g.get('employee', False),
+            'edit_g': edit_g,
+        }
+    })
 
 @api_view(["GET"])
 def user_bots(request):
@@ -211,12 +224,15 @@ def bot_info(request, bot_nr=None):
     }})
 
 @api_view(["GET", "PUT"])
-def bot_access(request, bot_nr):
+def bot_access(request, bot_nr = None):
 
     if not request.g.get('admin', False):
         return HttpResponseForbidden()
 
-    if bot_nr != 0:
+    new_bot = True if bot_nr is None else False
+
+
+    if not new_bot:
         try:
             bot = models.Bot.objects.get(bot_nr=bot_nr)
         except models.Bot.DoesNotExist:
@@ -245,7 +261,7 @@ def bot_access(request, bot_nr):
     school_list = []
     for school in models.School.objects.all():
         access_list = []
-        if bot_nr != 0:
+        if not new_bot:
             accesses = models.BotAccess.objects.filter(bot_nr=bot_nr, school_id=school.org_nr)
             for access in accesses:
                 access_list.append(access.level)
@@ -304,13 +320,13 @@ def bot_groups(request, bot_nr = None):
     
     # user is allowed to edit school_access, aka is admin
     # edit_s is returned here since bot_info is not called on new bot
-    edit_s = request.g.get('admin', False)
+    # edit_s = request.g.get('admin', False)
 
     if not edit_g:
         return Response( {
             'edit_g': False,
             'groups': [],
-            'edit_s': edit_s,
+            # 'edit_s': edit_s,
         })
 
     if request.method == "PUT":

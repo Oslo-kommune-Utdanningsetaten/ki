@@ -12,9 +12,9 @@ const getMenuItems = async () => {
   try {
     const { data } = await axios.get('/api/menu_items');
     menuItems.value = data.menuItems;
-    // if (menuItems.value.length === 0) {
-    //   store.addMessage('Du har ikke tilgang til løsningen', 'danger');
-    // }
+    store.isAdmin = data.role ? data.role.is_admin : false;
+    store.isEmployee = data.role ? data.role.is_employee : false;
+    store.editGroups = data.role ? data.role.edit_g : false;
   } catch (error) {
     console.log(error);
   }

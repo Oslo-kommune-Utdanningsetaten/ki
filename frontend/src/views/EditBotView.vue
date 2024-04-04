@@ -16,8 +16,6 @@ const bot = ref({
   model: 'gpt-35-turbo',
   bot_nr: null});
 const newBot = ref(false);
-const edit_g = ref(false);
-const edit_s = ref(false);
 const groups = ref();
 const lifeSpan = ref(0);
 const schoolAccess = ref([]);
@@ -57,33 +55,30 @@ const getBotInfo = async () => {
     bot.value = data.bot;
   } catch (error) {
     console.log(error);
-  }
-  }
-  if (edit_g.value) {
-    getGroupList()
-  } else if (edit_s.value) {  
-    getAccessList()
+  }  
   }
 
 const getGroupList = async () => {
   var url = '/api/bot_groups/';
   if (!newBot.value) {
     url += botNr.value;
-  }
+  }  
   try {
     const { data } = await axios.get(url);
     groups.value = data.groups;
     lifeSpan.value = data.lifespan;
-    edit_g.value = data.edit_g;
-    edit_s.value = data.edit_s;
   } catch (error) {
     console.log(error);
-  }
-}
+  }  
+}  
 
 const getAccessList = async () => {
+  var url = '/api/bot_access/';
+  if (!newBot.value) {
+    url += botNr.value;
+  }  
   try {
-    const { data } = await axios.get('/api/bot_access/' + botNr.value);
+    const { data } = await axios.get(url);
     schoolAccess.value = data.schoolAccess;
   } catch (error) {
     console.log(error);
@@ -102,7 +97,7 @@ const update = async () => {
       bot.value = response.data.bot;
       botNr.value = response.data.bot.bot_nr;
       newBot.value = false;
-      if (edit_g.value) {
+      if (store.editGroups) {
         groupUpdate()
       }
       store.addMessage('Boten er opprettet!', 'info' );
@@ -112,7 +107,7 @@ const update = async () => {
   } else {
     try {
       const response = await axios.put('/api/bot_info/' + botNr.value, bot.value)
-      if (edit_g.value) {
+      if (store.editGroups) {
         groupUpdate()
       }
       store.addMessage('Endringene er lagret!', 'info' );
@@ -200,7 +195,12 @@ watchEffect(() => {
   if (!newBot.value) {
     getBotInfo()
   }
-  getGroupList()
+  if (store.isAdmin) {
+    getAccessList()
+  } else if (store.editGroups) {
+    getGroupList()
+  }
+
 });
 
 
@@ -270,7 +270,7 @@ watchEffect(() => {
     </div>
   </div>
 
-  <div v-if="edit_g" class="row mb-3">
+  <div v-if="store.editGroups" class="row mb-3">
     <div >
       <p>
         Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
@@ -290,7 +290,7 @@ watchEffect(() => {
     </div>
   </div>
 
-  <div v-if="edit_s" class="mb-3">
+  <div v-if="store.isAdmin" class="mb-3">
     <div class="row mb-3">
       <div class="col-sm-2 ">Modell</div>
       <div class="col-sm-10">
@@ -361,7 +361,7 @@ watchEffect(() => {
     </button>
   </div>
 
-  <div v-if="bot.edit_s" class="mb-3">
+  <div v-if="store.isAdmin" class="mb-3">
     <div v-for="school in schoolAccessSorted" >
       <div class="row">
         <div class="col-3">

@@ -1,6 +1,9 @@
 import { reactive } from 'vue'
 
 export const store = reactive({
+  isAdmin: false,
+  isEmployee: false,
+  editGroups: false,
   messages: [],
   removeMessage(index) {
     this.messages.splice(index, 1)
