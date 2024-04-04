@@ -5,7 +5,6 @@ import { ref, onMounted, watchEffect } from 'vue'
 
 const contentText = ref('');
 const route = useRoute();
-const version = ref('');
 
 watchEffect(() => {
   getcontent()
@@ -25,5 +24,4 @@ async function getcontent() {
 
 <template>
   <span v-html="contentText"></span>
-  <p v-if="version">Versjon: {{ version }}</p>
 </template>
