@@ -17,7 +17,7 @@ client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
 message_redirect = 'http://localhost:5173/message' if DEBUG else '/message'
 
 def get_user_bots(request, username):
-    bot_access = models.BotAccess.objects.all()
+    # bot_access = models.BotAccess.objects.all()
     access = False
     schools = []
     levels = []
@@ -96,16 +96,25 @@ def get_user_bots(request, username):
                     bots.add(line.bot_nr_id)
 
     # bots from school
-    for line in bot_access:
-        for school in schools:
-            if (line.school_id_id == school.org_nr) or (line.school_id_id == '*'):
-                if employee or (line.level == '*'):
-                    bots.add(line.bot_nr_id)
-                else:
-                    for level in levels:
-                        if line.level == level:
-                            bots.add(line.bot_nr_id)
-
+    for school in schools:
+        for bot_access in school.accesses.all():
+            access = False
+            match bot_access.access:
+                case 'all':
+                    access = True
+                case 'emp':
+                    if employee:
+                        access = True
+                case 'levels':
+                    if employee:
+                        access = True
+                    else:
+                        for level in bot_access.levels.all():
+                            if level.level in levels:
+                                access = True
+            if access:
+                bots.add(bot_access.bot_nr_id)
+                                
     # bots from personal
     if allow_personal:
         personal_bots = models.Bot.objects.filter(owner=username)

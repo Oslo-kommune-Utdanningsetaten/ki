@@ -232,34 +232,41 @@ def bot_access(request, bot_nr = None):
         if not request.g.get('admin', False):
             return Response(status=403)
         body = json.loads(request.body)
-        school_access = body.get('school_access', False)
-        if school_access == False:
-            return Response(status=400)
-        if not isinstance(school_access, list):
-            return Response(status=400)
         if not (school := models.School.objects.get(org_nr=body.get('org_nr', False))):
             return Response(status=404)
-        old_accesses = models.BotAccess.objects.filter(bot_nr=bot_nr, school_id=school.org_nr)
-        for access in old_accesses:
-            access.delete()
-        for level in school_access:
-            access = models.BotAccess(bot_nr=bot, school_id=school, level=level)
-            access.save()
+        bot_access = school.accesses.filter(bot_nr=bot).first()
+        if bot_access:
+            bot_access.access = body.get('school_access', 'none')
+        else:
+            bot_access = models.BotAccess(bot_nr=bot, school_id=school, access=body.get('school_access', 'none'))
+        if bot_access.access == 'levels':
+            bot_access.levels.all().delete()
+            for level in body.get('school_access_list', []):
+                access = models.BotLevel(access_id=bot_access, level=level)
+                access.save()
+        bot_access.save()
         return Response(status=200)
 
-    access_list = []
     school_list = []
     for school in models.School.objects.all():
-        access_list = []
-        if not new_bot:
-            accesses = models.BotAccess.objects.filter(bot_nr=bot_nr, school_id=school.org_nr)
-            for access in accesses:
-                access_list.append(access.level)
-        school_list.append({
-            'org_nr': school.org_nr,
-            'school_name': school.school_name,
-            'access_list': access_list
-        })
+        if new_bot:
+            school_list.append({
+                'org_nr': school.org_nr,
+                'school_name': school.school_name,
+                'access': 'none',
+                'access_list': [],
+            })
+        else:
+            access_list = []
+            bot_access = bot.accesses.filter(school_id=school.org_nr).first()
+            if bot_access and bot_access.access == 'levels':
+                access_list = [access.level for access in bot_access.levels.all()]
+            school_list.append({
+                'org_nr': school.org_nr,
+                'school_name': school.school_name,
+                'access': bot_access.access if bot_access else 'none',
+                'access_list': access_list,
+            })
     return Response({
         "schoolAccess": school_list,
     })

@@ -74,6 +74,12 @@ class School(models.Model):
 
 
 class BotAccess(models.Model):
+    class AccessEnum(models.TextChoices):
+        NONE = 'none'
+        EMP = 'emp'
+        ALL = 'all'
+        LEVELS = 'levels'
+
     access_id = models.AutoField(primary_key=True)
     bot_nr = models.ForeignKey(
         Bot, on_delete=models.CASCADE, db_column='bot_nr', related_name="accesses")
@@ -82,6 +88,7 @@ class BotAccess(models.Model):
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="accesses")
     # school_id = models.CharField(max_length=20)
     level = models.CharField(max_length=20)
+    access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
 
     def __str__(self):
         return f"{self.bot_nr}-{self.school_id}{self.level}"
@@ -89,6 +96,20 @@ class BotAccess(models.Model):
     class Meta:
         managed = False
         db_table = 'bot_access'
+
+
+class BotLevel(models.Model):
+    level_id = models.AutoField(primary_key=True)
+    access_id = models.ForeignKey(
+        BotAccess, on_delete=models.CASCADE, db_column='access_id', related_name="levels")
+    level = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.level_id}-{self.access_id}{self.level}"
+    
+    class Meta:
+        managed = False
+        db_table = 'bot_level'
 
 
 class SchoolAccess(models.Model):

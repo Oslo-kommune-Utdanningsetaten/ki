@@ -21,6 +21,13 @@ const lifeSpan = ref(0);
 const schoolAccess = ref([]);
 const botNr = ref();
 const sort_by = ref('school_name');
+const filter_list = ref([]);
+const access_options = [
+    { value: 'none', label: 'Ingen' },
+    { value: 'emp', label: 'Ansatte' },
+    { value: 'all', label: 'Alle' },
+    { value: 'levels', label: 'Trinn' },
+];
 const levels = [
   { id: 'aarstrinn1', name: '1.' },
   { id: 'aarstrinn2', name: '2.' },
@@ -127,23 +134,14 @@ const groupUpdate = async () => {
 }
 
 const accessUpdate = async (school) => {
-  if (newBot.value) {
-    update();
-  }
   try {
     const response = await axios.put('/api/bot_access/' + botNr.value, {
-      'school_access':school.access_list,
+      'school_access':school.access,
+      'school_access_list':school.access === 'levels' ? school.access_list : [],
       'org_nr':school.org_nr
     })
   } catch (error) {
     console.log(error);
-  }
-}
-
-const viewToggle = (school) => {
-  if (school.view_levels === false) {
-    school.access_list = school.access_list.filter(access => access === '*' || access === '-');
-    accessUpdate(school);
   }
 }
 
@@ -173,9 +171,15 @@ const addOption = (choice) => {
   });
 }
 
-const schoolAccessSorted = computed(() => {
-  return schoolAccess.value.sort((a, b) => {
-    // console.log(a[sort_by.value]);
+const schoolAccessFiltered = computed(() => {
+  let filtered_list = [];
+  if (filter_list.value.length > 0) {
+    filtered_list = schoolAccess.value.filter((school) => (filter_list.value.includes(school.access)));
+  } else {
+    filtered_list = schoolAccess.value;
+  }
+
+  return filtered_list.sort((a, b) => {
     if (a[sort_by.value] < b[sort_by.value]) {
       return -1;
     }
@@ -361,44 +365,73 @@ watchEffect(() => {
     </button>
   </div>
 
-  <div v-if="store.isAdmin" class="mb-3">
-    <div v-for="school in schoolAccessSorted" >
-      <div class="row">
-        <div class="col-3">
-          {{ school.school_name}}
-        </div>
-        <div class="col">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" :id="'check'+school.org_nr+'-'" value="-" v-model="school.access_list" @change="accessUpdate(school)">
-            <label class="form-check-label" :for="'check'+school.org_nr+'-'">
-              Lærere
-            </label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" :id="'check'+school.org_nr+'*'" value="*" v-model="school.access_list" @change="accessUpdate(school)">
-            <label class="form-check-label" :for="'check'+school.org_nr+'*'">
-              Alle
-            </label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" :id="'check'+school.org_nr+'v'" v-model="school.view_levels" @change="viewToggle(school)">
-            <label class="form-check-label" :for="'check'+school.org_nr+'v'">
-              Enkelte trinn
-            </label>
-          </div>
-        </div>
-      </div>
-      <div v-if="school.view_levels" class="row">
-        <div class="col-4">
-        </div>
-        <div class="col">
-          <span v-for="level in levels" class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" :id="'check'+school.org_nr+level.id" :value="level.id" v-model="school.access_list">
-            <label class="form-check-label" :for="'check'+school.org_nr+level.id">
-              {{level.name}}
-            </label>
-          </span>
-        </div>
+  <div v-if="store.isAdmin && !newBot" class="mb-3">
+    <div class="row mb-3">
+      <div class="col-sm-2 ">Tilgang</div>
+      <div class="card col mb-3 p-3" >
+
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-4">
+                        Skole
+                    </div>
+                    <div v-for="option in access_options" :key="option.value" class="form-check form-check-inline col-1">
+                        <input
+                            class="form-check-input"
+                            :id="'filter' + option.value"
+                            :value="option.value"
+                            type="checkbox"
+                            v-model="filter_list"
+                        />
+                        <label class="form-check-label" :for="'filter' + option.value">{{ option.label }}</label>
+                    </div>
+                </div>
+            </li>
+            <li v-for="school in schoolAccessFiltered" class="list-group-item">
+                <div class="row">
+                    <div class="col-4">
+                        {{ school.school_name }}
+                    </div>
+                    <div v-for="option in access_options" :key="option.value" class="form-check form-check-inline col-1">
+                        <input
+                            class="form-check-input"
+                            :id="school.org_nr + option.value"
+                            :value="option.value"
+                            type="radio"
+                            v-model="school.access"
+                            @change="accessUpdate(school)"
+                        />
+                        <label class="form-check-label" :for="option.value">{{ option.label }}</label>
+                    </div>
+                </div>
+                <div v-if="school.access == 'levels'" class="row">
+                    <div class="col-2">
+                        Trinn:
+                    </div>
+                    <div class="col">
+                        <span v-for="level in levels" class="form-check form-check-inline">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                :id="'level'+school.org_nr+level.id" 
+                                :value="level.id" v-model="school.access_list" 
+                                @change="accessUpdate(school)"
+                            />
+                            <label class="form-check-label" :for="'level'+school.org_nr+level.id">
+                                {{level.name}}
+                            </label>
+                        </span>
+                    </div>
+                </div>
+
+            </li>
+        </ul>
+
+
+
+
+    
       </div>
     </div>
   </div>
