@@ -26,6 +26,7 @@ class Bot(models.Model):
     image = models.CharField(max_length=20, null=True)
     prompt_visibility = models.BooleanField(default=True)
     owner = models.CharField(max_length=50, null=True)
+    allow_distribution = models.BooleanField(default=False)
 
     class Meta:
         managed = False

@@ -97,7 +97,7 @@ def user_bots(request):
     ]
     if (request.g.get('admin', False) or 
             request.g.get('employee', False) and 
-            models.Setting.objects.get(setting_key='allow_personal')):
+            models.Setting.objects.get(setting_key='allow_personal').int_val):
         users_bots.append({
                 'bot_nr': 0,
                 'bot_title': "Ny bot",
@@ -126,9 +126,11 @@ def bot_info(request, bot_nr=None):
             bot = models.Bot.objects.get(bot_nr=bot_nr)
         except models.Bot.DoesNotExist:
             return Response(status=404)
+    is_owner = bot.owner == request.g.get('username', None)
+    is_admin = request.g.get('admin', False)
 
     if request.method == "PUT" or request.method == "POST":
-        if not bot.owner == request.g.get('username', '') and not request.g.get('admin', False):
+        if not is_owner and not is_admin:
             return Response(status=403)
 
         body = json.loads(request.body)
@@ -136,12 +138,13 @@ def bot_info(request, bot_nr=None):
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
         bot.prompt_visibility = body.get('prompt_visibility', bot.prompt_visibility)
+        bot.allow_distribution = body.get('allow_distribution', bot.allow_distribution)
         bot.image = body.get('bot_img', bot.image)
         bot.temperature = body.get('temperature', bot.temperature)
         default_model = models.Setting.objects.get(setting_key='default_model').txt_val
         if bot.model == '':
             bot.model = default_model
-        if request.g.get('admin', False):
+        if is_admin:
             bot.model = body.get('model', bot.model)
             # delete all choices and options
             for choice in bot.prompt_choices.all():
@@ -170,13 +173,23 @@ def bot_info(request, bot_nr=None):
         bot.save()
 
     if request.method == "DELETE":
-        if not bot.owner == request.g.get('username', '') and not request.g.get('admin', False):
+        if not is_owner and not is_admin:
             return Response(status=403)
         bot.delete()
         return Response(status=200)
 
-    edit = (bot.owner == request.g.get('username', '')
-              or request.g.get('admin', False))
+    edit = False
+    distribute = False
+    if is_admin:
+        edit = True
+        distribute = False
+    elif request.g.get('employee', False):
+        if is_owner:
+            edit = True
+            distribute = True
+        elif bot.allow_distribution and not bot.owner:
+            edit = False
+            distribute = True
 
     choices = []
     for choice in bot.prompt_choices.all():
@@ -206,10 +219,12 @@ def bot_info(request, bot_nr=None):
         'ingress': bot.ingress,
         'prompt': bot.prompt,
         'prompt_visibility': bot.prompt_visibility,
+        'allow_distribution': bot.allow_distribution,
         'bot_img': bot.image or "bot5.svg",
         'temperature': bot.temperature,
         'model': bot.model,
         'edit': edit,
+        'distribute': distribute,
         'choices': choices,
     }})
 
@@ -311,31 +326,21 @@ def bot_groups(request, bot_nr = None):
             return Response(status=404)
 
     # user is allowed to edit groups
-    edit_g = ((new_bot or bot.owner == request.g.get('username', ''))
+    edit_g = ((new_bot 
+               or bot.owner == request.g.get('username', '')
+               or bot.allow_distribution)
             and request.g['settings']['allow_groups']
             and request.g['dist_to_groups'])
     
-    # user is allowed to edit school_access, aka is admin
-    # edit_s is returned here since bot_info is not called on new bot
-    # edit_s = request.g.get('admin', False)
-
     if not edit_g:
         return Response( {
             'edit_g': False,
             'groups': [],
-            # 'edit_s': edit_s,
         })
 
     if request.method == "PUT":
         body = json.loads(request.body)
-
         if groups := body.get('groups', False):
-            if (
-                bot.owner != request.g.get('username') 
-                or not request.g['settings']['allow_groups'] 
-                or not request.g['dist_to_groups']):
-                return Response(status=403)
-
             acls_to_remove = []
             for subject in groups:
                 if acl := models.SubjectAccess.objects.filter(bot_nr=bot_nr, subject_id=subject.get('id', False)).first():
@@ -362,10 +367,8 @@ def bot_groups(request, bot_nr = None):
     groups = get_groups()
     groups = [dict(group, checked=group.get('id') in access_list) for group in groups]
     return Response({
-        'edit_g': True,
         'groups': groups,
         'lifespan': lifespan,
-        'edit_s': False,
         })
 
 @api_view(["GET", "PUT"])

@@ -14,7 +14,10 @@ const bot = ref({
   bot_img: 'bot1.svg',
   temperature: '1',
   model: 'gpt-35-turbo',
-  bot_nr: null});
+  bot_nr: null,
+  edit: true,
+  distribute: true,
+});
 const newBot = ref(false);
 const groups = ref();
 const lifeSpan = ref(0);
@@ -113,8 +116,10 @@ const update = async () => {
     }
   } else {
     try {
-      const response = await axios.put('/api/bot_info/' + botNr.value, bot.value)
-      if (store.editGroups) {
+      if (bot.value.edit) {
+        botUpdate()
+      }
+      if (bot.value.distribute) {
         groupUpdate()
       }
       store.addMessage('Endringene er lagret!', 'info' );
@@ -123,6 +128,14 @@ const update = async () => {
     }
   }
   $router.push('/bot/' + botNr.value);
+}
+
+const botUpdate = async () => {
+  try {
+    const response = await axios.put('/api/bot_info/' + botNr.value, bot.value)
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 const groupUpdate = async () => {
@@ -224,58 +237,76 @@ watchEffect(() => {
   <h1 class="h2 mb-4">
     {{ bot.title }}
   </h1>
-  <div class="row mb-3">
-    <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
-    <div class="col-sm-10">
-      <input v-model="bot.title" type="text" class="form-control" id="bot_title" name="title" maxlength="40">
+  <div v-if="bot.edit">
+    <div class="row mb-3">
+      <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
+      <div class="col-sm-10">
+        <input v-model="bot.title" type="text" class="form-control" id="bot_title" name="title" maxlength="40">
+      </div>
     </div>
-  </div>
-  <div class="row mb-3">
-    <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
-    <div class="col-sm-10">
-      <input v-model="bot.ingress" type="text" class="form-control" id="bot_ingress" name="ingress">
+    <div class="row mb-3">
+      <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
+      <div class="col-sm-10">
+        <input v-model="bot.ingress" type="text" class="form-control" id="bot_ingress" name="ingress">
+      </div>
     </div>
-  </div>
-  <div class="row mb-3">
-    <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
-    <div class="col-sm-10">
-      <textarea v-model="bot.prompt" class="form-control" id="bot_promt" rows="5" name="prompt"></textarea>
+    <div class="row mb-3">
+      <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
+      <div class="col-sm-10">
+        <textarea v-model="bot.prompt" class="form-control" id="bot_promt" rows="5" name="prompt"></textarea>
+      </div>
     </div>
-  </div>
-  <div class="row mb-3">
-    <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
-    <div class="col-sm-10">
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" id="prompt_visibility" v-model="bot.prompt_visibility">
+    <div class="row mb-3">
+      <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="prompt_visibility" v-model="bot.prompt_visibility">
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-sm-2 col-form-label">Farge på bot</div>
+      <div class="col-sm-10">
+        <div v-for="image in botImages" class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" :id="image.id" :value="image.id" v-model="bot.bot_img">
+          <label class="form-check-label" :for="image.id">
+            {{ image.text }}
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
+      <div class="col-sm-1">
+        <input type="range" class="form-range" min="0.5" max="1.5" step="0.1" id="temperature" v-model="bot.temperature">
+      </div>
+      <div class="col-sm-1">
+        {{ bot.temperature * 10 - 5 }}
+      </div>
+      <div class="col">
+          Temperatur er et mål på hvor kreativ boten skal være. Høy temperatur gir mer kreative svar.
       </div>
     </div>
   </div>
-  <div class="row mb-3">
-    <div class="col-sm-2 col-form-label">Farge på bot</div>
-    <div class="col-sm-10">
-      <div v-for="image in botImages" class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" :id="image.id" :value="image.id" v-model="bot.bot_img">
-        <label class="form-check-label" :for="image.id">
-          {{ image.text }}
-        </label>
+  <div v-else>
+    <div class="row mb-3">
+      <div class="col-sm-2 col-form-label">Ingress</div>
+      <div class="col-sm-10">
+        {{ bot.ingress }}
       </div>
     </div>
-  </div>
-  <div class="row mb-3">
-    <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
-    <div class="col-sm-1">
-      <input type="range" class="form-range" min="0.5" max="1.5" step="0.1" id="temperature" v-model="bot.temperature">
-    </div>
-    <div class="col-sm-1">
-      {{ bot.temperature * 10 - 5 }}
-    </div>
-    <div class="col">
-        Temperatur er et mål på hvor kreativ boten skal være. Høy temperatur gir mer kreative svar.
+    <div class="row mb-3">
+      <div class="col-sm-2 col-form-label">Ledetekst</div>
+      <div class="col-sm-10">
+        {{ bot.prompt }}
+      </div>
     </div>
   </div>
 
-  <div v-if="store.editGroups" class="row mb-3">
+
+  <div v-if="store.editGroups && bot.distribute" class="row mb-3">
     <div >
+      <hr/>
       <p>
         Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
         Tilgangen til boten varer i {{ lifeSpan }} timer fra du lagrer.
@@ -301,6 +332,15 @@ watchEffect(() => {
         <div v-for="model in models" :key="model.id" class="form-check form-check-inline">
           <input class="form-check-input" type="radio" :id="model.id" :value="model.value" v-model="bot.model">
           <label class="form-check-label" :for="model.id">{{ model.label }}</label>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-sm-2 ">Tillat distribusjon</div>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="allow_distribution" v-model="bot.allow_distribution">
+          <label class="form-check-label" for="allow_distribution">Ja</label>
         </div>
       </div>
     </div>
@@ -366,6 +406,7 @@ watchEffect(() => {
   </div>
 
   <div v-if="store.isAdmin && !newBot" class="mb-3">
+    <hr/>
     <div class="row mb-3">
       <div class="col-sm-2 ">Tilgang</div>
       <div class="card col mb-3 p-3" >
