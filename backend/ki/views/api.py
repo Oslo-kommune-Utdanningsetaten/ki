@@ -51,10 +51,12 @@ def menu_items(request):
                 menu_items.append({
                     'title': page.page_title,
                     'url': f'/info/{page.page_id}',
+                    'class': 'oslo-text-danger fw-bolder' if page.page_id == 'news' else '',
                 })
         menu_items.append({
             'title': 'Startside',
             'url': '/',
+            'class': '',
         })
 
 

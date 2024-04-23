@@ -56,7 +56,7 @@ watchEffect(() => {
     </a>
   </div>
   <div v-for="item in menuItems" :key="item.id" class="nav-item">
-      <RouterLink active-class="active" class="nav-link p-3" :to="item.url">
+      <RouterLink active-class="active" class="nav-link p-3" :class="item.class" :to="item.url">
           {{ item.title }}
       </RouterLink>
   </div>
