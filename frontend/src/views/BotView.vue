@@ -161,14 +161,20 @@ const clipboard = (response_nr) => {
   }
 }
 
-const clipboardAll = () => {
+const clipboardAll = (bot) => {
   const roles = {
     "system": "Ledetekst",
     "user": "Du",
     "assistant": "Bot",
   }
+  let copy_text = messages.value
+  // console.log(copy_text)
+  if (!bot.prompt_visibility && copy_text.length > 0) {
+    copy_text = messages.value.slice(1);
+  }
+  // console.log(copy_text)
   try {
-    navigator.clipboard.writeText(messages.value.map(x => `${roles[x.role]}: ${x.content}`).join('\n'));
+    navigator.clipboard.writeText(copy_text.map(x => `${roles[x.role]}: ${x.content}`).join('\n'));
   } catch (error) {
     console.log(error);
   }
@@ -279,7 +285,7 @@ watchEffect(() => {
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary me-2" type="button" id="button-send" @click="sendMessage()">Send</button>
         <button class="btn oslo-btn-secondary me-2" type="button" id="button-new" @click="resetMessages()">Ny samtale</button>
-        <button class="btn oslo-btn-secondary me-2" type="button" id="button-clipboard" @click="clipboardAll()">
+        <button class="btn oslo-btn-secondary me-2" type="button" id="button-clipboard" @click="clipboardAll(bot)">
           <img src="@/components/icons/clipboard.svg" alt="">
           Kopier samtalen
         </button>
