@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="21.4" height="32" viewBox="0 0 32 32">
+<g id="District">
+<path d="M18,29.92H30v-28H16V17.17L10.5,13.5,6.64,16.07,6,13.5H3V29.92m2-2V19.5L10.5,16,16,19.5v8.42Zm23,0H18v-24H28Z"/>
+<rect x="20" y="5.9" width="2" height="2"/>
+<rect x="24" y="5.9" width="2" height="2"/>
+<rect x="20" y="10.9" width="2" height="2"/>
+<rect x="24" y="10.9" width="2" height="2"/>
+<rect x="24" y="15.9" width="2" height="2"/>
+<rect x="20" y="15.9" width="2" height="2"/>
+<rect x="20" y="20.9" width="2" height="2"/>
+<rect x="11" y="20.9" width="3" height="6"/>
+<rect x="7" y="20.9" width="2" height="2"/>
+<rect x="24" y="20.9" width="2" height="2"/>
+</g>
+</svg>

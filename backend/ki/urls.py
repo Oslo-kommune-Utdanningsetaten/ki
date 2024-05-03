@@ -12,6 +12,7 @@ authurls = [
 apiurls = [
   path("api/bot/<int:bot_nr>", api.start_message, name="api.start_message"),
   path("api/send_message", api.send_message, name="api.send_message"),
+  path("api/favorite/<int:bot_nr>", api.favorite, name="api.favorite"),
   path("api/user_bots", api.user_bots, name="api.user_bots"),
   path("api/bot_info/", api.bot_info, name="api.bot_info"),
   path("api/bot_info/<int:bot_nr>", api.bot_info, name="api.bot_info"),

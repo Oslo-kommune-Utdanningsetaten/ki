@@ -1,11 +1,13 @@
 <script setup>
 import { RouterLink } from 'vue-router';
 import axios from 'axios';
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, onMounted, watchEffect, computed } from 'vue'
 import { store } from '../store.js';
 
 const bots = ref([]);
 const status = ref(null);
+const showAll = ref(false);
+const active_bot = ref(null);
 // const route = useRoute()
 
 watchEffect(() => {
@@ -24,9 +26,61 @@ async function getBots() {
   }
 }
 
+const filterFavorites = computed(() => {
+  if (!store.isEmployee && !store.isAdmin) {
+    return bots.value;
+  };
+  if (showAll.value) {
+    return bots.value.filter(bot => !bot.personal && !bot.mandatory);
+  } else {
+    return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite);
+  };
+});
+
+const bot_tile_bg = (bot) => {
+  if (bot.personal) {
+    return 'oslo-bg-light';
+  } else {
+    return 'oslo-bg-light';
+  }
+}
+
+const toggle_favorite = async (bot) => {
+  try {
+    const { data } = await axios.put('/api/favorite/' + bot.bot_nr);
+    bot.favorite = data.favorite;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const setActiveBot = (bot) => {
+  active_bot.value = bot;
+};
+
+
 </script>
 
 <template>
+
+  <!-- Modal -->
+  <div class="modal fade" id="botinfo" tabindex="-1" aria-labelledby="bot_info_label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div v-if="active_bot" class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="bot_info_label">{{ active_bot.bot_title }}</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {{ active_bot.bot_info }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div v-if="status != 'ok'" class="mb-3">
     <p>KI i Osloskolen er en løsning for å gi lærere og elever i Osloskolens tilgang til å bruke kunstig intelligens på en trygg måte. Løsningen baserer seg på Azure OpenAI.  Azure OpenAI er Microsoft sin utgave av OpenAI sine ulike språkmodeller. Selv om løsningen er lagt bak FEIDE-pålogging, lagrer den ikke persondata. Feide-påloggingen benyttes kun til tilgangs- og kostnadskontroll, slik at elever og lærere i Osloskolen kan bruke denne teknologien på en trygg måte.
       <a href="https://aktuelt.osloskolen.no/larerik-bruk-av-laringsteknologi/informasjonssikkerhet-og-personvern/feide-tjenester/ki/" target="_blank">
@@ -52,6 +106,12 @@ async function getBots() {
   </div>
   <div v-else class="mb-3">
     <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleåret 2023/2024. Les mer under "Om tjenesten"</p>
+    <div v-if="store.isEmployee || store.isAdmin" class="form-check form-switch mb-2">
+      <span>
+        <input class="form-check-input" type="checkbox" id="showAll" v-model="showAll">
+        <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
+      </span>
+    </div>
     <div v-if="bots.length === 0" >
       <div class="card">
         <div class="card-body">
@@ -60,11 +120,14 @@ async function getBots() {
       </div>
     </div>
     <div class="row align-items-stretch">
-      <div v-for="bot in bots" :key="bot.bot_nr" class="col-lg-3 col-md-4 col-sm-6 mb-3">
+      <div v-for="bot in filterFavorites" :key="bot.bot_nr" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
         <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/">
-          <div class="card oslo-bg-light text-center h-100" >
-            <div class="card-img-top text-center pt-3">
-              <img :src="'/static/img/'+bot.bot_img" alt="Ny bot">
+          <div  class="card oslo-bg-light text-center h-100" >
+            <div class="row text-center pt-3">
+              <div class="col-2"></div>
+              <div class="col-8">
+                <img src="@/components/icons/pluss.svg" alt="Ny bot">
+              </div>
             </div>
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">{{ bot.bot_title }}</h5>
@@ -72,12 +135,33 @@ async function getBots() {
           </div>
         </RouterLink>
         <RouterLink v-else active-class="active" class="bot_tile" :to="'bot/'+bot.bot_nr">
-          <div class="card oslo-bg-light text-center h-100" >
-            <div class="card-img-top text-center pt-3">
-              <img :src="'/static/img/'+bot.bot_img" :alt="'Åpne '+bot.bot_title">
-            </div>
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title">{{ bot.bot_title }}</h5>
+          <div class="card text-center h-100" :class="bot_tile_bg(bot)">
+            <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
+            <span class="visually-hidden">Sentral bot</span>
+            <div class="row text-center m-0 pt-3">
+              <div class="col-2"></div>
+              <div class="col-8 p-0">
+                <img :src="'src/components/icons/'+bot.bot_img" :alt="'Åpne '+bot.bot_title">
+              </div>
+
+              <div  v-if="store.isEmployee"  class="col-2 ps-0">
+                <div v-if="bot.mandatory">
+                  <img src="@/components/icons/bydel.svg" alt="Obligatorisk">
+                </div>
+                <div v-if="bot.personal"></div>
+                <div v-if="!bot.mandatory && !bot.personal">
+                  <a  href="#" @click.prevent="toggle_favorite(bot)">
+                    <img v-if="bot.favorite" src="@/components/icons/star_solid.svg" alt="Fjern som favoritt">
+                    <img v-else src="@/components/icons/star.svg" alt="Sett som favoritt">
+                  </a>
+                </div>
+              </div>
+              <div class="card-body row m-0">
+                <div class="col-10">{{ bot.bot_title }}</div>
+                <a v-if="bot.bot_info" class="col-2 pe-0" href="#" data-bs-toggle="modal" data-bs-target="#botinfo" @click.prevent="setActiveBot(bot)">
+                  <img src="@/components/icons/information.svg" alt="Informasjon">
+                </a>
+              </div>
             </div>
           </div>
         </RouterLink>

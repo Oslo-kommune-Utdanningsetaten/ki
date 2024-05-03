@@ -71,6 +71,10 @@ nav a:hover {
     color: inherit;
 }
 
+.infotext a {
+    color: #007eff;
+}
+
 .logo img {
   height: 70px;
 }

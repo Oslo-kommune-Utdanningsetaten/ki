@@ -23,5 +23,5 @@ async function getcontent() {
 </script>
 
 <template>
-  <span v-html="contentText"></span>
+  <span class="infotext" v-html="contentText"></span>
 </template>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+  <rect class="bot_col_1" x="5" width="8" height="8"/>
+  <rect class="bot_col_1" x="5" y="10" width="8" height="8"/>
+  <rect class="bot_col_2" x="7" y="8" width="4" height="2"/>
+  <circle class="bot_col_2" cx="7" cy="4" r="1"/>
+  <circle class="bot_col_2" cx="11" cy="4" r="1"/>
+  <polygon class="bot_col_2" points="3 10 3 14 5 14 5 12 7 12 7 10 3 10"/>
+  <polygon class="bot_col_2" points="11 10 11 12 13 12 13 14 15 14 15 10 11 10"/>
+</svg>

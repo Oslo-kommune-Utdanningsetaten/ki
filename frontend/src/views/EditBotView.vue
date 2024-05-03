@@ -257,6 +257,12 @@ watchEffect(() => {
       </div>
     </div>
     <div class="row mb-3">
+      <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
+      <div class="col-sm-10">
+        <textarea v-model="bot.bot_info" class="form-control" id="bot_info" rows="5" name="bot_info"></textarea>
+      </div>
+    </div>
+    <div class="row mb-3">
       <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
       <div class="col-sm-10">
         <div class="form-check form-check-inline">
@@ -341,6 +347,15 @@ watchEffect(() => {
         <div class="form-check form-check-inline">
           <input class="form-check-input" type="checkbox" id="allow_distribution" v-model="bot.allow_distribution">
           <label class="form-check-label" for="allow_distribution">Ja</label>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-sm-2 ">Tvungen visning</div>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="mandatory" v-model="bot.mandatory">
+          <label class="form-check-label" for="mandatory">Ja</label>
         </div>
       </div>
     </div>

@@ -27,10 +27,25 @@ class Bot(models.Model):
     prompt_visibility = models.BooleanField(default=True)
     owner = models.CharField(max_length=50, null=True)
     allow_distribution = models.BooleanField(default=False)
+    mandatory = models.BooleanField(default=False)
+    bot_info = models.TextField(null=True)
 
     class Meta:
         managed = False
         db_table = 'bot'
+
+
+class Favorite(models.Model):
+    id = models.AutoField(primary_key=True)
+    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr', related_name="favorites")
+    user_id = models.CharField(max_length=50)
+    # created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = 'favorite'
+        unique_together = ('bot_nr', 'user_id')
+
 
 class PromptChoice(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
@@ -97,6 +112,7 @@ class BotAccess(models.Model):
     class Meta:
         managed = False
         db_table = 'bot_access'
+        unique_together = ('bot_nr', 'school_id')
 
 
 class BotLevel(models.Model):
