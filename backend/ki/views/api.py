@@ -148,6 +148,7 @@ def bot_info(request, bot_nr=None):
             bot.model = default_model
         if is_admin:
             bot.model = body.get('model', bot.model)
+        if is_admin or is_owner:
             # delete all choices and options
             for choice in bot.prompt_choices.all():
                 choice.options.all().delete()

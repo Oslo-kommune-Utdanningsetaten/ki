@@ -304,27 +304,6 @@ watchEffect(() => {
   </div>
 
 
-  <div v-if="store.editGroups && bot.distribute" class="row mb-3">
-    <div >
-      <hr/>
-      <p>
-        Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
-        Tilgangen til boten varer i {{ lifeSpan }} timer fra du lagrer.
-      </p>
-    </div>
-    <div class="col-sm-2">
-      Grupper som har tilgang
-    </div>
-    <div class="col-sm-10">
-        <div v-for="group in groups" class="form-check">
-          <input class="form-check-input" type="checkbox" name="access" v-model="group.checked" :id="'check'+group.id">
-          <label class="form-check-label" :for="'check'+group.id">
-            {{group.display_name}} {{ group.go_type == 'b' ? '(klasse)' : '(faggruppe)' }}
-          </label>
-        </div>
-    </div>
-  </div>
-
   <div v-if="store.isAdmin" class="mb-3">
     <div class="row mb-3">
       <div class="col-sm-2 ">Modell</div>
@@ -344,54 +323,85 @@ watchEffect(() => {
         </div>
       </div>
     </div>
-    <div class="row mb-3">
-      <div class="col-sm-2 ">Forhåndsvalg</div>
-      <div class="col-sm-10">
-        <div v-for="choice in bot.choices" class="card mb-3 p-3" >
-          <div class="row mb-1">
-            <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">Etikett</label>
-              <div class="col-sm-10">
-                <input type="text" class="form-control" :id="`choice_label${choice.id}`" v-model="choice.label">
-              </div>
-          </div>
-          <div class="row mb-1">
-            <label :for="`choice_text${choice.id}`" class="col-sm-2 col-form-label">Tekst</label>
-            <div class="col-sm-10">
-              <textarea class="form-control" :id="`choice_text${choice.id}`" rows="1"  v-model="choice.text" ></textarea>
+  </div>
+  
+  <div class="mb-3">
+    <button class="btn oslo-btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
+      Avanserte innstillinger
+    </button>
+  </div>
+  <div class="mb-3">
+    <div class="collapse" id="collapseAdvanced">
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Forhåndsvalg</div>
+        <div class="col-sm-10">
+          <div v-for="choice in bot.choices" class="card mb-3 p-3" >
+            <div class="row mb-1">
+              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">Etikett</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" :id="`choice_label${choice.id}`" v-model="choice.label">
+                </div>
             </div>
-          </div>
-          <div class="row mb-1">
-            <div class="col-sm-2 ">Alternativer</div>
-            <div class="col-sm-10">
-              <div v-for="option in choice.options">
-                <div class="row mb-1">
-                  <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Etikett</label>
-                  <div class="col-sm-10">
-                    <input type="text" class="form-control" :id="`opt_label${option.id}`" v-model="option.label">
-                  </div>
-                </div>
-                <div class="row mb-1">
-                  <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Tekst</label>
-                  <div class="col-sm-10">
-                    <textarea class="form-control" :id="`opt_text${option.id}`" rows="1" v-model="option.text"></textarea>
-                  </div>
-                </div>
-                <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected">
-                <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">Standard</label>
-                <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">Slett alternativ</button>
-                <hr>
+            <div class="row mb-1">
+              <label :for="`choice_text${choice.id}`" class="col-sm-2 col-form-label">Tekst</label>
+              <div class="col-sm-10">
+                <textarea class="form-control" :id="`choice_text${choice.id}`" rows="1"  v-model="choice.text" ></textarea>
               </div>
-              <button class="btn oslo-btn-primary" @click="addOption(choice)">Legg til alternativ</button>
+            </div>
+            <div class="row mb-1">
+              <div class="col-sm-2 ">Alternativer</div>
+              <div class="col-sm-10">
+                <div v-for="option in choice.options">
+                  <div class="row mb-1">
+                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Etikett</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" :id="`opt_label${option.id}`" v-model="option.label">
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Tekst</label>
+                    <div class="col-sm-10">
+                      <textarea class="form-control" :id="`opt_text${option.id}`" rows="1" v-model="option.text"></textarea>
+                    </div>
+                  </div>
+                  <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected">
+                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">Standard</label>
+                  <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">Slett alternativ</button>
+                  <hr>
+                </div>
+                <button class="btn oslo-btn-primary" @click="addOption(choice)">Legg til alternativ</button>
+              </div>
+            </div>
+            <div class="mb-1">
+              <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">Slett valg</button>
             </div>
           </div>
           <div class="mb-1">
-            <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">Slett valg</button>
+            <button class="btn oslo-btn-primary" @click="addChoice">Legg til valg</button>
           </div>
-        </div>
-        <div class="mb-1">
-          <button class="btn oslo-btn-primary" @click="addChoice">Legg til valg</button>
-        </div>
 
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="store.editGroups && bot.distribute" class="row mb-3">
+    <div >
+      <hr/>
+      <p>
+        Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br>
+        Tilgangen til boten varer i {{ lifeSpan }} timer fra du lagrer.
+      </p>
+    </div>
+    <div class="col-sm-2">
+      Grupper som har tilgang
+    </div>
+    <div class="col-sm-10">
+      <div v-for="group in groups" class="form-check">
+        <input class="form-check-input" type="checkbox" name="access" v-model="group.checked" :id="'check'+group.id">
+        <label class="form-check-label" :for="'check'+group.id">
+          {{group.display_name}} {{ group.go_type == 'b' ? '(klasse)' : '(faggruppe)' }}
+        </label>
       </div>
     </div>
   </div>
