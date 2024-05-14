@@ -17,6 +17,15 @@ botNr.value = route.params.id;
 
 const textInput = ref(null); // Add a ref for the text input element
 
+
+const choicesSorted = () => {
+  return bot.value.choices.sort((a, b) => a.order - b.order);
+}
+
+const optionsSorted = (choice) => {
+  return choice.options.sort((a, b) => a.order - b.order);
+}
+
 const startpromt = async () => {
   try {
     const { data } = await axios.get('/api/bot_info/' + botNr.value);
@@ -35,9 +44,10 @@ const startpromt = async () => {
 const resetMessages = () => {
   let fullChoicesText = '';
   if (bot.value.choices) {
-    bot.value.choices.forEach(choice => {
+    choicesSorted().forEach(choice => {
       if (choice.selected !== null) {
-        fullChoicesText += choice.text + ' ' + choice.selected.text + ' ';
+        // fullChoicesText += choice.text + ' ' + choice.selected.text + ' ';
+        fullChoicesText += choice.selected.text + ' ';
       }
     });
   }
@@ -232,10 +242,10 @@ watchEffect(() => {
   </p>    
     
     <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
-        <div v-for="choice in bot.choices" class="row mb-2">
+        <div v-for="choice in choicesSorted()" class="row mb-2">
           <div class="col-4 col-form-label">{{ choice.label }}</div>
           <div class="col btn-group" role="group">
-            <div v-for="option in choice.options" :key="option.id">
+            <div v-for="option in optionsSorted(choice)" :key="option.id">
               <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected" @change="resetMessages()">
               <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
                 {{ option.label }}
