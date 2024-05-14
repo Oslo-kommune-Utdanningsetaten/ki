@@ -148,6 +148,14 @@ button img {
     width: 30rem;
 }
 
+.show-advanced[aria-expanded=false]:after {
+  content: 'Vis avanserte innstillinger';
+}
+
+.show-advanced[aria-expanded=true]:after {
+  content: 'Skjul avanserte innstillinger';
+}
+
 .oslo-btn-primary, .oslo-btn-primary.active:hover {
     color: #2A2859;
     background-color: #6FE9FF;

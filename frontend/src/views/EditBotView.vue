@@ -17,6 +17,7 @@ const bot = ref({
   bot_nr: null,
   edit: true,
   distribute: true,
+  choices: [],
 });
 const newBot = ref(false);
 const groups = ref();
@@ -168,8 +169,57 @@ const addChoice = () => {
     label: '',
     text: '',
     options: [],
-    selected: false
+    selected: false,
+    order: Math.max(...bot.value.choices.map(c => c.order), -1) + 1
   });
+}
+
+const notFirstChoice = (choice) => {
+  return choice.order > 0;
+}
+
+const notLastChoice = (choice) => {
+  return choice.order < bot.value.choices.length - 1;
+}
+
+const notFirstOption = (_, option) => {
+  return option.order > 0;
+}
+
+const notLastOption = (choice, option) => {
+  return option.order < choice.options.length - 1;
+}
+
+const choiceOrderUp = (choice) => {
+  if (choice.order > 0) {
+    const other = bot.value.choices.find(c => c.order === choice.order - 1);
+    other.order++;
+    choice.order--;
+  }
+}
+
+const choiceOrderDown = (choice) => {
+  if (choice.order < bot.value.choices.length - 1) {
+    const other = bot.value.choices.find(c => c.order === choice.order + 1);
+    other.order--;
+    choice.order++;
+  }
+}
+
+const optionOrderUp = (choice, option) => {
+  if (option.order > 0) {
+    const other = choice.options.find(o => o.order === option.order - 1);
+    other.order++;
+    option.order--;
+  }
+}
+
+const optionOrderDown = (choice, option) => {
+  if (option.order < choice.options.length - 1) {
+    const other = choice.options.find(o => o.order === option.order + 1);
+    other.order--;
+    option.order++;
+  }
 }
 
 const deleteOption = (choice, option) => {
@@ -180,8 +230,17 @@ const addOption = (choice) => {
   choice.options.push({
     id: Math.random().toString(36).substring(7),
     label: '',
-    text: ''
+    text: '',
+    order: Math.max(...choice.options.map(o => o.order), -1) + 1
   });
+}
+
+const choicesSorted = computed(() => {
+  return bot.value.choices.sort((a, b) => a.order - b.order);
+});
+
+const optionsSorted = (choice) => {
+  return choice.options.sort((a, b) => a.order - b.order);
 }
 
 const schoolAccessFiltered = computed(() => {
@@ -323,11 +382,16 @@ watchEffect(() => {
         </div>
       </div>
     </div>
+    <div class="row mb-3">
+      <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
+      <div class="col-sm-10">
+        <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner">
+      </div>
+    </div>
   </div>
-  
+
   <div class="mb-3">
-    <button class="btn oslo-btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
-      Avanserte innstillinger
+    <button class="show-advanced btn oslo-btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
     </button>
   </div>
   <div class="mb-3">
@@ -335,31 +399,31 @@ watchEffect(() => {
       <div class="row mb-3">
         <div class="col-sm-2 ">Forhåndsvalg</div>
         <div class="col-sm-10">
-          <div v-for="choice in bot.choices" class="card mb-3 p-3" >
+          <div v-for="choice in choicesSorted" class="card mb-3 p-3" >
             <div class="row mb-1">
               <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">Etikett</label>
                 <div class="col-sm-10">
                   <input type="text" class="form-control" :id="`choice_label${choice.id}`" v-model="choice.label">
                 </div>
             </div>
-            <div class="row mb-1">
+            <!-- <div class="row mb-1">
               <label :for="`choice_text${choice.id}`" class="col-sm-2 col-form-label">Tekst</label>
               <div class="col-sm-10">
                 <textarea class="form-control" :id="`choice_text${choice.id}`" rows="1"  v-model="choice.text" ></textarea>
               </div>
-            </div>
+            </div> -->
             <div class="row mb-1">
               <div class="col-sm-2 ">Alternativer</div>
               <div class="col-sm-10">
-                <div v-for="option in choice.options">
+                <div v-for="option in optionsSorted(choice)">
                   <div class="row mb-1">
-                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Etikett</label>
+                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Knapp</label>
                     <div class="col-sm-10">
                       <input type="text" class="form-control" :id="`opt_label${option.id}`" v-model="option.label">
                     </div>
                   </div>
                   <div class="row mb-1">
-                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Tekst</label>
+                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Ledetekst</label>
                     <div class="col-sm-10">
                       <textarea class="form-control" :id="`opt_text${option.id}`" rows="1" v-model="option.text"></textarea>
                     </div>
@@ -367,6 +431,13 @@ watchEffect(() => {
                   <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected">
                   <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">Standard</label>
                   <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">Slett alternativ</button>
+                  <button v-if="notFirstOption(choice, option)" class="btn oslo-btn-secondary" @click="optionOrderUp(choice, option)">
+                    <img src="@/components/icons/move_up.svg" alt="flytt opp">
+                  </button>
+                  <button v-if="notLastOption(choice, option)" class="btn oslo-btn-secondary" @click="optionOrderDown(choice, option)">
+                    <img src="@/components/icons/move_down.svg" alt="flytt ned">
+                  </button>
+                  <!-- {{ option.order }} -->
                   <hr>
                 </div>
                 <button class="btn oslo-btn-primary" @click="addOption(choice)">Legg til alternativ</button>
@@ -374,6 +445,13 @@ watchEffect(() => {
             </div>
             <div class="mb-1">
               <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">Slett valg</button>
+              <button v-if="notFirstChoice(choice)" class="btn oslo-btn-secondary" @click="choiceOrderUp(choice)">
+                <img src="@/components/icons/move_up.svg" alt="flytt opp">
+              </button>
+              <button v-if="notLastChoice(choice)" class="btn oslo-btn-secondary" @click="choiceOrderDown(choice)">
+                <img src="@/components/icons/move_down.svg" alt="flytt ned">
+              </button>
+              <!-- {{ choice.order }} -->
             </div>
           </div>
           <div class="mb-1">

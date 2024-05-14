@@ -115,7 +115,12 @@ def user_bots(request):
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def bot_info(request, bot_nr=None):
 
-    if bot_nr and not bot_nr in request.g.get('bots', []):
+    is_admin = request.g.get('admin', False)
+    new_bot = False
+
+    if (bot_nr and 
+        not bot_nr in request.g.get('bots', [])
+        and not is_admin):
         return Response(status=403)
 
     # Make new bot on POST
@@ -123,13 +128,13 @@ def bot_info(request, bot_nr=None):
         bot = models.Bot()
         if not request.g.get('admin', False):
             bot.owner = request.g.get('username')
+        new_bot = True
     else:
         try:
             bot = models.Bot.objects.get(bot_nr=bot_nr)
         except models.Bot.DoesNotExist:
             return Response(status=404)
     is_owner = bot.owner == request.g.get('username', None)
-    is_admin = request.g.get('admin', False)
 
     if request.method == "PUT" or request.method == "POST":
         if not is_owner and not is_admin:
@@ -143,37 +148,42 @@ def bot_info(request, bot_nr=None):
         bot.allow_distribution = body.get('allow_distribution', bot.allow_distribution)
         bot.image = body.get('bot_img', bot.image)
         bot.temperature = body.get('temperature', bot.temperature)
+        bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
+        bot.owner = None if bot.owner == '' else bot.owner
         default_model = models.Setting.objects.get(setting_key='default_model').txt_val
         if bot.model == '':
             bot.model = default_model
         if is_admin:
             bot.model = body.get('model', bot.model)
-        if is_admin or is_owner:
-            # delete all choices and options
+        bot.save()
+        
+        # delete all choices and options
+        if not new_bot:
             for choice in bot.prompt_choices.all():
                 choice.options.all().delete()
                 choice.delete()            
 
-            for choice in body.get('choices', []):
-                prompt_choice = models.PromptChoice(
-                        id=choice.get('id'),
-                        bot_nr=bot,
-                        label=choice.get('label'), 
-                        text=choice.get('text')
-                )
-                prompt_choice.save()
+        for choice in body.get('choices', []):
+            prompt_choice = models.PromptChoice(
+                    id=choice.get('id'),
+                    bot_nr=bot,
+                    label=choice.get('label'),
+                    order=choice.get('order'),
+                    # text=choice.get('text')
+            )
+            prompt_choice.save()
 
-                for option in choice.get('options', []):
-                    choice_option = models.ChoiceOption(
-                            id=option.get('id'),
-                            choice_id=prompt_choice, 
-                            label=option.get('label'), 
-                            text=option.get('text'),
-                            is_default=choice.get('selected').get('id', 0) == option.get('id')\
-                                if choice.get('selected', False) else False
-                    )
-                    choice_option.save()
-        bot.save()
+            for option in choice.get('options', []):
+                choice_option = models.ChoiceOption(
+                        id=option.get('id'),
+                        choice_id=prompt_choice, 
+                        label=option.get('label'), 
+                        text=option.get('text'),
+                        order=option.get('order'),
+                        is_default=choice.get('selected').get('id', 0) == option.get('id')\
+                            if choice.get('selected', False) else False
+                )
+                choice_option.save()
 
     if request.method == "DELETE":
         if not is_owner and not is_admin:
@@ -203,16 +213,19 @@ def bot_info(request, bot_nr=None):
                 'id': option.id,
                 'label': option.label,
                 'text': option.text,
+                'order': option.order,
             })
         choices.append({
             'id': choice.id,
             'label': choice.label,
-            'text': choice.text,
+            # 'text': choice.text,
             'options': options,
+            'order': choice.order,
             'selected': { 
                 'id': default_option.id,
                 'label': default_option.label,
                 'text': default_option.text,
+                'order': default_option.order,
             } if default_option else None,
         })
 
@@ -229,6 +242,7 @@ def bot_info(request, bot_nr=None):
         'edit': edit,
         'distribute': distribute,
         'choices': choices,
+        'owner': bot.owner if is_admin else None,
     }})
 
 @api_view(["GET", "PUT"])
