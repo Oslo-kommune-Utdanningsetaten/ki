@@ -531,6 +531,13 @@ async def send_message(request):
         async for line in completion:
             if line.choices:
                 chunk = line.choices[0].delta.content or ""
+                if line.choices[0].finish_reason == "content_filter":
+                    yield "\n\nBeklager, men dette er ikke passende innhold å vise."
+                    break
+                if line.choices[0].finish_reason == "length":
+                    print(line.choices[0].content_filter_results)
+                    yield "Grensen for antall tegn i samtalen er nådd."
+                    break
                 if chunk:
                     yield chunk
 
