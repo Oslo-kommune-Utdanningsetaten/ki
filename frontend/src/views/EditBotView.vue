@@ -316,12 +316,6 @@ watchEffect(() => {
       </div>
     </div>
     <div class="row mb-3">
-      <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
-      <div class="col-sm-10">
-        <textarea v-model="bot.bot_info" class="form-control" id="bot_info" rows="5" name="bot_info"></textarea>
-      </div>
-    </div>
-    <div class="row mb-3">
       <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
       <div class="col-sm-10">
         <div class="form-check form-check-inline">
@@ -411,6 +405,12 @@ watchEffect(() => {
   </div>
   <div class="mb-3">
     <div class="collapse" id="collapseAdvanced">
+      <div class="row mb-3">
+        <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
+        <div class="col-sm-10">
+          <textarea v-model="bot.bot_info" class="form-control" id="bot_info" rows="5" name="bot_info"></textarea>
+        </div>
+      </div>
       <div class="row mb-3">
         <div class="col-sm-2 ">Forhåndsvalg</div>
         <div class="col-sm-10">

@@ -137,7 +137,6 @@ const setActiveBot = (bot) => {
         <RouterLink v-else active-class="active" class="bot_tile" :to="'bot/'+bot.bot_nr">
           <div class="card text-center h-100" :class="bot_tile_bg(bot)">
             <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
-            <span class="visually-hidden">Sentral bot</span>
             <div class="row text-center m-0 pt-3">
               <div class="col-2"></div>
               <div class="col-8 p-0">
@@ -145,9 +144,7 @@ const setActiveBot = (bot) => {
               </div>
 
               <div  v-if="store.isEmployee"  class="col-2 ps-0">
-                <div v-if="bot.mandatory">
-                  <img src="@/components/icons/bydel.svg" alt="Obligatorisk">
-                </div>
+                <div v-if="bot.mandatory"></div>
                 <div v-if="bot.personal"></div>
                 <div v-if="!bot.mandatory && !bot.personal">
                   <a  href="#" @click.prevent="toggle_favorite(bot)">
