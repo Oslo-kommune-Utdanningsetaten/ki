@@ -64,6 +64,10 @@ a:hover {
     text-decoration: none!important;
 }
 
+.btn {
+    margin-left: .5rem;
+}
+
 nav a {
     font-weight: inherit;
 }

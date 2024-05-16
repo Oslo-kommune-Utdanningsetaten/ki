@@ -5,6 +5,7 @@ from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpRespons
 from datetime import datetime, timedelta
 import requests
 from openai import AsyncAzureOpenAI
+import openai
 import os
 import json
 # from ..mock import mock_acreate
@@ -534,23 +535,28 @@ async def send_message(request):
         return HttpResponseNotFound()
 
     async def stream():
-        completion = await azureClient.chat.completions.create(
-            model=bot.model,
-            messages=messages,
-            temperature=float(bot.temperature),
-            stream=True,
-        )
-        # Mock function for loadtesting etc.:
-        # completion = await mock_acreate()
+        try:
+            completion = await azureClient.chat.completions.create(
+                model=bot.model,
+                messages=messages,
+                temperature=float(bot.temperature),
+                stream=True,
+            )
+        except openai.BadRequestError as e:
+            if e.code == "content_filter":
+                yield "Dette er ikke et passende emne. Start samtalen på nytt."
+            else:
+                yield "Noe gikk galt. Prøv igjen senere."
+            return
         async for line in completion:
             if line.choices:
                 chunk = line.choices[0].delta.content or ""
                 if line.choices[0].finish_reason == "content_filter":
-                    yield "\n\nBeklager, men dette er ikke passende innhold å vise."
+                    yield "\n\nBeklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
                     break
                 if line.choices[0].finish_reason == "length":
                     print(line.choices[0].content_filter_results)
-                    yield "Grensen for antall tegn i samtalen er nådd."
+                    yield "\n\nGrensen for antall tegn i samtalen er nådd."
                     break
                 if chunk:
                     yield chunk

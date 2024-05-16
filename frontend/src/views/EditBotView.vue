@@ -109,7 +109,7 @@ const update = async () => {
       botNr.value = response.data.bot.bot_nr;
       newBot.value = false;
       if (store.editGroups) {
-        groupUpdate()
+        await axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
       }
       store.addMessage('Boten er opprettet!', 'info' );
     } catch (error) {
@@ -117,34 +117,24 @@ const update = async () => {
     }
   } else {
     try {
+      let responses = [];
       if (bot.value.edit) {
-        botUpdate()
+        const response = axios.put('/api/bot_info/' + botNr.value, bot.value)
+        responses.push(response);
+        // botUpdate() 
       }
       if (bot.value.distribute) {
-        groupUpdate()
+        // groupUpdate()
+        const response = axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
+        responses.push(response);
       }
+      await Promise.all(responses);
       store.addMessage('Endringene er lagret!', 'info' );
     } catch (error) {
       console.log(error);
     }
   }
   $router.push('/bot/' + botNr.value);
-}
-
-const botUpdate = async () => {
-  try {
-    const response = await axios.put('/api/bot_info/' + botNr.value, bot.value)
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const groupUpdate = async () => {
-  try {
-    const response = await axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
-  } catch (error) {
-    console.log(error);
-  }
 }
 
 const accessUpdate = async (school) => {
@@ -286,7 +276,7 @@ watchEffect(() => {
 <template>
 
   <div class="d-flex justify-content-end">
-    <button @click="update" class="btn oslo-btn-primary me-2">
+    <button @click="update" class="btn oslo-btn-primary">
       Lagre
     </button>
     <RouterLink class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
@@ -399,80 +389,78 @@ watchEffect(() => {
     </div>
   </div>
 
-  <div class="mb-3">
-    <button class="show-advanced btn oslo-btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
-    </button>
-  </div>
-  <div class="mb-3">
-    <div class="collapse" id="collapseAdvanced">
-      <div class="row mb-3">
-        <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
-        <div class="col-sm-10">
-          <textarea v-model="bot.bot_info" class="form-control" id="bot_info" rows="5" name="bot_info"></textarea>
-        </div>
-      </div>
-      <div class="row mb-3">
-        <div class="col-sm-2 ">Forhåndsvalg</div>
-        <div class="col-sm-10">
-          <div v-for="choice in choicesSorted" class="card mb-3 p-3" >
-            <div class="row mb-1">
-              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">Etikett</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" :id="`choice_label${choice.id}`" v-model="choice.label">
-                </div>
+  <div v-if="bot.edit">
+    <div class="mb-3">
+      <button class="show-advanced btn oslo-btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
+      </button>
+    </div>
+    <div class="mb-3">
+      <div class="collapse" id="collapseAdvanced">
+        <div class="card card-body">
+          <div class="row mb-3">
+            <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
+            <div class="col-sm-10">
+              <textarea v-model="bot.bot_info" class="form-control" id="bot_info" rows="5" name="bot_info"></textarea>
             </div>
-            <!-- <div class="row mb-1">
-              <label :for="`choice_text${choice.id}`" class="col-sm-2 col-form-label">Tekst</label>
-              <div class="col-sm-10">
-                <textarea class="form-control" :id="`choice_text${choice.id}`" rows="1"  v-model="choice.text" ></textarea>
-              </div>
-            </div> -->
-            <div class="row mb-1">
-              <div class="col-sm-2 ">Alternativer</div>
-              <div class="col-sm-10">
-                <div v-for="option in optionsSorted(choice)">
-                  <div class="row mb-1">
-                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Knapp</label>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-2 ">Forhåndsvalg</div>
+            <div class="col-sm-10">
+              <div v-for="choice in choicesSorted" class="card mb-3 p-3" >
+                <div class="row mb-1">
+                  <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">Spørsmål</label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" :id="`opt_label${option.id}`" v-model="option.label">
+                      <input type="text" class="form-control" :id="`choice_label${choice.id}`" v-model="choice.label">
                     </div>
-                  </div>
-                  <div class="row mb-1">
-                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Ledetekst</label>
-                    <div class="col-sm-10">
-                      <textarea class="form-control" :id="`opt_text${option.id}`" rows="1" v-model="option.text"></textarea>
+                </div>
+                <div class="row mb-1">
+                  <div class="col-sm-2 ">Alternativer</div>
+                  <div class="col-sm-10">
+                    <div v-for="option in optionsSorted(choice)">
+                      <div class="row mb-1">
+                        <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">Knapp</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" :id="`opt_label${option.id}`" v-model="option.label">
+                        </div>
+                      </div>
+                      <div class="row mb-1">
+                        <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">Ledetekst</label>
+                        <div class="col-sm-10">
+                          <textarea class="form-control" :id="`opt_text${option.id}`" rows="1" v-model="option.text"></textarea>
+                        </div>
+                      </div>
+                      <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected">
+                      <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">Valgt</label>
+                      <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">Slett alternativ</button>
+                      <button v-if="notFirstOption(choice, option)" class="btn oslo-btn-secondary" @click="optionOrderUp(choice, option)">
+                        <img src="@/components/icons/move_up.svg" alt="flytt opp">
+                      </button>
+                      <button v-if="notLastOption(choice, option)" class="btn oslo-btn-secondary" @click="optionOrderDown(choice, option)">
+                        <img src="@/components/icons/move_down.svg" alt="flytt ned">
+                      </button>
+                      <!-- {{ option.order }} -->
+                      <hr>
                     </div>
+                    <button class="btn oslo-btn-primary" @click="addOption(choice)">Legg til alternativ</button>
                   </div>
-                  <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected">
-                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">Standard</label>
-                  <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">Slett alternativ</button>
-                  <button v-if="notFirstOption(choice, option)" class="btn oslo-btn-secondary" @click="optionOrderUp(choice, option)">
+                </div>
+                <div class="mb-1">
+                  <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">Slett spørsmål</button>
+                  <button v-if="notFirstChoice(choice)" class="btn oslo-btn-secondary" @click="choiceOrderUp(choice)">
                     <img src="@/components/icons/move_up.svg" alt="flytt opp">
                   </button>
-                  <button v-if="notLastOption(choice, option)" class="btn oslo-btn-secondary" @click="optionOrderDown(choice, option)">
+                  <button v-if="notLastChoice(choice)" class="btn oslo-btn-secondary" @click="choiceOrderDown(choice)">
                     <img src="@/components/icons/move_down.svg" alt="flytt ned">
                   </button>
-                  <!-- {{ option.order }} -->
-                  <hr>
+                  <!-- {{ choice.order }} -->
                 </div>
-                <button class="btn oslo-btn-primary" @click="addOption(choice)">Legg til alternativ</button>
               </div>
-            </div>
-            <div class="mb-1">
-              <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">Slett valg</button>
-              <button v-if="notFirstChoice(choice)" class="btn oslo-btn-secondary" @click="choiceOrderUp(choice)">
-                <img src="@/components/icons/move_up.svg" alt="flytt opp">
-              </button>
-              <button v-if="notLastChoice(choice)" class="btn oslo-btn-secondary" @click="choiceOrderDown(choice)">
-                <img src="@/components/icons/move_down.svg" alt="flytt ned">
-              </button>
-              <!-- {{ choice.order }} -->
-            </div>
-          </div>
-          <div class="mb-1">
-            <button class="btn oslo-btn-primary" @click="addChoice">Legg til valg</button>
-          </div>
+              <div class="mb-1">
+                <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
+              </div>
 
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -500,10 +488,10 @@ watchEffect(() => {
   </div>
 
   <div class="d-flex flex-row-reverse mb-3">
-    <RouterLink active-class="active" class="btn oslo-btn-secondary me-2" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
       Avbryt
     </RouterLink>
-    <button @click="update" class="btn oslo-btn-primary me-2">
+    <button @click="update" class="btn oslo-btn-primary">
       Lagre
     </button>
   </div>

@@ -220,7 +220,7 @@ watchEffect(() => {
 
   
   <div v-if="bot.edit" class="d-flex justify-content-end">
-    <RouterLink class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
+    <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
       Rediger bot
     </RouterLink>
     <button class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
@@ -229,7 +229,7 @@ watchEffect(() => {
   </div>
   <div v-else >
     <div v-if="bot.distribute" class="d-flex justify-content-end">
-      <RouterLink class="btn oslo-btn-secondary me-2" :to="'/editbot/'+bot.bot_nr">
+      <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
         Gi tilgang
       </RouterLink>
     </div>
@@ -293,9 +293,9 @@ watchEffect(() => {
       <textarea id="text-input" ref="textInput" type="text" rows="5" aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger." v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
       <div class="card">
       <div class="card-body bg-body-tertiary">
-        <button class="btn oslo-btn-primary me-2" type="button" id="button-send" @click="sendMessage()">Send</button>
-        <button class="btn oslo-btn-secondary me-2" type="button" id="button-new" @click="resetMessages()">Ny samtale</button>
-        <button class="btn oslo-btn-secondary me-2" type="button" id="button-clipboard" @click="clipboardAll(bot)">
+        <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
+        <button class="btn oslo-btn-secondary" type="button" id="button-new" @click="resetMessages()">Ny samtale</button>
+        <button class="btn oslo-btn-secondary" type="button" id="button-clipboard" @click="clipboardAll(bot)">
           <img src="@/components/icons/clipboard.svg" alt="">
           Kopier samtalen
         </button>
