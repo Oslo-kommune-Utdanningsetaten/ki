@@ -12,8 +12,9 @@ import botIcon5 from '@/components/icons/bot5.svg';
 
 const bots = ref([]);
 const status = ref(null);
-const showAll = ref(false);
+const showLibrary = ref(false);
 const active_bot = ref(null);
+const filter = ref([[], [], []]);
 // const route = useRoute()
 
 watchEffect(() => {
@@ -32,12 +33,22 @@ async function getBots() {
   }
 }
 
-const filterFavorites = computed(() => {
+const tagNames = [['Elev', 'Lærer'], ['Ungdomsskole', 'VGS'], ['Samhandling', 'Tekstbehandling']];
+const tagCategories = ['Målgruppe', 'Aldersgruppe', 'Formål'];
+
+const filterBots = computed(() => {
   if (!store.isEmployee && !store.isAdmin) {
     return bots.value;
   };
-  if (showAll.value) {
-    return bots.value.filter(bot => !bot.personal && !bot.mandatory);
+  if (showLibrary.value) {
+    let botsFiltered = bots.value;
+    for (let i = 0; i < filter.value.length; i++) {
+      if (filter.value[i].length > 0) {
+        const binarySum = filter.value[i].reduce((partialSum, a) => partialSum + Math.pow(2, a), 0);
+        botsFiltered = botsFiltered.filter((bot) => ((bot.tag[i]) & binarySum) > 0);
+      }
+    }
+    return botsFiltered.filter(bot => !bot.personal && !bot.mandatory);
   } else {
     return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite);
   };
@@ -127,12 +138,6 @@ const getBotImage = (bot) => {
   </div>
   <div v-else class="mb-3">
     <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleåret 2023/2024. Les mer under "Om tjenesten"</p>
-    <div v-if="store.isEmployee || store.isAdmin" class="form-check form-switch mb-2">
-      <span>
-        <input class="form-check-input" type="checkbox" id="showAll" v-model="showAll">
-        <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
-      </span>
-    </div>
     <div v-if="bots.length === 0" >
       <div class="card">
         <div class="card-body">
@@ -140,8 +145,41 @@ const getBotImage = (bot) => {
         </div>
       </div>
     </div>
+
+    <!-- bibliotek -->
+    <div v-if="store.isEmployee || store.isAdmin">
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary">
+        <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
+      </div>
+      <div v-if="showLibrary" class="mb-3">
+        <button class="btn oslo-btn-primary ms-0" type="button" data-bs-toggle="collapse" data-bs-target="#filter_choices" aria-expanded="false" aria-controls="filter_choices">
+          Bruk filter:
+        </button>
+        <div class="collapse" id="filter_choices">
+          <div class="card card-body">
+            <div v-for="(tagCategory, cat_index) in tagCategories" :key="cat_index">
+              <div>{{ tagCategory }}</div>
+              <div v-for="(levelText, index) in tagNames[cat_index]" :key="index" class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  v-model="filter[cat_index]"
+                  :value="index"
+                  :id="`filterCheck${cat_index}:${index}`"
+                />
+                <label class="form-check-label" :for="`filterCheck${cat_index}:${index}`">
+                  {{ levelText }}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row align-items-stretch">
-      <div v-for="bot in filterFavorites" :key="bot.bot_nr" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
+      <div v-for="bot in filterBots" :key="bot.bot_nr" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
         <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/">
           <div  class="card oslo-bg-light text-center h-100" >
             <div class="row text-center pt-3">

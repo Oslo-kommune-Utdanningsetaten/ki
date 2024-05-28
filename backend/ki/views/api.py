@@ -128,6 +128,7 @@ def user_bots(request):
             'personal': bot.owner == request.g.get('username', ''),
             'allow_distribution': bot.allow_distribution,
             'bot_info': bot.bot_info,
+            'tag': [bot.tag_cat_1, bot.tag_cat_2, bot.tag_cat_3],
         }
         for bot in users_bots]
     if (request.g.get('admin', False) or
@@ -141,6 +142,7 @@ def user_bots(request):
             'mandatory': True,
             'personal': False,
             'allow_distribution': False,
+            'tag': [[0], [0], [0]],
         })
 
     return Response({
@@ -177,6 +179,8 @@ def bot_info(request, bot_nr=None):
         if not is_owner and not is_admin:
             return Response(status=403)
 
+        def array_to_tag(arr):
+            return sum([1 << n for n in arr])
         body = json.loads(request.body)
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
@@ -198,6 +202,9 @@ def bot_info(request, bot_nr=None):
             bot.model = default_model
         if is_admin:
             bot.model = body.get('model', bot.model)
+        bot.tag_cat_1 = array_to_tag(body.get('tags', [0, 0, 0])[0])
+        bot.tag_cat_2 = array_to_tag(body.get('tags', [0, 0, 0])[1])
+        bot.tag_cat_3 = array_to_tag(body.get('tags', [0, 0, 0])[2])
         bot.save()
         
         # delete all choices and options
@@ -272,6 +279,9 @@ def bot_info(request, bot_nr=None):
             } if default_option else None,
         })
 
+    def tag_to_array(tag):
+        return [n for n in range(30) if (tag >> n & 1)]
+
     return Response({'bot': {
         'bot_nr': bot.bot_nr,
         'title': bot.title,
@@ -288,6 +298,7 @@ def bot_info(request, bot_nr=None):
         'distribute': distribute,
         'choices': choices,
         'owner': bot.owner if is_admin else None,
+        'tags': [tag_to_array(bot.tag_cat_1), tag_to_array(bot.tag_cat_2), tag_to_array(bot.tag_cat_3)],
     }})
 
 

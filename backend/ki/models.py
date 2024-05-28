@@ -29,6 +29,9 @@ class Bot(models.Model):
     allow_distribution = models.BooleanField(default=False)
     mandatory = models.BooleanField(default=False)
     bot_info = models.TextField(null=True)
+    tag_cat_1 = models.IntegerField(default=0)
+    tag_cat_2 = models.IntegerField(default=0)
+    tag_cat_3 = models.IntegerField(default=0)
 
     class Meta:
         managed = False

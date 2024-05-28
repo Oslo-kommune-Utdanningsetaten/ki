@@ -18,6 +18,7 @@ const bot = ref({
   edit: true,
   distribute: true,
   choices: [],
+  tag: [0, 0, 0],
 });
 const newBot = ref(false);
 const groups = ref();
@@ -59,6 +60,9 @@ const botImages = [
   { id: 'bot4.svg', text: 'Rød'},
   { id: 'bot5.svg', text: 'Grå'},
 ];
+
+const tagNames = [['Elev', 'Lærer'], ['Ungdomsskole', 'VGS'], ['Samhandling', 'Tekstbehandling']];
+const tagCategories = ['Målgruppe', 'Aldersgruppe', 'Formål'];
 
 const getBotInfo = async () => {
   try {
@@ -384,6 +388,24 @@ watchEffect(() => {
         <div class="form-check form-check-inline">
           <input class="form-check-input" type="checkbox" id="mandatory" v-model="bot.mandatory">
           <label class="form-check-label" for="mandatory">Ja</label>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-sm-2 ">Tag for</div>
+      <div v-for="(tagCategory, cat_index) in tagCategories" :key="cat_index">
+        <div>{{ tagCategory }}</div>
+        <div v-for="(levelText, index) in tagNames[cat_index]" :key="index" class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            v-model="bot.tags[cat_index]"
+            :value="index"
+            :id="`filterCheck${cat_index}:${index}`"
+          />
+          <label class="form-check-label" :for="`filterCheck${cat_index}:${index}`">
+            {{ levelText }}
+          </label>
         </div>
       </div>
     </div>
