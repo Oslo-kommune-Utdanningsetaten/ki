@@ -93,7 +93,7 @@ def get_user_bots(request, username):
                         (line.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
                     line.delete()
                 else:
-                    bots.add(line.bot_nr_id)
+                    bots.add(line.uuid_id)
 
     # bots from school
     for school in schools:
@@ -113,13 +113,13 @@ def get_user_bots(request, username):
                             if level.level in levels:
                                 access = True
             if access:
-                bots.add(bot_access.bot_nr_id)
+                bots.add(bot_access.bot_id_id)
                                 
     # bots from personal
     if allow_personal:
         personal_bots = models.Bot.objects.filter(owner=username)
         for line in personal_bots:
-            bots.add(line.bot_nr)
+            bots.add(line.uuid)
 
     return list(bots), employee, dist_to_groups
 
@@ -155,7 +155,7 @@ def auth_middleware(get_response):
         # get user's bots
         elif username in admins:
             bots_obj = models.Bot.objects.filter(owner=None)
-            bots = [bot.bot_nr for bot in bots_obj]
+            bots = [bot.uuid for bot in bots_obj]
             request.g['dist_to_groups'] = False
             admin = True
             has_access = True

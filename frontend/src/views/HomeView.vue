@@ -53,7 +53,7 @@ const bot_tile_bg = (bot) => {
 
 const toggle_favorite = async (bot) => {
   try {
-    const { data } = await axios.put('/api/favorite/' + bot.bot_nr);
+    const { data } = await axios.put('/api/favorite/' + bot.uuid);
     bot.favorite = data.favorite;
   } catch (error) {
     console.log(error);
@@ -141,21 +141,8 @@ const getBotImage = (bot) => {
       </div>
     </div>
     <div class="row align-items-stretch">
-      <div v-for="bot in filterFavorites" :key="bot.bot_nr" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
-        <RouterLink v-if="bot.bot_nr === 0" active-class="active" class="" to="editbot/">
-          <div  class="card oslo-bg-light text-center h-100" >
-            <div class="row text-center pt-3">
-              <div class="col-2"></div>
-              <div class="col-8">
-                <img src="@/components/icons/pluss.svg" alt="Ny bot">
-              </div>
-            </div>
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title">{{ bot.bot_title }}</h5>
-            </div>
-          </div>
-        </RouterLink>
-        <RouterLink v-else active-class="active" class="bot_tile" :to="'bot/'+bot.bot_nr">
+      <div v-for="bot in filterFavorites" :key="bot.uuid" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
+        <RouterLink active-class="active" class="bot_tile" :to="'bot/'+bot.uuid">
           <div class="card text-center h-100" :class="bot_tile_bg(bot)">
             <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
             <div class="row text-center m-0 pt-3">
@@ -184,6 +171,19 @@ const getBotImage = (bot) => {
           </div>
         </RouterLink>
       </div>
+      <RouterLink v-if="store.isEmployee || store.isAdmin" active-class="active"  class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3" to="editbot/">
+        <div  class="card oslo-bg-light text-center h-100" >
+          <div class="row text-center pt-3">
+            <div class="col-2"></div>
+            <div class="col-8">
+              <img src="@/components/icons/pluss.svg" alt="Ny bot">
+            </div>
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">Ny bot</h5>
+          </div>
+        </div>
+      </RouterLink>
     </div>
   </div>
   
