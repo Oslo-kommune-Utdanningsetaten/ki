@@ -179,7 +179,7 @@ const getBotImage = (bot) => {
     </div>
 
     <div class="row align-items-stretch">
-      <div v-for="bot in filterFavorites" :key="bot.uuid" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
+      <div v-for="bot in filterBots" :key="bot.uuid" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
         <RouterLink active-class="active" class="bot_tile" :to="'bot/'+bot.uuid">
           <div class="card text-center h-100" :class="bot_tile_bg(bot)">
             <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
