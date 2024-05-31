@@ -114,6 +114,23 @@ def user_bots(request):
             'bots': None,
         })
 
+    open_for_distribution = (request.g['settings']['allow_groups'] 
+                            and request.g['dist_to_groups'])
+
+    def distribution_info(bot):
+        if ((request.g.get('employee', False) 
+            or request.g.get('admin', False))
+            and open_for_distribution
+            and bot.owner != request.g.get('username', '')):
+            if bot.allow_distribution:
+                return "<br><br> Denne boten kan distribueres til elever"
+            else:
+                return "<br><br> Denne boten er beregnet for lærere"
+        else:
+            return ""
+            
+            
+
     users_bots = [models.Bot.objects.get(uuid=bot_id)
                   for bot_id in request.g.get('bots', [])]
     return_bots = [
@@ -127,8 +144,8 @@ def user_bots(request):
                     else False,
             'mandatory': bot.mandatory,
             'personal': bot.owner == request.g.get('username', ''),
-            'allow_distribution': bot.allow_distribution,
-            'bot_info': bot.bot_info,
+            'allow_distribution': bot.allow_distribution and open_for_distribution,
+            'bot_info': (bot.bot_info or '') + distribution_info(bot),
         }
         for bot in users_bots]
 

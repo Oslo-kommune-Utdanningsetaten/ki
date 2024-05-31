@@ -93,7 +93,7 @@ def get_user_bots(request, username):
                         (line.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
                     line.delete()
                 else:
-                    bots.add(line.uuid_id)
+                    bots.add(line.bot_id_id)
 
     # bots from school
     for school in schools:

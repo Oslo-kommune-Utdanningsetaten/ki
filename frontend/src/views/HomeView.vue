@@ -93,7 +93,7 @@ const getBotImage = (bot) => {
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          {{ active_bot.bot_info }}
+          <span v-html="active_bot.bot_info"></span>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
