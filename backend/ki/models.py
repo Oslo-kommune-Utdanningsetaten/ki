@@ -17,7 +17,8 @@ class Setting(models.Model):
 
 
 class Bot(models.Model):
-    bot_nr = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(primary_key=True)
+    bot_nr = models.IntegerField()
     title = models.CharField(max_length=40)
     ingress = models.TextField()
     prompt = models.TextField()
@@ -40,19 +41,21 @@ class Bot(models.Model):
 
 class Favorite(models.Model):
     id = models.AutoField(primary_key=True)
-    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr', related_name="favorites")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="favorites")
+    bot_nr = models.IntegerField()
     user_id = models.CharField(max_length=50)
     # created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
         db_table = 'favorite'
-        unique_together = ('bot_nr', 'user_id')
+        unique_together = ('bot_id', 'user_id')
 
 
 class PromptChoice(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
-    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_nr', to_field='bot_nr', related_name="prompt_choices")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="prompt_choices")
+    bot_nr = models.IntegerField()
     label = models.CharField(max_length=50)
     order = models.IntegerField()
     # text = models.TextField()
@@ -102,9 +105,8 @@ class BotAccess(models.Model):
         LEVELS = 'levels'
 
     access_id = models.AutoField(primary_key=True)
-    bot_nr = models.ForeignKey(
-        Bot, on_delete=models.CASCADE, db_column='bot_nr', related_name="accesses")
-    # bot_nr = models.IntegerField()
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="accesses")
+    bot_nr = models.IntegerField()
     school_id = models.ForeignKey(
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="accesses")
     # school_id = models.CharField(max_length=20)
@@ -112,12 +114,12 @@ class BotAccess(models.Model):
     access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
 
     def __str__(self):
-        return f"{self.bot_nr}-{self.school_id}{self.level}"
+        return f"{self.bot_id}-{self.school_id}{self.level}"
 
     class Meta:
         managed = False
         db_table = 'bot_access'
-        unique_together = ('bot_nr', 'school_id')
+        unique_together = ('bot_id', 'school_id')
 
 
 class BotLevel(models.Model):
@@ -151,15 +153,16 @@ class SchoolAccess(models.Model):
 
 class SubjectAccess(models.Model):
     id = models.AutoField(primary_key=True)
-    bot_nr = models.ForeignKey(Bot, on_delete=models.CASCADE,
-                               db_column='bot_nr', to_field='bot_nr', related_name="subjects")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, 
+                               db_column='bot_id', to_field='uuid', related_name="subjects")
+    bot_nr = models.IntegerField()
     subject_id = models.CharField(max_length=200)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
         db_table = 'subject_access'
-        unique_together = ('bot_nr', 'subject_id')
+        unique_together = ('bot_id', 'subject_id')
 
 
 class PageText(models.Model):

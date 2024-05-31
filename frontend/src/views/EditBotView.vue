@@ -15,16 +15,18 @@ const bot = ref({
   temperature: '1',
   model: 'gpt-35-turbo',
   bot_nr: null,
+  uuid: null,
   edit: true,
   distribute: true,
   choices: [],
   tag: [0, 0, 0],
+  schoolAccesses: [],
 });
 const newBot = ref(false);
 const groups = ref();
 const lifeSpan = ref(0);
-const schoolAccess = ref([]);
-const botNr = ref();
+// const schoolAccess = ref([]);
+const botId = ref();
 const sort_by = ref('school_name');
 const filter_list = ref([]);
 const access_options = [
@@ -66,7 +68,7 @@ const tagCategories = ['Målgruppe', 'Aldersgruppe', 'Formål'];
 
 const getBotInfo = async () => {
   try {
-    const { data } = await axios.get('/api/bot_info/' + botNr.value);
+    const { data } = await axios.get('/api/bot_info/' + botId.value);
     bot.value = data.bot;
   } catch (error) {
     console.log(error);
@@ -76,7 +78,7 @@ const getBotInfo = async () => {
 const getGroupList = async () => {
   var url = '/api/bot_groups/';
   if (!newBot.value) {
-    url += botNr.value;
+    url += botId.value;
   }  
   try {
     const { data } = await axios.get(url);
@@ -87,70 +89,44 @@ const getGroupList = async () => {
   }  
 }  
 
-const getAccessList = async () => {
-  var url = '/api/bot_access/';
-  if (!newBot.value) {
-    url += botNr.value;
-  }  
-  try {
-    const { data } = await axios.get(url);
-    schoolAccess.value = data.schoolAccess;
-  } catch (error) {
-    console.log(error);
-  }
-  schoolAccess.value.forEach(school => {
-    if (school.access_list.some(access => levels.some(level => level.id === access))) {
-      school.view_levels = true;
-    }
-  });
-}
+// const getAccessList = async () => {
+//   var url = '/api/bot_access/';
+//   if (!newBot.value) {
+//     url += botId.value;
+//   }  
+//   try {
+//     const { data } = await axios.get(url);
+//     schoolAccess.value = data.schoolAccess;
+//   } catch (error) {
+//     console.log(error);
+//   }
+//   schoolAccess.value.forEach(school => {
+//     if (school.access_list.some(access => levels.some(level => level.id === access))) {
+//       school.view_levels = true;
+//     }
+//   });
+// }
 
 const update = async () => {
   if (newBot.value) {
     try {
       const response = await axios.post('/api/bot_info/', bot.value)
-      bot.value = response.data.bot;
-      botNr.value = response.data.bot.bot_nr;
-      newBot.value = false;
-      if (store.editGroups) {
-        await axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
-      }
+      botId.value = response.bot.uuid;
       store.addMessage('Boten er opprettet!', 'info' );
     } catch (error) {
       console.log(error);
     }
   } else {
-    try {
-      let responses = [];
-      if (bot.value.edit) {
-        const response = axios.put('/api/bot_info/' + botNr.value, bot.value)
-        responses.push(response);
-        // botUpdate() 
+    if (bot.value.edit) {
+      try {
+        await axios.put('/api/bot_info/' + botId.value, bot.value)
+        store.addMessage('Endringene er lagret!', 'info' );
+      } catch (error) {
+        console.log(error);
       }
-      if (bot.value.distribute) {
-        // groupUpdate()
-        const response = axios.put('/api/bot_groups/' + botNr.value, {'groups':groups.value})
-        responses.push(response);
-      }
-      await Promise.all(responses);
-      store.addMessage('Endringene er lagret!', 'info' );
-    } catch (error) {
-      console.log(error);
     }
   }
-  $router.push('/bot/' + botNr.value);
-}
-
-const accessUpdate = async (school) => {
-  try {
-    const response = await axios.put('/api/bot_access/' + botNr.value, {
-      'school_access':school.access,
-      'school_access_list':school.access === 'levels' ? school.access_list : [],
-      'org_nr':school.org_nr
-    })
-  } catch (error) {
-    console.log(error);
-  }
+  $router.push('/bot/' + botId.value);
 }
 
 const deleteChoice = (choice) => {
@@ -229,6 +205,12 @@ const addOption = (choice) => {
   });
 }
 
+const setAllAccesses = (access) => {
+  bot.value.schoolAccesses.forEach(school => {
+    school.access = access;
+  });
+}
+
 const choicesSorted = computed(() => {
   return bot.value.choices.sort((a, b) => a.order - b.order);
 });
@@ -240,9 +222,9 @@ const optionsSorted = (choice) => {
 const schoolAccessFiltered = computed(() => {
   let filtered_list = [];
   if (filter_list.value.length > 0) {
-    filtered_list = schoolAccess.value.filter((school) => (filter_list.value.includes(school.access)));
+    filtered_list = bot.value.schoolAccesses.filter((school) => (filter_list.value.includes(school.access)));
   } else {
-    filtered_list = schoolAccess.value;
+    filtered_list = bot.value.schoolAccesses;
   }
 
   return filtered_list.sort((a, b) => {
@@ -260,16 +242,16 @@ watchEffect(() => {
   if (route.params.id == null) {
     newBot.value = true;
   } else {
-    botNr.value = route.params.id;
+    botId.value = route.params.id;
   }
   if (!newBot.value) {
     getBotInfo()
   }
-  if (store.isAdmin) {
-    getAccessList()
-  } else if (store.editGroups) {
-    getGroupList()
-  }
+  // if (store.isAdmin) {
+  //   getAccessList()
+  // } else if (store.editGroups) {
+  //   getGroupList()
+  // }
 
 });
 
@@ -283,7 +265,7 @@ watchEffect(() => {
     <button @click="update" class="btn oslo-btn-primary">
       Lagre
     </button>
-    <RouterLink class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+    <RouterLink class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/'+bot.uuid : '/'">
       Avbryt
     </RouterLink>
   </div>
@@ -500,7 +482,7 @@ watchEffect(() => {
       Grupper som har tilgang
     </div>
     <div class="col-sm-10">
-      <div v-for="group in groups" class="form-check">
+      <div v-for="group in bot.groups" class="form-check">
         <input class="form-check-input" type="checkbox" name="access" v-model="group.checked" :id="'check'+group.id">
         <label class="form-check-label" :for="'check'+group.id">
           {{group.display_name}} {{ group.go_type == 'b' ? '(klasse)' : '(faggruppe)' }}
@@ -510,7 +492,7 @@ watchEffect(() => {
   </div>
 
   <div class="d-flex flex-row-reverse mb-3">
-    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.bot_nr ? '/bot/'+bot.bot_nr : '/'">
+    <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/'+bot.uuid : '/'">
       Avbryt
     </RouterLink>
     <button @click="update" class="btn oslo-btn-primary">
@@ -518,7 +500,7 @@ watchEffect(() => {
     </button>
   </div>
 
-  <div v-if="store.isAdmin && !newBot" class="mb-3">
+  <div v-if="store.isAdmin" class="mb-3">
     <hr/>
     <div class="row mb-3">
       <div class="col-sm-2 ">Tilgang</div>
@@ -526,21 +508,31 @@ watchEffect(() => {
 
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
-                <div class="row">
-                    <div class="col-4">
-                        Skole
-                    </div>
-                    <div v-for="option in access_options" :key="option.value" class="form-check form-check-inline col-1">
-                        <input
-                            class="form-check-input"
-                            :id="'filter' + option.value"
-                            :value="option.value"
-                            type="checkbox"
-                            v-model="filter_list"
-                        />
-                        <label class="form-check-label" :for="'filter' + option.value">{{ option.label }}</label>
-                    </div>
+              <div class="row">
+                <div class="col-4">
+                  Sett alle skoler til:
                 </div>
+                <div v-for="option in access_options" :key="option.value" class="e col-1">
+                  <button class="btn oslo-btn-secondary" @click="setAllAccesses(option.value)">
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+              <div class="row">
+                  <div class="col-4">
+                      Filtrer på tilgang:
+                  </div>
+                  <div v-for="option in access_options" :key="option.value" class="form-check form-check-inline col-1">
+                      <input
+                          class="form-check-input"
+                          :id="'filter' + option.value"
+                          :value="option.value"
+                          type="checkbox"
+                          v-model="filter_list"
+                      />
+                      <label class="form-check-label" :for="'filter' + option.value">{{ option.label }}</label>
+                  </div>
+              </div>
             </li>
             <li v-for="school in schoolAccessFiltered" class="list-group-item">
                 <div class="row">
@@ -554,7 +546,6 @@ watchEffect(() => {
                             :value="option.value"
                             type="radio"
                             v-model="school.access"
-                            @change="accessUpdate(school)"
                         />
                         <label class="form-check-label" :for="option.value">{{ option.label }}</label>
                     </div>
@@ -569,8 +560,8 @@ watchEffect(() => {
                                 class="form-check-input" 
                                 type="checkbox" 
                                 :id="'level'+school.org_nr+level.id" 
-                                :value="level.id" v-model="school.access_list" 
-                                @change="accessUpdate(school)"
+                                :value="level.id" 
+                                v-model="school.access_list" 
                             />
                             <label class="form-check-label" :for="'level'+school.org_nr+level.id">
                                 {{level.name}}
@@ -581,12 +572,16 @@ watchEffect(() => {
 
             </li>
         </ul>
-
-
-
-
-    
       </div>
+    </div>
+
+    <div class="d-flex flex-row-reverse mb-3">
+      <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/'+bot.uuid : '/'">
+        Avbryt
+      </RouterLink>
+      <button @click="update" class="btn oslo-btn-primary">
+        Lagre
+      </button>
     </div>
   </div>
 

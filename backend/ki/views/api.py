@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import requests
 from openai import AsyncAzureOpenAI
 import openai
+import uuid
 import os
 import json
 # from ..mock import mock_acreate
@@ -75,17 +76,17 @@ def menu_items(request):
     })
 
 @api_view(["PUT"])
-def favorite(request, bot_nr):
+def favorite(request, bot_uuid):
     if not request.session.get('user.username', None):
         return Response(status=403)
     if not request.g.get('employee', False):
         return Response(status=403)
 
-    if not bot_nr in request.g.get('bots', []):
+    if not bot_uuid in request.g.get('bots', []):
         return Response(status=403)
 
     try:
-        bot = models.Bot.objects.get(bot_nr=bot_nr)
+        bot = models.Bot.objects.get(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
         return Response(status=404)
 
@@ -95,7 +96,7 @@ def favorite(request, bot_nr):
             return Response({'favorite': False})
         else:
             favorite = models.Favorite(
-                bot_nr=bot, user_id=request.g.get('username', ''))
+                bot_id=bot, user_id=request.g.get('username', ''))
             favorite.save()
             return Response({'favorite': True})
 
@@ -113,37 +114,41 @@ def user_bots(request):
             'bots': None,
         })
 
-    users_bots = [models.Bot.objects.get(bot_nr=bot_nr)
-                  for bot_nr in request.g.get('bots', [])]
+    open_for_distribution = (request.g['settings']['allow_groups'] 
+                            and request.g['dist_to_groups'])
+
+    def distribution_info(bot):
+        if ((request.g.get('employee', False) 
+            or request.g.get('admin', False))
+            and open_for_distribution
+            and bot.owner != request.g.get('username', '')):
+            if bot.allow_distribution:
+                return "<br><br> Denne boten kan distribueres til elever"
+            else:
+                return "<br><br> Denne boten er beregnet for lærere"
+        else:
+            return ""
+            
+            
+
+    users_bots = [models.Bot.objects.get(uuid=bot_id)
+                  for bot_id in request.g.get('bots', [])]
     return_bots = [
         {
+            'uuid': bot.uuid,
             'bot_nr': bot.bot_nr,
             'bot_title': bot.title,
             'bot_img': bot.image or "bot5.svg",
             'favorite': True 
-                if (bot.favorites.filter(user_id=request.g.get('username', '')).first() 
-                    or bot.bot_nr == 1)
-                else False,
+                    if (bot.favorites.filter(user_id=request.g.get('username', '')).first())
+                    else False,
             'mandatory': bot.mandatory,
             'personal': bot.owner == request.g.get('username', ''),
-            'allow_distribution': bot.allow_distribution,
-            'bot_info': bot.bot_info,
+            'allow_distribution': bot.allow_distribution and open_for_distribution,
+            'bot_info': (bot.bot_info or '') + distribution_info(bot),
             'tag': [bot.tag_cat_1, bot.tag_cat_2, bot.tag_cat_3],
         }
         for bot in users_bots]
-    if (request.g.get('admin', False) or
-            request.g.get('employee', False) and
-            models.Setting.objects.get(setting_key='allow_personal').int_val):
-        return_bots.append({
-            'bot_nr': 0,
-            'bot_title': "Ny bot",
-            'bot_img': "pluss.svg",
-            'favorite': True,
-            'mandatory': True,
-            'personal': False,
-            'allow_distribution': False,
-            'tag': [[0], [0], [0]],
-        })
 
     return Response({
         'bots': return_bots,
@@ -152,13 +157,38 @@ def user_bots(request):
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
-def bot_info(request, bot_nr=None):
+def bot_info(request, bot_uuid=None):
+
+    def get_groups():
+        subjects = []
+        access_token = request.session.get('user.auth')['access_token']
+        groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + access_token
+        }
+        try:
+            groupinfo_response = requests.get(
+                groupinfo_endpoint, headers=headers)
+        except requests.exceptions.ConnectionError as e:
+            return []
+        else:
+            if groupinfo_response.status_code == 200:
+
+                for group in groupinfo_response.json():
+                    if group.get('type') == "fc:gogroup":
+                        subjects.append({
+                            'id': group.get('id'),
+                            'display_name': group.get('displayName'),
+                            'go_type': group.get('go_type'),
+                        })
+            return subjects
 
     is_admin = request.g.get('admin', False)
     new_bot = False
 
-    if (bot_nr and 
-        not bot_nr in request.g.get('bots', [])
+    if (bot_uuid and 
+        not bot_uuid in request.g.get('bots', [])
         and not is_admin):
         return Response(status=403)
 
@@ -168,12 +198,25 @@ def bot_info(request, bot_nr=None):
         if not request.g.get('admin', False):
             bot.owner = request.g.get('username')
         new_bot = True
-    else:
+    else: # Get existing bot
         try:
-            bot = models.Bot.objects.get(bot_nr=bot_nr)
+            bot = models.Bot.objects.get(uuid=bot_uuid)
         except models.Bot.DoesNotExist:
             return Response(status=404)
+
+    edit = False
+    distribute = False
     is_owner = bot.owner == request.g.get('username', None)
+    if is_admin:
+        edit = True
+        distribute = False
+    elif request.g.get('employee', False):
+        if is_owner:
+            edit = True
+            distribute = True
+        elif bot.allow_distribution and not bot.owner:
+            edit = False
+            distribute = True
 
     if request.method == "PUT" or request.method == "POST":
         if not is_owner and not is_admin:
@@ -207,7 +250,8 @@ def bot_info(request, bot_nr=None):
         bot.tag_cat_3 = array_to_tag(body.get('tags', [0, 0, 0])[2])
         bot.save()
         
-        # delete all choices and options
+        # save choices and options
+        # delete all choices and options before saving new ones
         if not new_bot:
             for choice in bot.prompt_choices.all():
                 choice.options.all().delete()
@@ -216,7 +260,7 @@ def bot_info(request, bot_nr=None):
         for choice in body.get('choices', []):
             prompt_choice = models.PromptChoice(
                     id=choice.get('id'),
-                    bot_nr=bot,
+                    bot_id=bot,
                     label=choice.get('label'),
                     order=choice.get('order'),
                     # text=choice.get('text')
@@ -234,25 +278,43 @@ def bot_info(request, bot_nr=None):
                             if choice.get('selected', False) else False
                 )
                 choice_option.save()
+        
+        # save groups
+        if distribute:
+            for group in body.get('groups', []):
+                if acl := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=group.get('id')).first():
+                    if group.get('checked', False) == False:
+                        acl.delete()
+                else:
+                    if group.get('checked', False) == True:
+                        acl = models.SubjectAccess(
+                            bot_id=bot, subject_id=group.get('id'))
+                        acl.save()
+
+
+        # save school access
+        if is_admin:
+            for school in body.get('schoolAccesses', []):
+                school_obj = models.School.objects.get(org_nr=school.get('org_nr'))
+                bot_access = school_obj.accesses.filter(bot_id=bot).first()
+                if bot_access:
+                    bot_access.access = school.get('access', 'none')
+                else:
+                    bot_access = models.BotAccess(
+                        bot_id=bot, school_id=school_obj, access=school.get('access', 'none'))
+                if bot_access.access == 'levels':
+                    bot_access.levels.all().delete()
+                    for level in school.get('access_list', []):
+                        access = models.BotLevel(access_id=bot_access, level=level)
+                        access.save()
+                bot_access.save() 
+        return Response({'bot': {'uuid': bot.uuid }})
 
     if request.method == "DELETE":
         if not is_owner and not is_admin:
             return Response(status=403)
         bot.delete()
         return Response(status=200)
-
-    edit = False
-    distribute = False
-    if is_admin:
-        edit = True
-        distribute = False
-    elif request.g.get('employee', False):
-        if is_owner:
-            edit = True
-            distribute = True
-        elif bot.allow_distribution and not bot.owner:
-            edit = False
-            distribute = True
 
     choices = []
     for choice in bot.prompt_choices.all():
@@ -279,10 +341,48 @@ def bot_info(request, bot_nr=None):
             } if default_option else None,
         })
 
+    group_list = []
+    if distribute:
+        access_list = []
+        lifespan = models.Setting.objects.get(setting_key='lifespan').int_val
+        for subj in bot.subjects.all():
+            if (subj.created and
+                    (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
+                subj.delete()
+            else:
+                access_list.append(subj.subject_id)
+        groups = get_groups()
+        group_list = [dict(group, checked=group.get('id') in access_list)
+                for group in groups]
+
+    school_access_list = []
+    if is_admin:
+        for school in models.School.objects.all():
+            if new_bot:
+                school_access_list.append({
+                    'org_nr': school.org_nr,
+                    'school_name': school.school_name,
+                    'access': 'none',
+                    'access_list': [],
+                })
+            else:
+                access_list = []
+                bot_access = bot.accesses.filter(school_id=school.org_nr).first()
+                if bot_access and bot_access.access == 'levels':
+                    access_list = [
+                        access.level for access in bot_access.levels.all()]
+                school_access_list.append({
+                    'org_nr': school.org_nr,
+                    'school_name': school.school_name,
+                    'access': bot_access.access if bot_access else 'none',
+                    'access_list': access_list,
+                })
+
     def tag_to_array(tag):
         return [n for n in range(30) if (tag >> n & 1)]
 
     return Response({'bot': {
+        'uuid': bot.uuid,
         'bot_nr': bot.bot_nr,
         'title': bot.title,
         'ingress': bot.ingress,
@@ -298,156 +398,10 @@ def bot_info(request, bot_nr=None):
         'distribute': distribute,
         'choices': choices,
         'owner': bot.owner if is_admin else None,
+        'groups': group_list if distribute else None,
+        'schoolAccesses': school_access_list if is_admin else None,
         'tags': [tag_to_array(bot.tag_cat_1), tag_to_array(bot.tag_cat_2), tag_to_array(bot.tag_cat_3)],
     }})
-
-
-@api_view(["GET", "PUT"])
-def bot_access(request, bot_nr=None):
-
-    if not request.g.get('admin', False):
-        return HttpResponseForbidden()
-
-    new_bot = True if bot_nr is None else False
-
-    if not new_bot:
-        try:
-            bot = models.Bot.objects.get(bot_nr=bot_nr)
-        except models.Bot.DoesNotExist:
-            return Response(status=404)
-
-    if request.method == "PUT":
-        if not request.g.get('admin', False):
-            return Response(status=403)
-        body = json.loads(request.body)
-        if not (school := models.School.objects.get(org_nr=body.get('org_nr', False))):
-            return Response(status=404)
-        bot_access = school.accesses.filter(bot_nr=bot).first()
-        if bot_access:
-            bot_access.access = body.get('school_access', 'none')
-        else:
-            bot_access = models.BotAccess(
-                bot_nr=bot, school_id=school, access=body.get('school_access', 'none'))
-        if bot_access.access == 'levels':
-            bot_access.levels.all().delete()
-            for level in body.get('school_access_list', []):
-                access = models.BotLevel(access_id=bot_access, level=level)
-                access.save()
-        bot_access.save()
-        return Response(status=200)
-
-    school_list = []
-    for school in models.School.objects.all():
-        if new_bot:
-            school_list.append({
-                'org_nr': school.org_nr,
-                'school_name': school.school_name,
-                'access': 'none',
-                'access_list': [],
-            })
-        else:
-            access_list = []
-            bot_access = bot.accesses.filter(school_id=school.org_nr).first()
-            if bot_access and bot_access.access == 'levels':
-                access_list = [
-                    access.level for access in bot_access.levels.all()]
-            school_list.append({
-                'org_nr': school.org_nr,
-                'school_name': school.school_name,
-                'access': bot_access.access if bot_access else 'none',
-                'access_list': access_list,
-            })
-    return Response({
-        "schoolAccess": school_list,
-    })
-
-
-@api_view(["GET", "PUT"])
-def bot_groups(request, bot_nr=None):
-
-    def get_groups():
-        subjects = []
-        access_token = request.session.get('user.auth')['access_token']
-        groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + access_token
-        }
-        try:
-            groupinfo_response = requests.get(
-                groupinfo_endpoint, headers=headers)
-        except requests.exceptions.ConnectionError as e:
-            return []
-        else:
-            if groupinfo_response.status_code == 200:
-
-                for group in groupinfo_response.json():
-                    if group.get('type') == "fc:gogroup":
-                        subjects.append({
-                            'id': group.get('id'),
-                            'display_name': group.get('displayName'),
-                            'go_type': group.get('go_type'),
-                        })
-            return subjects
-
-    if not request.g.get('employee', False) and not request.g.get('admin', False):
-        return HttpResponseForbidden()
-
-    new_bot = True if bot_nr is None else False
-
-    if not new_bot:
-        try:
-            bot = models.Bot.objects.get(bot_nr=bot_nr)
-        except models.Bot.DoesNotExist:
-            return Response(status=404)
-
-    # user is allowed to edit groups
-    edit_g = ((new_bot
-               or bot.owner == request.g.get('username', '')
-               or bot.allow_distribution)
-              and request.g['settings']['allow_groups']
-              and request.g['dist_to_groups'])
-
-    if not edit_g:
-        return Response({
-            'edit_g': False,
-            'groups': [],
-        })
-
-    if request.method == "PUT":
-        body = json.loads(request.body)
-        if groups := body.get('groups', False):
-            acls_to_remove = []
-            for subject in groups:
-                if acl := models.SubjectAccess.objects.filter(bot_nr=bot_nr, subject_id=subject.get('id', False)).first():
-                    if subject.get('checked', False) == False:
-                        acls_to_remove.append(acl)
-                else:
-                    if subject.get('checked', False) == True:
-                        acl = models.SubjectAccess(
-                            bot_nr=bot, subject_id=subject.get('id', False))
-                        acl.save()
-            for acl in acls_to_remove:
-                acl.delete()
-
-        return Response(status=200)
-
-    access_list = []
-    lifespan = models.Setting.objects.get(setting_key='lifespan').int_val
-    if not new_bot and bot.pk:
-        for subj in bot.subjects.all():
-            if (subj.created and
-                    (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
-                subj.delete()
-            else:
-                access_list.append(subj.subject_id)
-    groups = get_groups()
-    groups = [dict(group, checked=group.get('id') in access_list)
-              for group in groups]
-    return Response({
-        'groups': groups,
-        'lifespan': lifespan,
-    })
 
 
 @api_view(["GET", "PUT"])
@@ -520,14 +474,15 @@ def school_access(request):
 
 
 @api_view(["POST"])
-def start_message(request, bot_nr):
+def start_message(request, uuid):
     try:
-        bot = models.Bot.objects.get(bot_nr=bot_nr)
+        bot = models.Bot.objects.get(uuid=uuid)
     except models.Bot.DoesNotExist:
         return Response(status=404)
 
     return Response({'bot': {
         'bot_nr': bot.bot_nr,
+        'uuid': bot.uuid,
         'title': bot.title,
         'ingress': bot.ingress,
         'prompt': bot.prompt,
@@ -536,12 +491,12 @@ def start_message(request, bot_nr):
 
 async def send_message(request):
     body = json.loads(request.body)
-    bot_nr = body.get('bot_nr')
+    bot_uuid = body.get('uuid')
     messages = body.get('messages')
-    if not bot_nr in request.g.get('bots', []):
+    if not uuid.UUID(bot_uuid) in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
-        bot = await models.Bot.objects.aget(bot_nr=bot_nr)
+        bot = await models.Bot.objects.aget(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 

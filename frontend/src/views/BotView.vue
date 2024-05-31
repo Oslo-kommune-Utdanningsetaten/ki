@@ -75,7 +75,7 @@ const sendMessage = async () => {
 
         await callChatStream(
           "/api/send_message",
-          { bot_nr: bot.value.bot_nr, messages: messages.value },
+          { uuid: bot.value.uuid, messages: messages.value },
           messages.value
         )
         textInput.value.focus(); // Set focus to the text input element
@@ -220,7 +220,7 @@ watchEffect(() => {
 
   
   <div v-if="bot.edit" class="d-flex justify-content-end">
-    <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
+    <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.uuid">
       Rediger bot
     </RouterLink>
     <button class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
@@ -229,7 +229,7 @@ watchEffect(() => {
   </div>
   <div v-else >
     <div v-if="bot.distribute" class="d-flex justify-content-end">
-      <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.bot_nr">
+      <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.uuid">
         Gi tilgang
       </RouterLink>
     </div>
