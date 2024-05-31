@@ -33,6 +33,7 @@ async function getBots() {
 }
 
 const filterFavorites = computed(() => {
+  bots.value.sort((a, b) => b.mandatory - a.mandatory || a.bot_title.localeCompare(b.bot_title));
   if (!store.isEmployee && !store.isAdmin) {
     return bots.value;
   };
