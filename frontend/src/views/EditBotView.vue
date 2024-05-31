@@ -201,6 +201,12 @@ const addOption = (choice) => {
   });
 }
 
+const setAllAccesses = (access) => {
+  bot.value.schoolAccesses.forEach(school => {
+    school.access = access;
+  });
+}
+
 const choicesSorted = computed(() => {
   return bot.value.choices.sort((a, b) => a.order - b.order);
 });
@@ -472,7 +478,7 @@ watchEffect(() => {
     </button>
   </div>
 
-  <div v-if="store.isAdmin && !newBot" class="mb-3">
+  <div v-if="store.isAdmin" class="mb-3">
     <hr/>
     <div class="row mb-3">
       <div class="col-sm-2 ">Tilgang</div>
@@ -480,21 +486,31 @@ watchEffect(() => {
 
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
-                <div class="row">
-                    <div class="col-4">
-                        Skole
-                    </div>
-                    <div v-for="option in access_options" :key="option.value" class="form-check form-check-inline col-1">
-                        <input
-                            class="form-check-input"
-                            :id="'filter' + option.value"
-                            :value="option.value"
-                            type="checkbox"
-                            v-model="filter_list"
-                        />
-                        <label class="form-check-label" :for="'filter' + option.value">{{ option.label }}</label>
-                    </div>
+              <div class="row">
+                <div class="col-4">
+                  Sett alle skoler til:
                 </div>
+                <div v-for="option in access_options" :key="option.value" class="e col-1">
+                  <button class="btn oslo-btn-secondary" @click="setAllAccesses(option.value)">
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+              <div class="row">
+                  <div class="col-4">
+                      Filtrer på tilgang:
+                  </div>
+                  <div v-for="option in access_options" :key="option.value" class="form-check form-check-inline col-1">
+                      <input
+                          class="form-check-input"
+                          :id="'filter' + option.value"
+                          :value="option.value"
+                          type="checkbox"
+                          v-model="filter_list"
+                      />
+                      <label class="form-check-label" :for="'filter' + option.value">{{ option.label }}</label>
+                  </div>
+              </div>
             </li>
             <li v-for="school in schoolAccessFiltered" class="list-group-item">
                 <div class="row">
@@ -534,12 +550,16 @@ watchEffect(() => {
 
             </li>
         </ul>
-
-
-
-
-    
       </div>
+    </div>
+
+    <div class="d-flex flex-row-reverse mb-3">
+      <RouterLink active-class="active" class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/'+bot.uuid : '/'">
+        Avbryt
+      </RouterLink>
+      <button @click="update" class="btn oslo-btn-primary">
+        Lagre
+      </button>
     </div>
   </div>
 
