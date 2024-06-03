@@ -155,7 +155,7 @@ def user_bots(request):
     })
 
 
-@api_view(["GET", "POST", "PUT", "DELETE"])
+@api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def bot_info(request, bot_uuid=None):
 
     def get_groups():
@@ -273,19 +273,6 @@ def bot_info(request, bot_uuid=None):
                 )
                 choice_option.save()
         
-        # save groups
-        if distribute:
-            for group in body.get('groups', []):
-                if acl := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=group.get('id')).first():
-                    if group.get('checked', False) == False:
-                        acl.delete()
-                else:
-                    if group.get('checked', False) == True:
-                        acl = models.SubjectAccess(
-                            bot_id=bot, subject_id=group.get('id'))
-                        acl.save()
-
-
         # save school access
         if is_admin:
             for school in body.get('schoolAccesses', []):
@@ -302,6 +289,23 @@ def bot_info(request, bot_uuid=None):
                         access = models.BotLevel(access_id=bot_access, level=level)
                         access.save()
                 bot_access.save() 
+
+    # save groups
+    if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
+        if distribute:
+            if not is_owner and not distribute:
+                return Response(status=403)
+
+            for group in json.loads(request.body).get('groups', []):
+                if acl := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=group.get('id')).first():
+                    if group.get('checked', False) == False:
+                        acl.delete()
+                else:
+                    if group.get('checked', False) == True:
+                        acl = models.SubjectAccess(
+                            bot_id=bot, subject_id=group.get('id'))
+                        acl.save()
+
         return Response({'bot': {'uuid': bot.uuid }})
 
     if request.method == "DELETE":
@@ -310,6 +314,7 @@ def bot_info(request, bot_uuid=None):
         bot.delete()
         return Response(status=200)
 
+    # build response for GET
     choices = []
     for choice in bot.prompt_choices.all():
         options = []

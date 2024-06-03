@@ -85,23 +85,6 @@ const getGroupList = async () => {
   }  
 }  
 
-// const getAccessList = async () => {
-//   var url = '/api/bot_access/';
-//   if (!newBot.value) {
-//     url += botId.value;
-//   }  
-//   try {
-//     const { data } = await axios.get(url);
-//     schoolAccess.value = data.schoolAccess;
-//   } catch (error) {
-//     console.log(error);
-//   }
-//   schoolAccess.value.forEach(school => {
-//     if (school.access_list.some(access => levels.some(level => level.id === access))) {
-//       school.view_levels = true;
-//     }
-//   });
-// }
 
 const update = async () => {
   if (newBot.value) {
@@ -112,16 +95,22 @@ const update = async () => {
     } catch (error) {
       console.log(error);
     }
-  } else {
-    if (bot.value.edit) {
-      try {
-        await axios.put('/api/bot_info/' + botId.value, bot.value)
-        store.addMessage('Endringene er lagret!', 'info' );
-      } catch (error) {
-        console.log(error);
-      }
+  } else if (bot.value.edit) {
+    try {
+      await axios.put('/api/bot_info/' + botId.value, bot.value)
+      store.addMessage('Endringene er lagret!', 'info' );
+    } catch (error) {
+      console.log(error);
+    }
+  } else if (bot.value.distribute) {
+    try {
+      await axios.patch('/api/bot_info/' + botId.value, { groups: bot.value.groups })
+      store.addMessage('Endringene er lagret!', 'info' );
+    } catch (error) {
+      console.log(error);
     }
   }
+
   $router.push('/bot/' + botId.value);
 }
 
