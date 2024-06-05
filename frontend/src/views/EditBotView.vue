@@ -6,25 +6,9 @@ import { store } from '../store.js';
 
 const route = useRoute();
 const $router = useRouter();
-const bot = ref({
-  title: '',
-  ingress: '',
-  prompt: '',
-  prompt_visibility: true,
-  bot_img: 'bot1.svg',
-  temperature: '1',
-  model: 'gpt-35-turbo',
-  bot_nr: null,
-  uuid: null,
-  edit: true,
-  distribute: true,
-  choices: [],
-  schoolAccesses: [],
-});
+const bot = ref({});
 const newBot = ref(false);
-const groups = ref();
 const lifeSpan = ref(0);
-// const schoolAccess = ref([]);
 const botId = ref();
 const sort_by = ref('school_name');
 const filter_list = ref([]);
@@ -63,34 +47,24 @@ const botImages = [
 ];
 
 const getBotInfo = async () => {
-  try {
-    const { data } = await axios.get('/api/bot_info/' + botId.value);
-    bot.value = data.bot;
-  } catch (error) {
-    console.log(error);
-  }  
-  }
-
-const getGroupList = async () => {
-  var url = '/api/bot_groups/';
+  var url = '/api/bot_info/';
   if (!newBot.value) {
     url += botId.value;
   }  
   try {
     const { data } = await axios.get(url);
-    groups.value = data.groups;
+    bot.value = data.bot;
     lifeSpan.value = data.lifespan;
   } catch (error) {
     console.log(error);
   }  
-}  
-
+  }
 
 const update = async () => {
   if (newBot.value) {
     try {
-      const response = await axios.post('/api/bot_info/', bot.value)
-      botId.value = response.bot.uuid;
+      const { data } = await axios.post('/api/bot_info/', bot.value)
+      botId.value = data.bot.uuid;
       store.addMessage('Boten er opprettet!', 'info' );
     } catch (error) {
       console.log(error);
@@ -209,7 +183,7 @@ const schoolAccessFiltered = computed(() => {
   if (filter_list.value.length > 0) {
     filtered_list = bot.value.schoolAccesses.filter((school) => (filter_list.value.includes(school.access)));
   } else {
-    filtered_list = bot.value.schoolAccesses;
+    filtered_list = bot.value.schoolAccesses || [];
   }
 
   return filtered_list.sort((a, b) => {
@@ -229,14 +203,7 @@ watchEffect(() => {
   } else {
     botId.value = route.params.id;
   }
-  if (!newBot.value) {
-    getBotInfo()
-  }
-  // if (store.isAdmin) {
-  //   getAccessList()
-  // } else if (store.editGroups) {
-  //   getGroupList()
-  // }
+  getBotInfo()
 
 });
 

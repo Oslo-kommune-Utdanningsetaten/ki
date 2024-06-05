@@ -184,19 +184,59 @@ def bot_info(request, bot_uuid=None):
             return subjects
 
     is_admin = request.g.get('admin', False)
-    new_bot = False
+    is_employee = request.g.get('employee', False)
+    edit_groups = (request.g['settings']['allow_groups']
+                  and request.g['dist_to_groups'])
 
-    if (bot_uuid and 
-        not bot_uuid in request.g.get('bots', [])
-        and not is_admin):
+    new_bot = False if bot_uuid else True
+
+    if new_bot and request.method == "GET":
+        if not is_admin and not is_employee:
+            return Response(status=403)
+
+        school_access_list = []
+        if is_admin:
+            for school in models.School.objects.all():
+                school_access_list.append({
+                    'org_nr': school.org_nr,
+                    'school_name': school.school_name,
+                    'access': 'none',
+                    'access_list': [],
+                })
+
+        return Response({
+            'bot': {
+                'title': '',
+                'ingress': '',
+                'prompt': '',
+                'bot_info': '',
+                'prompt_visibility': True,
+                'allow_distribution': True,
+                'mandatory': False,
+                'bot_img': "bot5.svg",
+                'temperature': '1',
+                'model': 'gpt-35-turbo',
+                'edit': True,
+                'distribute': edit_groups,
+                'choices': [],
+                'owner': '' if is_admin else request.g.get('username', ''),
+                'groups': get_groups() if edit_groups else [],
+                'schoolAccesses': school_access_list,
+            },
+            'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        })
+
+    if (not is_admin and
+        (not is_employee or not new_bot and not bot_uuid in request.g.get('bots', []))):
         return Response(status=403)
 
     # Make new bot on POST
     if request.method == "POST":
+        if not new_bot:
+            return Response(status=409)
         bot = models.Bot()
         if not request.g.get('admin', False):
             bot.owner = request.g.get('username')
-        new_bot = True
     else: # Get existing bot
         try:
             bot = models.Bot.objects.get(uuid=bot_uuid)
@@ -209,13 +249,13 @@ def bot_info(request, bot_uuid=None):
     if is_admin:
         edit = True
         distribute = False
-    elif request.g.get('employee', False):
+    elif is_employee:
         if is_owner:
             edit = True
-            distribute = True
+            distribute = edit_groups
         elif bot.allow_distribution and not bot.owner:
             edit = False
-            distribute = True
+            distribute = edit_groups
 
     if request.method == "PUT" or request.method == "POST":
         if not is_owner and not is_admin:
@@ -377,26 +417,29 @@ def bot_info(request, bot_uuid=None):
                     'access_list': access_list,
                 })
 
-    return Response({'bot': {
-        'uuid': bot.uuid,
-        'bot_nr': bot.bot_nr,
-        'title': bot.title,
-        'ingress': bot.ingress,
-        'prompt': bot.prompt,
-        'bot_info': bot.bot_info,
-        'prompt_visibility': bot.prompt_visibility,
-        'allow_distribution': bot.allow_distribution,
-        'mandatory': bot.mandatory,
-        'bot_img': bot.image or "bot5.svg",
-        'temperature': bot.temperature,
-        'model': bot.model,
-        'edit': edit,
-        'distribute': distribute,
-        'choices': choices,
-        'owner': bot.owner if is_admin else None,
-        'groups': group_list if distribute else None,
-        'schoolAccesses': school_access_list if is_admin else None,
-    }})
+    return Response({
+        'bot': {
+            'uuid': bot.uuid,
+            'bot_nr': bot.bot_nr,
+            'title': bot.title,
+            'ingress': bot.ingress,
+            'prompt': bot.prompt,
+            'bot_info': bot.bot_info,
+            'prompt_visibility': bot.prompt_visibility,
+            'allow_distribution': bot.allow_distribution,
+            'mandatory': bot.mandatory,
+            'bot_img': bot.image or "bot5.svg",
+            'temperature': bot.temperature,
+            'model': bot.model,
+            'edit': edit,
+            'distribute': distribute,
+            'choices': choices,
+            'owner': bot.owner if is_admin else None,
+            'groups': group_list if distribute else None,
+            'schoolAccesses': school_access_list if is_admin else None,
+        },
+        'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+    })
 
 
 @api_view(["GET", "PUT"])
