@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 
 class Setting(models.Model):
@@ -17,7 +18,7 @@ class Setting(models.Model):
 
 
 class Bot(models.Model):
-    uuid = models.UUIDField(primary_key=True)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     bot_nr = models.IntegerField()
     title = models.CharField(max_length=40)
     ingress = models.TextField()

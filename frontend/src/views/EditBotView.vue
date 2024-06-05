@@ -6,26 +6,9 @@ import { store } from '../store.js';
 
 const route = useRoute();
 const $router = useRouter();
-const bot = ref({
-  title: '',
-  ingress: '',
-  prompt: '',
-  prompt_visibility: true,
-  bot_img: 'bot1.svg',
-  temperature: '1',
-  model: 'gpt-35-turbo',
-  bot_nr: null,
-  uuid: null,
-  edit: true,
-  distribute: true,
-  choices: [],
-  tag: [0, 0, 0],
-  schoolAccesses: [],
-});
+const bot = ref({});
 const newBot = ref(false);
-const groups = ref();
 const lifeSpan = ref(0);
-// const schoolAccess = ref([]);
 const botId = ref();
 const sort_by = ref('school_name');
 const filter_list = ref([]);
@@ -64,34 +47,44 @@ const botImages = [
   { id: 'bot5.svg', text: 'Grå'},
 ];
 const getBotInfo = async () => {
+  var url = '/api/bot_info/';
+  if (!newBot.value) {
+    url += botId.value;
+  }  
   try {
-    const { data } = await axios.get('/api/bot_info/' + botId.value);
+    const { data } = await axios.get(url);
     bot.value = data.bot;
+    lifeSpan.value = data.lifespan;
   } catch (error) {
     console.log(error);
   }  
   }
 
-
 const update = async () => {
   if (newBot.value) {
     try {
-      const response = await axios.post('/api/bot_info/', bot.value)
-      botId.value = response.bot.uuid;
+      const { data } = await axios.post('/api/bot_info/', bot.value)
+      botId.value = data.bot.uuid;
       store.addMessage('Boten er opprettet!', 'info' );
     } catch (error) {
       console.log(error);
     }
-  } else {
-    if (bot.value.edit) {
-      try {
-        await axios.put('/api/bot_info/' + botId.value, bot.value)
-        store.addMessage('Endringene er lagret!', 'info' );
-      } catch (error) {
-        console.log(error);
-      }
+  } else if (bot.value.edit) {
+    try {
+      await axios.put('/api/bot_info/' + botId.value, bot.value)
+      store.addMessage('Endringene er lagret!', 'info' );
+    } catch (error) {
+      console.log(error);
+    }
+  } else if (bot.value.distribute) {
+    try {
+      await axios.patch('/api/bot_info/' + botId.value, { groups: bot.value.groups })
+      store.addMessage('Endringene er lagret!', 'info' );
+    } catch (error) {
+      console.log(error);
     }
   }
+
   $router.push('/bot/' + botId.value);
 }
 
@@ -190,7 +183,7 @@ const schoolAccessFiltered = computed(() => {
   if (filter_list.value.length > 0) {
     filtered_list = bot.value.schoolAccesses.filter((school) => (filter_list.value.includes(school.access)));
   } else {
-    filtered_list = bot.value.schoolAccesses;
+    filtered_list = bot.value.schoolAccesses || [];
   }
 
   return filtered_list.sort((a, b) => {
@@ -210,10 +203,11 @@ watchEffect(() => {
   } else {
     botId.value = route.params.id;
   }
-  if (!newBot.value) {
-    getBotInfo()
-  }
+  getBotInfo()
+
 });
+
+
 
 </script>
 
