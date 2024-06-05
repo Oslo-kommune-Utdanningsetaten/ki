@@ -152,6 +152,7 @@ def user_bots(request):
 
     return Response({
         'bots': return_bots,
+        'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
         'status': 'ok',
     })
 
@@ -401,6 +402,7 @@ def bot_info(request, bot_uuid=None):
         'groups': group_list if distribute else None,
         'schoolAccesses': school_access_list if is_admin else None,
         'tags': [tag_to_array(bot.tag_cat_1), tag_to_array(bot.tag_cat_2), tag_to_array(bot.tag_cat_3)],
+        'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
     }})
 
 

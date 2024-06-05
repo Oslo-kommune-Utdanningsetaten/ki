@@ -29,6 +29,7 @@ const lifeSpan = ref(0);
 const botId = ref();
 const sort_by = ref('school_name');
 const filter_list = ref([]);
+const tagCategories = ref([])
 const access_options = [
     { value: 'none', label: 'Ingen' },
     { value: 'emp', label: 'Ansatte' },
@@ -62,10 +63,6 @@ const botImages = [
   { id: 'bot4.svg', text: 'Rød'},
   { id: 'bot5.svg', text: 'Grå'},
 ];
-
-const tagNames = [['Elev', 'Lærer'], ['Ungdomsskole', 'VGS'], ['Samhandling', 'Tekstbehandling']];
-const tagCategories = ['Målgruppe', 'Aldersgruppe', 'Formål'];
-
 const getBotInfo = async () => {
   try {
     const { data } = await axios.get('/api/bot_info/' + botId.value);
@@ -75,37 +72,6 @@ const getBotInfo = async () => {
   }  
   }
 
-const getGroupList = async () => {
-  var url = '/api/bot_groups/';
-  if (!newBot.value) {
-    url += botId.value;
-  }  
-  try {
-    const { data } = await axios.get(url);
-    groups.value = data.groups;
-    lifeSpan.value = data.lifespan;
-  } catch (error) {
-    console.log(error);
-  }  
-}  
-
-// const getAccessList = async () => {
-//   var url = '/api/bot_access/';
-//   if (!newBot.value) {
-//     url += botId.value;
-//   }  
-//   try {
-//     const { data } = await axios.get(url);
-//     schoolAccess.value = data.schoolAccess;
-//   } catch (error) {
-//     console.log(error);
-//   }
-//   schoolAccess.value.forEach(school => {
-//     if (school.access_list.some(access => levels.some(level => level.id === access))) {
-//       school.view_levels = true;
-//     }
-//   });
-// }
 
 const update = async () => {
   if (newBot.value) {
@@ -247,15 +213,7 @@ watchEffect(() => {
   if (!newBot.value) {
     getBotInfo()
   }
-  // if (store.isAdmin) {
-  //   getAccessList()
-  // } else if (store.editGroups) {
-  //   getGroupList()
-  // }
-
 });
-
-
 
 </script>
 
@@ -374,20 +332,22 @@ watchEffect(() => {
       </div>
     </div>
     <div class="row mb-3">
-      <div class="col-sm-2 ">Tag for</div>
-      <div v-for="(tagCategory, cat_index) in tagCategories" :key="cat_index">
-        <div>{{ tagCategory }}</div>
-        <div v-for="(levelText, index) in tagNames[cat_index]" :key="index" class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            v-model="bot.tags[cat_index]"
-            :value="index"
-            :id="`filterCheck${cat_index}:${index}`"
-          />
-          <label class="form-check-label" :for="`filterCheck${cat_index}:${index}`">
-            {{ levelText }}
-          </label>
+      <div class="col-sm-2 ">Filtertag for</div>
+      <div class="col-sm-10">
+        <div v-for="(tagCategory, catName, catIndex) in bot.tag_categories" :key="catIndex">
+          <div> {{catName}} </div>
+          <div v-for="(tagName, tagIndex) in tagCategory" :key="tagIndex" class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="bot.tags[catIndex]"
+              :value="tagIndex"
+              :id="`filterCheck${catIndex}:${tagIndex}`"
+            />
+            <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
+              {{ tagName }}
+            </label>
+          </div>
         </div>
       </div>
     </div>

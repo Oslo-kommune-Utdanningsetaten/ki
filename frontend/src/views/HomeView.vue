@@ -14,7 +14,8 @@ const bots = ref([]);
 const status = ref(null);
 const showLibrary = ref(false);
 const active_bot = ref(null);
-const filter = ref([[], [], []]);
+const filter = ref([]);
+const tagCategories = ref([]);
 // const route = useRoute()
 
 watchEffect(() => {
@@ -28,13 +29,12 @@ async function getBots() {
     const { data } = await axios.get('/api/user_bots');
     bots.value = data.bots;
     status.value = data.status;
+    tagCategories.value = data.tag_categories;
   } catch (error) {
     console.log(error);
   }
 }
 
-const tagNames = [['Elev', 'Lærer'], ['Ungdomsskole', 'VGS'], ['Samhandling', 'Tekstbehandling']];
-const tagCategories = ['Målgruppe', 'Aldersgruppe', 'Formål'];
 
 const filterBots = computed(() => {
   if (!store.isEmployee && !store.isAdmin) {
@@ -154,22 +154,23 @@ const getBotImage = (bot) => {
       </div>
       <div v-if="showLibrary" class="mb-3">
         <button class="btn oslo-btn-primary ms-0" type="button" data-bs-toggle="collapse" data-bs-target="#filter_choices" aria-expanded="false" aria-controls="filter_choices">
-          Bruk filter:
+          <img src="@/components/icons/filter.svg" alt="">
+          Filtrer:
         </button>
         <div class="collapse" id="filter_choices">
           <div class="card card-body">
-            <div v-for="(tagCategory, cat_index) in tagCategories" :key="cat_index">
-              <div>{{ tagCategory }}</div>
-              <div v-for="(levelText, index) in tagNames[cat_index]" :key="index" class="form-check form-check-inline">
+            <div v-for="(tagCategory, catName, catIndex) in tagCategories" :key="catIndex">
+              <div>{{ catName }}</div>
+              <div v-for="(tagName, tagIndex) in tagCategory" :key="tagIndex" class="form-check form-check-inline">
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  v-model="filter[cat_index]"
-                  :value="index"
-                  :id="`filterCheck${cat_index}:${index}`"
+                  v-model="filter[catIndex]"
+                  :value="tagIndex"
+                  :id="`filterCheck${catIndex}:${tagIndex}`"
                 />
-                <label class="form-check-label" :for="`filterCheck${cat_index}:${index}`">
-                  {{ levelText }}
+                <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
+                  {{ tagName }}
                 </label>
               </div>
             </div>
