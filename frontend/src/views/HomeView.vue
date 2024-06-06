@@ -18,6 +18,7 @@ const filter = ref([]);
 const tagCategories = ref([]);
 // const route = useRoute()
 
+
 watchEffect(() => {
   getBots()
 });
@@ -30,24 +31,25 @@ async function getBots() {
     bots.value = data.bots;
     status.value = data.status;
     tagCategories.value = data.tag_categories;
+    filter.value = new Array(Object.keys(tagCategories.value).length).fill([]);
   } catch (error) {
     console.log(error);
   }
 }
 
-const filterFavorites = computed(() => {
+const filterBots = computed(() => {
   bots.value.sort((a, b) => b.mandatory - a.mandatory || a.bot_title.localeCompare(b.bot_title));
   if (!store.isEmployee && !store.isAdmin) {
     return bots.value;
   };
   if (showLibrary.value) {
     let botsFiltered = bots.value;
-    for (let i = 0; i < filter.value.length; i++) {
-      if (filter.value[i].length > 0) {
-        const binarySum = filter.value[i].reduce((partialSum, a) => partialSum + Math.pow(2, a), 0);
+    filter.value.forEach((filterArray, i) => {
+      if (filterArray.length > 0) {
+        const binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0);
         botsFiltered = botsFiltered.filter((bot) => ((bot.tag[i]) & binarySum) > 0);
       }
-    }
+    });
     return botsFiltered.filter(bot => !bot.personal && !bot.mandatory);
   } else {
     return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite);
