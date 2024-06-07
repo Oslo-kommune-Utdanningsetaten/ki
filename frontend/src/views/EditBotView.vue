@@ -327,7 +327,8 @@ watchEffect(() => {
     </div>
   </div>
 
-  <div v-if="bot.edit">
+  <!-- Midlertidig: kun tilgang for admin  -->
+  <div v-if="store.isAdmin">
     <div class="mb-3">
       <button class="show-advanced btn oslo-btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
       </button>
