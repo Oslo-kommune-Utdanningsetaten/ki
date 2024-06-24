@@ -121,22 +121,16 @@ def get_user_bots(request, username):
         for line in personal_bots:
             bots.add(line.uuid)
 
-    return list(bots), employee, dist_to_groups
+    return bots, employee, dist_to_groups
 
 
 def auth_middleware(get_response):
     @ensure_csrf_cookie
     def load_logged_in_user(request):
         request.g = {}
-        bots = []
+        bots = set()
         admin = False
         has_access = False
-        # temp admin access
-        admins = [
-            "fnygard@feide.osloskolen.no",
-            "mawoa033@feide.osloskolen.no",
-            "jbnatvig@feide.osloskolen.no",
-        ]
 
         username = request.session.get('user.username', None)
         if username is None:
@@ -148,25 +142,29 @@ def auth_middleware(get_response):
             elif (url_name.split('.')[0] == 'main' and
                     request.path != resolve_url('main.index')):
                 return redirect('auth.feidelogin')
-            # elif url_name.split('.')[0] == 'api':
-            #     if not url_name.split('.')[1] == 'menu_items':
-            #         return HttpResponse('Unauthorized', status=401)
-
+        
         # get user's bots
-        elif username in admins:
-            bots_obj = models.Bot.objects.filter(owner=None)
-            bots = [bot.uuid for bot in bots_obj]
+        role_obj = models.Role.objects.filter(user_id=username).first()
+        role = role_obj.role if role_obj else None
+        if role == 'admin':
             request.g['dist_to_groups'] = False
             admin = True
             has_access = True
+            personal_bots = models.Bot.objects.filter(owner=username)
+            bots.update((bot.uuid for bot in personal_bots))
+            library_bots = models.Bot.objects.filter(library = True)
+            bots.update((bot.uuid for bot in library_bots))
         else:
             bots, employee, dist_to_groups = get_user_bots(request, username)
             request.g['employee'] = employee
             request.g['dist_to_groups'] = dist_to_groups
+            if role == 'author':
+                request.g['author'] = True
+                request.g['auth_school'] = role_obj.school
             if bots is not None:
                 has_access = True
 
-        request.g['bots'] = bots
+        request.g['bots'] = list(bots)
         request.g['admin'] = admin
         request.g['has_access'] = has_access
         request.g['username'] = username

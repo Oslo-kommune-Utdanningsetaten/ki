@@ -12,7 +12,7 @@ import botIcon5 from '@/components/icons/bot5.svg';
 
 const bots = ref([]);
 const status = ref(null);
-const showAll = ref(false);
+const showLibrary = ref(false);
 const active_bot = ref(null);
 // const route = useRoute()
 
@@ -35,9 +35,9 @@ async function getBots() {
 const filterFavorites = computed(() => {
   bots.value.sort((a, b) => b.mandatory - a.mandatory || a.bot_title.localeCompare(b.bot_title));
   if (!store.isEmployee && !store.isAdmin) {
-    return bots.value;
+    return bots.value; // Show all bots for students
   };
-  if (showAll.value) {
+  if (showLibrary.value) {
     return bots.value.filter(bot => !bot.personal && !bot.mandatory);
   } else {
     return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite);
@@ -130,7 +130,7 @@ const getBotImage = (bot) => {
     <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleåret 2023/2024. Les mer under "Om tjenesten"</p>
     <div v-if="store.isEmployee || store.isAdmin" class="form-check form-switch mb-2">
       <span>
-        <input class="form-check-input" type="checkbox" id="showAll" v-model="showAll">
+        <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary">
         <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
       </span>
     </div>
@@ -172,7 +172,7 @@ const getBotImage = (bot) => {
           </div>
         </RouterLink>
       </div>
-      <RouterLink v-if="store.isEmployee || store.isAdmin" active-class="active"  class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3" to="editbot/">
+      <RouterLink v-if="(store.isEmployee || store.isAdmin) && !showLibrary" active-class="active"  class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3" to="editbot/new">
         <div  class="card oslo-bg-light text-center h-100" >
           <div class="row text-center pt-3">
             <div class="col-2"></div>
@@ -182,6 +182,19 @@ const getBotImage = (bot) => {
           </div>
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">Ny bot</h5>
+          </div>
+        </div>
+      </RouterLink>
+      <RouterLink v-if="(store.isAuthor || store.isAdmin) && showLibrary" active-class="active"  class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3" to="editbot/newlib">
+        <div  class="card oslo-bg-light text-center h-100" >
+          <div class="row text-center pt-3">
+            <div class="col-2"></div>
+            <div class="col-8">
+              <img src="@/components/icons/pluss.svg" alt="Ny biblioteksbot">
+            </div>
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">Ny biblioteksbot</h5>
           </div>
         </div>
       </RouterLink>

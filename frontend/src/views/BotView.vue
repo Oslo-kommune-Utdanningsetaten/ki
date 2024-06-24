@@ -219,20 +219,16 @@ watchEffect(() => {
   </div>
 
   
-  <div v-if="bot.edit" class="d-flex justify-content-end">
-    <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.uuid">
+  <div class="d-flex justify-content-end">
+    <RouterLink v-if="bot.distribute && bot.library" class="btn oslo-btn-secondary" :to="'/editbot/distribute/'+bot.uuid">
+      Gi tilgang
+    </RouterLink>
+    <RouterLink v-if="bot.edit" class="btn oslo-btn-secondary" :to="'/editbot/edit/'+bot.uuid">
       Rediger bot
     </RouterLink>
-    <button class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
+    <button v-if="bot.edit" class="btn oslo-btn-warning" data-bs-toggle="modal" data-bs-target="#delete_bot">
       Slett bot
     </button>  
-  </div>
-  <div v-else >
-    <div v-if="bot.distribute" class="d-flex justify-content-end">
-      <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/'+bot.uuid">
-        Gi tilgang
-      </RouterLink>
-    </div>
   </div>
   <h1 class="h2 mb-3">
     {{ bot.title }}

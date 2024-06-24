@@ -27,6 +27,7 @@ class Bot(models.Model):
     temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
     image = models.CharField(max_length=20, null=True)
     prompt_visibility = models.BooleanField(default=True)
+    library = models.BooleanField(default=False)
     owner = models.CharField(max_length=50, null=True)
     allow_distribution = models.BooleanField(default=False)
     mandatory = models.BooleanField(default=False)
@@ -172,3 +173,20 @@ class PageText(models.Model):
     class Meta:
         managed = False
         db_table = 'page_text'
+
+class Role(models.Model):
+    class RoleEnum(models.TextChoices):
+        ADMIN = 'admin'
+        AUTHOR = 'author'
+        EMP = 'emp'
+
+    user_id = models.CharField(max_length=50, primary_key=True)
+    role = models.CharField(max_length=10, choices=RoleEnum.choices, default=RoleEnum.EMP)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school', to_field='org_nr', related_name="roles", null=True)
+
+    def __str__(self):
+        return f"{self.user_id}-{self.role}"
+
+    class Meta:
+        managed = False
+        db_table = 'role'

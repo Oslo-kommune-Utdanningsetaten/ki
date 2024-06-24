@@ -14,6 +14,7 @@ apiurls = [
   path("api/send_message", api.send_message, name="api.send_message"),
   path("api/favorite/<uuid:bot_uuid>", api.favorite, name="api.favorite"),
   path("api/user_bots", api.user_bots, name="api.user_bots"),
+  path("api/empty_bot/<str:lib>", api.empty_bot, name="api.empty_bot"),
   path("api/bot_info/", api.bot_info, name="api.bot_info"),
   path("api/bot_info/<uuid:bot_uuid>", api.bot_info, name="api.bot_info"),
   path("api/settings", api.settings, name="api.settings"),
