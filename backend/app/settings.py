@@ -147,3 +147,27 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SESSION_COOKIE_AGE = 28800  # 8 hours, matching Feide expires_in
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+LOG_FILE = os.environ.get('LOG_FILE', 'debug.log')
+
+if not DEBUG:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+            'file': {
+                # 'level': 'INFO',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(BASE_DIR, LOG_FILE),
+                'backupCount': 10,  # keep at most 10 log files
+                'maxBytes': 5242880,  # 5*1024*1024 bytes (5MB)
+            },
+        },
+        "root": {
+            "handlers": ["file"],
+            "level": "ERROR",
+        }
+    }
