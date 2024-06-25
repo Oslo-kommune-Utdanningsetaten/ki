@@ -6,6 +6,9 @@ services:
     restart: always
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - 3306:3306 # For dev (make sure port is not exposed on prod host)
     volumes:
@@ -13,6 +16,7 @@ services:
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     profiles:
       - dev
+      - prod
   adminer:
     image: adminer
     restart: always
