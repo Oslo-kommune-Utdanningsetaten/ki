@@ -146,7 +146,7 @@ def user_bots(request):
         if ((request.g.get('employee', False) 
                 or request.g.get('admin', False))
                 and open_for_distribution
-                and bot.owner != request.g.get('username', '')):
+                and bot.library):
             if bot.allow_distribution:
                 return "<br><br> Denne boten kan distribueres til elever"
             else:

@@ -93,6 +93,16 @@ const getBotImage = (bot) => {
   }
 }
 
+const botIconWidth = computed(() => (
+  showLibrary.value ?
+    "col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12" :
+    "col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6"
+))
+
+const newLink = computed(() => (
+  showLibrary.value ? 'editbot/newlib' : 'editbot/new'
+))
+
 </script>
 
 <template>
@@ -154,35 +164,34 @@ const getBotImage = (bot) => {
         <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary">
         <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
       </div>
-      <div v-if="showLibrary" class="mb-3">
-        <button class="btn oslo-btn-primary ms-0" type="button" data-bs-toggle="collapse" data-bs-target="#filter_choices" aria-expanded="false" aria-controls="filter_choices">
-          <img src="@/components/icons/filter.svg" alt="">
-          Filtrer:
-        </button>
-        <div class="collapse" id="filter_choices">
-          <div class="card card-body">
-            <div v-for="(tagCategory, catName, catIndex) in tagCategories" :key="catIndex">
-              <div>{{ catName }}</div>
-              <div v-for="(tagName, tagIndex) in tagCategory" :key="tagIndex" class="form-check form-check-inline">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  v-model="filter[catIndex]"
-                  :value="tagIndex"
-                  :id="`filterCheck${catIndex}:${tagIndex}`"
-                />
-                <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
-                  {{ tagName }}
-                </label>
-              </div>
+    </div>
+
+    <div class="row align-items-stretch">
+      <div v-if="showLibrary" class="col-xxl-3 col-lg-3 col-md-4 col-6">
+        <div class="card card-body">
+          <div class="card-title">
+            Filtrer:
+          </div>
+          <div v-for="(tagCategory, catName, catIndex) in tagCategories" :key="catIndex">
+            <div>{{ catName }}</div>
+            <div v-for="(tagName, tagIndex) in tagCategory" :key="tagIndex" class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                v-model="filter[catIndex]"
+                :value="tagIndex"
+                :id="`filterCheck${catIndex}:${tagIndex}`"
+              />
+              <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
+                {{ tagName }}
+              </label>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="row align-items-stretch">
-      <div v-for="bot in filterBots" :key="bot.uuid" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
+      <div class="col">
+      <div class="row">
+      <div v-for="bot in filterBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
         <RouterLink active-class="active" class="bot_tile" :to="'bot/'+bot.uuid">
           <div class="card text-center h-100" :class="bot_tile_bg(bot)">
             <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
@@ -192,7 +201,7 @@ const getBotImage = (bot) => {
                 <img :src='getBotImage(bot)' :alt="'Åpne '+bot.bot_title">
               </div>
 
-              <div  v-if="store.isEmployee"  class="col-2 ps-0">
+              <div  v-if="store.isEmployee"  class="col-2 px-0">
                 <div v-if="bot.mandatory"></div>
                 <div v-if="bot.personal"></div>
                 <div v-if="!bot.mandatory && !bot.personal">
@@ -203,8 +212,8 @@ const getBotImage = (bot) => {
                 </div>
               </div>
               <div class="card-body row m-0">
-                <div class="col-10">{{ bot.bot_title }}</div>
-                <a v-if="bot.bot_info" class="col-2 pe-0" href="#" data-bs-toggle="modal" data-bs-target="#botinfo" @click.prevent="setActiveBot(bot)">
+                <div class="col-10 ps-0">{{ bot.bot_title }}</div>
+                <a v-if="bot.bot_info" class="col px-0" href="#" data-bs-toggle="modal" data-bs-target="#botinfo" @click.prevent="setActiveBot(bot)">
                   <img src="@/components/icons/information.svg" alt="Informasjon">
                 </a>
               </div>
@@ -212,32 +221,22 @@ const getBotImage = (bot) => {
           </div>
         </RouterLink>
       </div>
-      <RouterLink v-if="(store.isEmployee || store.isAdmin) && !showLibrary" active-class="active"  class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3" to="editbot/new">
+      <RouterLink v-if="(store.isEmployee || store.isAdmin)" active-class="active" :class="botIconWidth" class="mb-3" :to="newLink">
         <div  class="card oslo-bg-light text-center h-100" >
           <div class="row text-center pt-3">
             <div class="col-2"></div>
             <div class="col-8">
-              <img src="@/components/icons/pluss.svg" alt="Ny bot">
+              <img src="@/components/icons/pluss.svg" alt="">
             </div>
           </div>
           <div class="card-body d-flex flex-column">
-            <h5 class="card-title">Ny bot</h5>
+            <h5 v-if="showLibrary" class="card-title">Ny biblioteksbot</h5>
+            <h5 v-else class="card-title">Ny bot</h5>
           </div>
         </div>
       </RouterLink>
-      <RouterLink v-if="(store.isAuthor || store.isAdmin) && showLibrary" active-class="active"  class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3" to="editbot/newlib">
-        <div  class="card oslo-bg-light text-center h-100" >
-          <div class="row text-center pt-3">
-            <div class="col-2"></div>
-            <div class="col-8">
-              <img src="@/components/icons/pluss.svg" alt="Ny biblioteksbot">
-            </div>
-          </div>
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title">Ny biblioteksbot</h5>
-          </div>
-        </div>
-      </RouterLink>
+      </div>
+      </div>
     </div>
   </div>
   
