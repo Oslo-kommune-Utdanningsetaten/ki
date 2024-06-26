@@ -171,11 +171,13 @@ def user_bots(request):
             'personal': not bot.library,
             'allow_distribution': bot.allow_distribution and open_for_distribution,
             'bot_info': (bot.bot_info or '') + distribution_info(bot),
+            'tag': [bot.tag_cat_1, bot.tag_cat_2, bot.tag_cat_3],
         }
         for bot in users_bots]
 
     return Response({
         'bots': return_bots,
+        'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
         'status': 'ok',
     })
 
@@ -281,6 +283,8 @@ def bot_info(request, bot_uuid=None):
         if not is_owner and not is_author and not is_admin:
             return Response(status=403)
 
+        def array_to_tag(arr):
+            return sum([1 << n for n in arr])
         body = json.loads(request.body)
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
@@ -302,6 +306,9 @@ def bot_info(request, bot_uuid=None):
             bot.model = default_model
         if is_admin:
             bot.model = body.get('model', bot.model)
+        bot.tag_cat_1 = array_to_tag(body.get('tags', [0, 0, 0])[0])
+        bot.tag_cat_2 = array_to_tag(body.get('tags', [0, 0, 0])[1])
+        bot.tag_cat_3 = array_to_tag(body.get('tags', [0, 0, 0])[2])
         bot.save()
         
         # save choices and options
@@ -444,6 +451,9 @@ def bot_info(request, bot_uuid=None):
                 'access_list': access_list,
             })
 
+    def tag_to_array(tag):
+        return [n for n in range(30) if (tag >> n & 1)]
+
     return Response({
         'bot': {
             'uuid': bot.uuid,
@@ -463,7 +473,9 @@ def bot_info(request, bot_uuid=None):
             'distribute': distribute,
             'choices': choices,
             'groups': group_list if distribute else None,
-            'schoolAccesses': school_access_list if is_admin or is_author else None,
+            'schoolAccesses': school_access_list if is_admin else None,
+            'tags': [tag_to_array(bot.tag_cat_1), tag_to_array(bot.tag_cat_2), tag_to_array(bot.tag_cat_3)],
+            'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
     })

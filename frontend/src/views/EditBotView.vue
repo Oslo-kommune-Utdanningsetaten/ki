@@ -16,6 +16,7 @@ const lifeSpan = ref(0);
 const botId = ref();
 const sort_by = ref('school_name');
 const filter_list = ref([]);
+const tagCategories = ref([])
 const access_options = [
     { value: 'none', label: 'Ingen' },
     { value: 'emp', label: 'Ansatte' },
@@ -49,7 +50,6 @@ const botImages = [
   { id: 'bot4.svg', text: 'Rød'},
   { id: 'bot5.svg', text: 'Grå'},
 ];
-
 const getBotInfo = async () => {
   var url = '';
   if (method.value == 'new') {
@@ -343,6 +343,26 @@ watch(route, () => {
           <textarea v-model="bot.bot_info" class="form-control" id="bot_info" rows="5" name="bot_info"></textarea>
         </div>
       </div>
+      <div class="row mb-3">
+      <div class="col-sm-2 ">Filtertag for</div>
+      <div class="col-sm-10">
+        <div v-for="(tagCategory, catName, catIndex) in bot.tag_categories" :key="catIndex">
+          <div> {{catName}} </div>
+          <div v-for="(tagName, tagIndex) in tagCategory" :key="tagIndex" class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              v-model="bot.tags[catIndex]"
+              :value="tagIndex"
+              :id="`filterCheck${catIndex}:${tagIndex}`"
+            />
+            <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
+              {{ tagName }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
       <div class="row mb-3">
         <div class="col-sm-2 ">Forhåndsvalg</div>
         <div class="col-sm-10">

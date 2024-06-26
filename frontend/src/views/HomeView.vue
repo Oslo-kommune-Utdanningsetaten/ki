@@ -14,7 +14,10 @@ const bots = ref([]);
 const status = ref(null);
 const showLibrary = ref(false);
 const active_bot = ref(null);
+const filter = ref([]);
+const tagCategories = ref([]);
 // const route = useRoute()
+
 
 watchEffect(() => {
   getBots()
@@ -27,18 +30,27 @@ async function getBots() {
     const { data } = await axios.get('/api/user_bots');
     bots.value = data.bots;
     status.value = data.status;
+    tagCategories.value = data.tag_categories;
+    filter.value = new Array(Object.keys(tagCategories.value).length).fill([]);
   } catch (error) {
     console.log(error);
   }
 }
 
-const filterFavorites = computed(() => {
+const filterBots = computed(() => {
   bots.value.sort((a, b) => b.mandatory - a.mandatory || a.bot_title.localeCompare(b.bot_title));
   if (!store.isEmployee && !store.isAdmin) {
     return bots.value; // Show all bots for students
   };
   if (showLibrary.value) {
-    return bots.value.filter(bot => !bot.personal && !bot.mandatory);
+    let botsFiltered = bots.value;
+    filter.value.forEach((filterArray, i) => {
+      if (filterArray.length > 0) {
+        const binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0);
+        botsFiltered = botsFiltered.filter((bot) => ((bot.tag[i]) & binarySum) > 0);
+      }
+    });
+    return botsFiltered.filter(bot => !bot.personal && !bot.mandatory);
   } else {
     return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite);
   };
@@ -128,12 +140,6 @@ const getBotImage = (bot) => {
   </div>
   <div v-else class="mb-3">
     <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleåret 2023/2024. Les mer under "Om tjenesten"</p>
-    <div v-if="store.isEmployee || store.isAdmin" class="form-check form-switch mb-2">
-      <span>
-        <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary">
-        <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
-      </span>
-    </div>
     <div v-if="bots.length === 0" >
       <div class="card">
         <div class="card-body">
@@ -141,8 +147,42 @@ const getBotImage = (bot) => {
         </div>
       </div>
     </div>
+
+    <!-- bibliotek -->
+    <div v-if="store.isEmployee || store.isAdmin">
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary">
+        <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
+      </div>
+      <div v-if="showLibrary" class="mb-3">
+        <button class="btn oslo-btn-primary ms-0" type="button" data-bs-toggle="collapse" data-bs-target="#filter_choices" aria-expanded="false" aria-controls="filter_choices">
+          <img src="@/components/icons/filter.svg" alt="">
+          Filtrer:
+        </button>
+        <div class="collapse" id="filter_choices">
+          <div class="card card-body">
+            <div v-for="(tagCategory, catName, catIndex) in tagCategories" :key="catIndex">
+              <div>{{ catName }}</div>
+              <div v-for="(tagName, tagIndex) in tagCategory" :key="tagIndex" class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  v-model="filter[catIndex]"
+                  :value="tagIndex"
+                  :id="`filterCheck${catIndex}:${tagIndex}`"
+                />
+                <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
+                  {{ tagName }}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row align-items-stretch">
-      <div v-for="bot in filterFavorites" :key="bot.uuid" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
+      <div v-for="bot in filterBots" :key="bot.uuid" class="col-xxl-2 col-lg-3 col-md-4 col-6 mb-3">
         <RouterLink active-class="active" class="bot_tile" :to="'bot/'+bot.uuid">
           <div class="card text-center h-100" :class="bot_tile_bg(bot)">
             <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
