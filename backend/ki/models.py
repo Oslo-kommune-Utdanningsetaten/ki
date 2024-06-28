@@ -19,7 +19,6 @@ class Setting(models.Model):
 
 class Bot(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    bot_nr = models.IntegerField()
     title = models.CharField(max_length=40)
     ingress = models.TextField()
     prompt = models.TextField()
@@ -44,7 +43,6 @@ class Bot(models.Model):
 class Favorite(models.Model):
     id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="favorites")
-    bot_nr = models.IntegerField()
     user_id = models.CharField(max_length=50)
     # created = models.DateTimeField(auto_now_add=True)
 
@@ -57,7 +55,6 @@ class Favorite(models.Model):
 class PromptChoice(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="prompt_choices")
-    bot_nr = models.IntegerField()
     label = models.CharField(max_length=50)
     order = models.IntegerField()
     # text = models.TextField()
@@ -108,7 +105,6 @@ class BotAccess(models.Model):
 
     access_id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="accesses")
-    bot_nr = models.IntegerField()
     school_id = models.ForeignKey(
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="accesses")
     # school_id = models.CharField(max_length=20)
@@ -157,7 +153,6 @@ class SubjectAccess(models.Model):
     id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, 
                                db_column='bot_id', to_field='uuid', related_name="subjects")
-    bot_nr = models.IntegerField()
     subject_id = models.CharField(max_length=200)
     created = models.DateTimeField(auto_now_add=True)
 

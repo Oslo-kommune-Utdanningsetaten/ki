@@ -161,7 +161,6 @@ def user_bots(request):
     return_bots = [
         {
             'uuid': bot.uuid,
-            'bot_nr': bot.bot_nr,
             'bot_title': bot.title,
             'bot_img': bot.image or "bot5.svg",
             'favorite': True 
@@ -457,7 +456,6 @@ def bot_info(request, bot_uuid=None):
     return Response({
         'bot': {
             'uuid': bot.uuid,
-            'bot_nr': bot.bot_nr,
             'title': bot.title,
             'ingress': bot.ingress,
             'prompt': bot.prompt,
@@ -558,7 +556,6 @@ def start_message(request, uuid):
         return Response(status=404)
 
     return Response({'bot': {
-        'bot_nr': bot.bot_nr,
         'uuid': bot.uuid,
         'title': bot.title,
         'ingress': bot.ingress,
