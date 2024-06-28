@@ -240,13 +240,13 @@ watchEffect(() => {
     <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
         <div v-for="choice in choicesSorted()" class="row mb-2">
           <div class="col-4 col-form-label">{{ choice.label }}</div>
-          <div class="col btn-group" role="group">
-            <div v-for="option in optionsSorted(choice)" :key="option.id">
+          <div class="col-8" role="group">
+            <span v-for="option in optionsSorted(choice)" :key="option.id">
               <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected" @change="resetMessages()">
               <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
                 {{ option.label }}
               </label>
-            </div>
+            </span>
           </div>
         </div>
     </div>
