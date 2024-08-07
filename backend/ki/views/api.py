@@ -229,6 +229,8 @@ def empty_bot(request, lib):
             'groups': get_groups(request) if edit_groups and not library else [],
             'schoolAccesses': school_access_list,
             'library': library,
+            'tags': [[], [], []],
+            'tag_categories': json.loads(request.g['settings']['tag_categories']) if library else [],
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
     })
@@ -305,9 +307,10 @@ def bot_info(request, bot_uuid=None):
             bot.model = default_model
         if is_admin:
             bot.model = body.get('model', bot.model)
-        bot.tag_cat_1 = array_to_tag(body.get('tags', [0, 0, 0])[0])
-        bot.tag_cat_2 = array_to_tag(body.get('tags', [0, 0, 0])[1])
-        bot.tag_cat_3 = array_to_tag(body.get('tags', [0, 0, 0])[2])
+        if body.get('tags') and len(body.get('tags')) == 3:
+            bot.tag_cat_1 = array_to_tag(body.get('tags', [0, 0, 0])[0])
+            bot.tag_cat_2 = array_to_tag(body.get('tags', [0, 0, 0])[1])
+            bot.tag_cat_3 = array_to_tag(body.get('tags', [0, 0, 0])[2])
         bot.save()
         
         # save choices and options
@@ -352,7 +355,8 @@ def bot_info(request, bot_uuid=None):
                     bot_access = models.BotAccess(
                         bot_id=bot, school_id=school_obj, access=school.get('access', 'none'))
                 if bot_access.access == 'levels':
-                    bot_access.levels.all().delete()
+                    if not new_bot:
+                        bot_access.levels.all().delete()
                     for level in school.get('access_list', []):
                         access = models.BotLevel(access_id=bot_access, level=level)
                         access.save()
@@ -428,7 +432,6 @@ def bot_info(request, bot_uuid=None):
         school_list = models.School.objects.all()
     elif is_author:
         school_list = [request.g.get('auth_school')]
-        print(school_list)
     for school in school_list:
         if new_bot:
             school_access_list.append({
@@ -471,7 +474,7 @@ def bot_info(request, bot_uuid=None):
             'distribute': distribute,
             'choices': choices,
             'groups': group_list if distribute else None,
-            'schoolAccesses': school_access_list if is_admin else None,
+            'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tags': [tag_to_array(bot.tag_cat_1), tag_to_array(bot.tag_cat_2), tag_to_array(bot.tag_cat_3)],
             'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
         },

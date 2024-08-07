@@ -7,7 +7,24 @@ import router from '@/router/index.js';
 
 const route = useRoute();
 const $router = useRouter();
-const bot = ref({});
+const bot = ref({
+  title: '',
+  ingress: '',
+  prompt: '',
+  prompt_visibility: false,
+  bot_img: 'bot1.svg',
+  temperature: 1,
+  model: 'gpt-35-turbo',
+  mandatory: false,
+  allow_distribution: false,
+  bot_info: '',
+  tags: {},
+  tag_categories: [],
+  choices: [],
+  schoolAccesses: [],
+  groups: [],
+  library: false
+});
 const edit = ref(false);
 const distribute = ref(false);
 const newBot = ref(false);
@@ -16,7 +33,6 @@ const lifeSpan = ref(0);
 const botId = ref();
 const sort_by = ref('school_name');
 const filter_list = ref([]);
-const tagCategories = ref([])
 const access_options = [
     { value: 'none', label: 'Ingen' },
     { value: 'emp', label: 'Ansatte' },
@@ -329,7 +345,7 @@ watch(route, () => {
     </div>
     <div v-if="superuser">
       <div class="row mb-3">
-        <div class="col-sm-2 ">Tillat distribusjon</div>
+        <div class="col-sm-2 ">Tillat distribusjon til elever</div>
         <div class="col-sm-10">
           <div class="form-check form-check-inline">
             <input class="form-check-input" type="checkbox" id="allow_distribution" v-model="bot.allow_distribution">

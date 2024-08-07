@@ -149,7 +149,7 @@ const newLink = computed(() => (
     </div>
   </div>
   <div v-else class="mb-3">
-    <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleåret 2023/2024. Les mer under "Om tjenesten"</p>
+    <p>Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller lagrer personopplysninger. Vi tester løsningen skoleårene 2023/2024 og 2024/2025. Les mer under "Om tjenesten"</p>
     <div v-if="bots.length === 0" >
       <div class="card">
         <div class="card-body">
@@ -221,7 +221,7 @@ const newLink = computed(() => (
           </div>
         </RouterLink>
       </div>
-      <RouterLink v-if="(store.isEmployee || store.isAdmin)" active-class="active" :class="botIconWidth" class="mb-3" :to="newLink">
+      <RouterLink v-if="(store.isAuthor || store.isAdmin)" active-class="active" :class="botIconWidth" class="mb-3" :to="newLink">
         <div  class="card oslo-bg-light text-center h-100" >
           <div class="row text-center pt-3">
             <div class="col-2"></div>
