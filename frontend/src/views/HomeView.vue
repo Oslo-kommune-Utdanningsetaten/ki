@@ -221,7 +221,7 @@ const newLink = computed(() => (
           </div>
         </RouterLink>
       </div>
-      <RouterLink v-if="(store.isAuthor || store.isAdmin)" active-class="active" :class="botIconWidth" class="mb-3" :to="newLink">
+      <RouterLink v-if="(store.isAuthor || store.isAdmin || (store.isEmployee && !showLibrary))" active-class="active" :class="botIconWidth" class="mb-3" :to="newLink">
         <div  class="card oslo-bg-light text-center h-100" >
           <div class="row text-center pt-3">
             <div class="col-2"></div>
