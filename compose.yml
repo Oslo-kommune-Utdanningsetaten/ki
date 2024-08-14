@@ -31,6 +31,7 @@ services:
     profiles:
       - dev
       - prod
+    command: ["php", "-d", "post_max_size=500M", "-d", "upload_max_filesize=500M", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
   backend:
     build: ./backend
     command:
