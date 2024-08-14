@@ -94,10 +94,11 @@ const getBotImage = (bot) => {
 }
 
 const botIconWidth = computed(() => (
-  showLibrary.value ?
-    "col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12" :
     "col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6"
-))
+    // showLibrary.value ?
+    //   "col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12" :
+    //   "col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6"
+  ))
 
 const newLink = computed(() => (
   showLibrary.value ? 'editbot/newlib' : 'editbot/new'
@@ -167,7 +168,7 @@ const newLink = computed(() => (
     </div>
 
     <div class="row align-items-stretch">
-      <div v-if="showLibrary" class="col-xxl-3 col-lg-3 col-md-4 col-6">
+      <!-- <div v-if="showLibrary" class="col-xxl-3 col-lg-3 col-md-4 col-6">
         <div class="card card-body">
           <div class="card-title">
             Filtrer:
@@ -188,7 +189,7 @@ const newLink = computed(() => (
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="col">
       <div class="row">
       <div v-for="bot in filterBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
