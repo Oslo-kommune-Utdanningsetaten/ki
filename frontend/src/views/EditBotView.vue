@@ -57,7 +57,9 @@ const levels = [
 const models = [
   { id: "35t", value: "gpt-35-turbo", label: "GPT-3.5 Turbo"},
   { id: "35t-16k", value: "gpt-35-turbo-16k", label: "GPT-3.5 Turbo 16k"},
-  { id: "4-32k", value: "gpt-4-32k", label: "GPT-4 32k"}
+  { id: "4-32k", value: "gpt-4-32k", label: "GPT-4 32k"},
+  { id: "4o", value: "gpt-4o", label: "gpt-4o"},
+  { id: "4om", value: "gpt-4o-mini", label: "gpt-4o mini"},
 ];
 const botImages = [
   { id: 'bot1.svg', text: 'Blå'},
