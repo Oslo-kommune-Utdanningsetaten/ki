@@ -342,6 +342,12 @@ watch(route, () => {
           </div>
         </div>
       </div>
+      <div class="row mb-3">
+        <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
+        <div class="col-sm-10">
+          <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner">
+        </div>
+      </div>
     </div>
     <div v-if="superuser">
       <div class="row mb-3">

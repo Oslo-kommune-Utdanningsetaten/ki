@@ -286,6 +286,7 @@ def bot_info(request, bot_uuid=None):
         bot.image = body.get('bot_img', bot.image)
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
+        bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
         bot.owner = None if bot.owner == '' else bot.owner
         default_model = models.Setting.objects.get(
             setting_key='default_model').txt_val
@@ -458,6 +459,7 @@ def bot_info(request, bot_uuid=None):
             'model': bot.model,
             'edit': edit,
             'distribute': distribute,
+            'owner': bot.owner if is_admin else None,
             'choices': choices,
             'groups': group_list if distribute else None,
             'schoolAccesses': school_access_list if is_admin or is_author else None,
