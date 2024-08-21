@@ -232,12 +232,6 @@ def bot_info(request, bot_uuid=None):
 
     new_bot = False if bot_uuid else True
 
-    # check access
-    if (not is_admin and
-            not is_author and
-            (not is_employee or not new_bot and not bot_uuid in request.g.get('bots', []))):
-        return Response(status=403)
-
     # get bot
     if request.method == "POST":  # Make new bot on POST
         if not new_bot:

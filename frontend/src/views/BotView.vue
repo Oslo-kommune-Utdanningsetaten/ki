@@ -8,12 +8,12 @@ import $ from 'jquery'
 const route = useRoute()
 const router = useRouter()
 const bot = ref({});
-const botNr = ref(0);
+const botId = ref(0);
 const messages = ref([]);
 const message = ref('');
 const showTypeWriter = ref(false);
 const showSystemPrompt = ref(false);
-botNr.value = route.params.id;
+botId.value = route.params.id;
 
 const textInput = ref(null); // Add a ref for the text input element
 
@@ -28,7 +28,7 @@ const optionsSorted = (choice) => {
 
 const startpromt = async () => {
   try {
-    const { data } = await axios.get('/api/bot_info/' + botNr.value);
+    const { data } = await axios.get('/api/bot_info/' + botId.value);
     bot.value = data.bot;
     resetMessages();
     // messages.value = [{
@@ -75,7 +75,7 @@ const sendMessage = async () => {
 
         await callChatStream(
           "/api/send_message",
-          { uuid: bot.value.uuid, messages: messages.value },
+          { uuid: botId.value, messages: messages.value },
           messages.value
         )
         textInput.value.focus(); // Set focus to the text input element
@@ -153,7 +153,7 @@ const toggleStartPrompt = () => {
 }
 
 const deleteBot = () => {
-  axios.delete('/api/bot_info/' + botNr.value)
+  axios.delete('/api/bot_info/' + botId.value)
     .then(response => {
       store.addMessage('Boten er nå slettet', 'info' );
       router.push({ name: 'home' });
@@ -237,57 +237,57 @@ watchEffect(() => {
     {{ bot.ingress }}
   </p>    
     
-    <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
-        <div v-for="choice in choicesSorted()" class="row mb-2">
-          <div class="col-4 col-form-label">{{ choice.label }}</div>
-          <div class="col-8" role="group">
-            <span v-for="option in optionsSorted(choice)" :key="option.id">
-              <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected" @change="resetMessages()">
-              <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
-                {{ option.label }}
-              </label>
-            </span>
-          </div>
+  <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
+      <div v-for="choice in choicesSorted()" class="row mb-2">
+        <div class="col-4 col-form-label">{{ choice.label }}</div>
+        <div class="col-8" role="group">
+          <span v-for="option in optionsSorted(choice)" :key="option.id">
+            <input class="btn-check" type="radio" :id="`${choice.id}-${option.id}`" :value="option" v-model="choice.selected" @change="resetMessages()">
+            <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+              {{ option.label }}
+            </label>
+          </span>
         </div>
-    </div>
+      </div>
+  </div>
 
-    <button v-if="bot.prompt_visibility" class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
-      Vis ledetekst
-    </button>  
-    
+  <button v-if="bot.prompt_visibility" class="me-auto btn oslo-btn-secondary" @click="toggleStartPrompt">
+    Vis ledetekst
+  </button>  
+  
 
+  <div class="card">
+    <ul class="list-group list-group-flush">
+      <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
+        <li v-if="message_line.role != 'system' || showSystemPrompt" class="container-fluid list-group-item response" :class="message_line.role">
+          <span class="row">
+            <div class="col-1 avatar">
+              <img v-if="message_line.role === 'system'" src="@/components/icons/system.svg" alt="ledetekst:">
+              <img v-if="message_line.role === 'user'" src="@/components/icons/user.svg" alt="du:">
+              <img v-if="message_line.role === 'assistant'" src="@/components/icons/oslobot.svg" alt="bot:">
+            </div>
+            <div class="col">
+              <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''" >
+              </span>
+            </div>
+            <div class="col-1 edit-link invisible">
+              <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
+                <img src="@/components/icons/rediger.svg" alt="rediger">
+              </a>
+            </div>
+            <div class="col-1 clipboard">
+              <a  href="#" @click="clipboard(msg_nr)">
+                <img src="@/components/icons/clipboard.svg" alt="kopier">
+              </a>
+            </div>
+          </span>
+        </li>
+      </span>
+    </ul>
+  </div>
+  <div id="input_line" class="mt-3">
+    <textarea id="text-input" ref="textInput" type="text" rows="5" aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger." v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
     <div class="card">
-      <ul class="list-group list-group-flush">
-        <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
-          <li v-if="message_line.role != 'system' || showSystemPrompt" class="container-fluid list-group-item response" :class="message_line.role">
-            <span class="row">
-              <div class="col-1 avatar">
-                <img v-if="message_line.role === 'system'" src="@/components/icons/system.svg" alt="ledetekst:">
-                <img v-if="message_line.role === 'user'" src="@/components/icons/user.svg" alt="du:">
-                <img v-if="message_line.role === 'assistant'" src="@/components/icons/oslobot.svg" alt="bot:">
-              </div>
-              <div class="col">
-                <span v-html="message_line.content" class="chat" :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''" >
-                </span>
-              </div>
-              <div class="col-1 edit-link invisible">
-                <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
-                  <img src="@/components/icons/rediger.svg" alt="rediger">
-                </a>
-              </div>
-              <div class="col-1 clipboard">
-                <a  href="#" @click="clipboard(msg_nr)">
-                  <img src="@/components/icons/clipboard.svg" alt="kopier">
-                </a>
-              </div>
-            </span>
-          </li>
-        </span>
-      </ul>
-    </div>
-    <div id="input_line" class="mt-3">
-      <textarea id="text-input" ref="textInput" type="text" rows="5" aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger." v-model="message" class="form-control" placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger." @keypress.enter.exact="sendMessage()"></textarea>
-      <div class="card">
       <div class="card-body bg-body-tertiary">
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">Send</button>
         <button class="btn oslo-btn-secondary" type="button" id="button-new" @click="resetMessages()">Ny samtale</button>
@@ -302,9 +302,5 @@ watchEffect(() => {
   <div>
     &nbsp;
   </div>
-  <!--     
- -->
-
-
 
 </template>
