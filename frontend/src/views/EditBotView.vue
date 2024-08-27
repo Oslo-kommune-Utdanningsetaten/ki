@@ -327,15 +327,6 @@ watch(route, () => {
     
     <div v-if="store.isAdmin" class="mb-3">
       <div class="row mb-3">
-        <div class="col-sm-2 ">Modell</div>
-        <div class="col-sm-10">
-          <div v-for="model in models" :key="model.id" class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" :id="model.id" :value="model.value" v-model="bot.model">
-            <label class="form-check-label" :for="model.id">{{ model.label }}</label>
-          </div>
-        </div>
-      </div>
-      <div class="row mb-3">
         <div class="col-sm-2 ">Tvungen visning</div>
         <div class="col-sm-10">
           <div class="form-check form-check-inline">
@@ -352,6 +343,15 @@ watch(route, () => {
       </div>
     </div>
     <div v-if="superuser">
+      <div class="row mb-3">
+        <div class="col-sm-2 ">Modell</div>
+        <div class="col-sm-10">
+          <div v-for="model in models" :key="model.id" class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" :id="model.id" :value="model.value" v-model="bot.model">
+            <label class="form-check-label" :for="model.id">{{ model.label }}</label>
+          </div>
+        </div>
+      </div>
       <div class="row mb-3">
         <div class="col-sm-2 ">Tillat distribusjon til elever</div>
         <div class="col-sm-10">

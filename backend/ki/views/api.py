@@ -286,7 +286,7 @@ def bot_info(request, bot_uuid=None):
             setting_key='default_model').txt_val
         if bot.model == '':
             bot.model = default_model
-        if is_admin:
+        if is_admin or (is_author and is_owner):
             bot.model = body.get('model', bot.model)
         if body.get('tags') and len(body.get('tags')) == 3:
             bot.tag_cat_1 = array_to_tag(body.get('tags', [0, 0, 0])[0])
