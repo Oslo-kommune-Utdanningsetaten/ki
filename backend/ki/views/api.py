@@ -176,6 +176,8 @@ def empty_bot(request, lib):
     is_author = request.g.get('author', False)
     edit_groups = (request.g['settings']['allow_groups']
                   and request.g['dist_to_groups'])
+    default_model = models.Setting.objects.get(
+        setting_key='default_model').txt_val
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -208,7 +210,7 @@ def empty_bot(request, lib):
             'mandatory': False,
             'bot_img': "bot5.svg",
             'temperature': '1',
-            'model': 'gpt-35-turbo',
+            'model': default_model,
             'edit': True,
             'distribute': edit_groups,
             'choices': [],
