@@ -5,9 +5,11 @@
   "prettier.requireConfig": true,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "svelte.plugin.svelte.format.config.printWidth": 100,
   "prettier.bracketSpacing": false,
   "prettier.printWidth": 100,
   "vue.format.template.initialIndent": false,
-  "prettier.bracketSameLine": true
+  "prettier.bracketSameLine": true,
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
