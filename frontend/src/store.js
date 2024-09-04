@@ -9,13 +9,16 @@ export const store = reactive({
     this.messages.splice(index, 1)
   },
   removeMessageId(id) {
-    this.messages.splice(this.messages.findIndex(x => x.id === id), 1)
+    this.messages.splice(
+      this.messages.findIndex((x) => x.id === id),
+      1
+    )
   },
   addMessage(text, type) {
     const uuid = crypto.randomUUID()
-    this.messages.push({'id':uuid, 'text': text, 'type': type })
+    this.messages.push({ id: uuid, text: text, type: type })
     setTimeout(() => {
       this.removeMessageId(uuid)
     }, 5000)
-  }
+  },
 })
