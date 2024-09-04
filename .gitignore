@@ -12,6 +12,7 @@ __pycache__/
 public/
 env/
 *.log*
+.vscode/launch.json
 
 # macos
 .DS_Store
