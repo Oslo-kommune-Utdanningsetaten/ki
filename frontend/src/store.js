@@ -10,7 +10,7 @@ export const store = reactive({
   },
   removeMessageId(id) {
     this.messages.splice(
-      this.messages.findIndex((x) => x.id === id),
+      this.messages.findIndex(x => x.id === id),
       1
     )
   },

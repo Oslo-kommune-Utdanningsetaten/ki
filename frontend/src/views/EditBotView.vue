@@ -113,8 +113,8 @@ const update = async () => {
   $router.push('/bot/' + botId.value)
 }
 
-const deleteChoice = (choice) => {
-  bot.value.choices = bot.value.choices.filter((c) => c.id !== choice.id)
+const deleteChoice = choice => {
+  bot.value.choices = bot.value.choices.filter(c => c.id !== choice.id)
 }
 
 const addChoice = () => {
@@ -124,15 +124,15 @@ const addChoice = () => {
     text: '',
     options: [],
     selected: false,
-    order: Math.max(...bot.value.choices.map((c) => c.order), -1) + 1,
+    order: Math.max(...bot.value.choices.map(c => c.order), -1) + 1,
   })
 }
 
-const notFirstChoice = (choice) => {
+const notFirstChoice = choice => {
   return choice.order > 0
 }
 
-const notLastChoice = (choice) => {
+const notLastChoice = choice => {
   return choice.order < bot.value.choices.length - 1
 }
 
@@ -144,17 +144,17 @@ const notLastOption = (choice, option) => {
   return option.order < choice.options.length - 1
 }
 
-const choiceOrderUp = (choice) => {
+const choiceOrderUp = choice => {
   if (choice.order > 0) {
-    const other = bot.value.choices.find((c) => c.order === choice.order - 1)
+    const other = bot.value.choices.find(c => c.order === choice.order - 1)
     other.order++
     choice.order--
   }
 }
 
-const choiceOrderDown = (choice) => {
+const choiceOrderDown = choice => {
   if (choice.order < bot.value.choices.length - 1) {
-    const other = bot.value.choices.find((c) => c.order === choice.order + 1)
+    const other = bot.value.choices.find(c => c.order === choice.order + 1)
     other.order--
     choice.order++
   }
@@ -162,7 +162,7 @@ const choiceOrderDown = (choice) => {
 
 const optionOrderUp = (choice, option) => {
   if (option.order > 0) {
-    const other = choice.options.find((o) => o.order === option.order - 1)
+    const other = choice.options.find(o => o.order === option.order - 1)
     other.order++
     option.order--
   }
@@ -170,27 +170,27 @@ const optionOrderUp = (choice, option) => {
 
 const optionOrderDown = (choice, option) => {
   if (option.order < choice.options.length - 1) {
-    const other = choice.options.find((o) => o.order === option.order + 1)
+    const other = choice.options.find(o => o.order === option.order + 1)
     other.order--
     option.order++
   }
 }
 
 const deleteOption = (choice, option) => {
-  choice.options = choice.options.filter((o) => o.id !== option.id)
+  choice.options = choice.options.filter(o => o.id !== option.id)
 }
 
-const addOption = (choice) => {
+const addOption = choice => {
   choice.options.push({
     id: Math.random().toString(36).substring(7),
     label: '',
     text: '',
-    order: Math.max(...choice.options.map((o) => o.order), -1) + 1,
+    order: Math.max(...choice.options.map(o => o.order), -1) + 1,
   })
 }
 
-const setAllAccesses = (access) => {
-  bot.value.schoolAccesses.forEach((school) => {
+const setAllAccesses = access => {
+  bot.value.schoolAccesses.forEach(school => {
     school.access = access
   })
 }
@@ -202,7 +202,7 @@ const choicesSorted = computed(() => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
 })
 
-const optionsSorted = (choice) => {
+const optionsSorted = choice => {
   return choice.options.sort((a, b) => a.order - b.order)
 }
 
@@ -213,7 +213,7 @@ const superuser = computed(() => {
 const schoolAccessFiltered = computed(() => {
   let filtered_list = []
   if (filter_list.value.length > 0) {
-    filtered_list = bot.value.schoolAccesses.filter((school) =>
+    filtered_list = bot.value.schoolAccesses.filter(school =>
       filter_list.value.includes(school.access)
     )
   } else {
@@ -417,9 +417,9 @@ watch(
         </div>
       </div>
       <div class="row mb-3">
-        <label for="bot_info" class="col-sm-2 col-form-label"
-          >Informasjon (vises på startsiden)</label
-        >
+        <label for="bot_info" class="col-sm-2 col-form-label">
+          Informasjon (vises på startsiden)
+        </label>
         <div class="col-sm-10">
           <textarea
             v-model="bot.bot_info"
@@ -459,9 +459,9 @@ watch(
         <div class="col-sm-10">
           <div v-for="choice in choicesSorted" class="card mb-3 p-3">
             <div class="row mb-1">
-              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label"
-                >Spørsmål</label
-              >
+              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
+                Spørsmål
+              </label>
               <div class="col-sm-10">
                 <input
                   type="text"
@@ -476,9 +476,9 @@ watch(
               <div class="col-sm-10">
                 <div v-for="option in optionsSorted(choice)">
                   <div class="row mb-1">
-                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label"
-                      >Knapp</label
-                    >
+                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
+                      Knapp
+                    </label>
                     <div class="col-sm-10">
                       <input
                         type="text"
@@ -489,9 +489,9 @@ watch(
                     </div>
                   </div>
                   <div class="row mb-1">
-                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label"
-                      >Ledetekst</label
-                    >
+                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
+                      Ledetekst
+                    </label>
                     <div class="col-sm-10">
                       <textarea
                         class="form-control"
@@ -508,9 +508,9 @@ watch(
                     :value="option"
                     v-model="choice.selected"
                   />
-                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`"
-                    >Valgt</label
-                  >
+                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+                    Valgt
+                  </label>
                   <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
                     Slett alternativ
                   </button>
@@ -584,7 +584,8 @@ watch(
       <hr />
       <p>
         Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper
-        nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.<br />
+        nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.
+        <br />
         Tilgangen til boten varer i {{ lifeSpan }} timer fra du lagrer.
       </p>
     </div>
@@ -646,9 +647,9 @@ watch(
                   type="checkbox"
                   v-model="filter_list"
                 />
-                <label class="form-check-label" :for="'filter' + option.value">{{
-                  option.label
-                }}</label>
+                <label class="form-check-label" :for="'filter' + option.value">
+                  {{ option.label }}
+                </label>
               </div>
             </div>
           </li>

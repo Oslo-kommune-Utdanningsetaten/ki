@@ -21,7 +21,7 @@ const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
 }
 
-const optionsSorted = (choice) => {
+const optionsSorted = choice => {
   return choice.options.sort((a, b) => a.order - b.order)
 }
 
@@ -42,7 +42,7 @@ const startpromt = async () => {
 const resetMessages = () => {
   let fullChoicesText = ''
   if (bot.value.choices) {
-    choicesSorted().forEach((choice) => {
+    choicesSorted().forEach(choice => {
       if (choice.selected !== null) {
         // fullChoicesText += choice.text + ' ' + choice.selected.text + ' ';
         fullChoicesText += choice.selected.text + ' '
@@ -123,7 +123,7 @@ const callChatStream = async (url = '', data = {}, messages) => {
   }
 }
 
-const getCookie = (name) => {
+const getCookie = name => {
   let cookieValue = null
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';')
@@ -138,7 +138,7 @@ const getCookie = (name) => {
   return cookieValue
 }
 
-const editPrompt = (response_nr) => {
+const editPrompt = response_nr => {
   messages.value.splice(response_nr + 1)
   message.value = messages.value.pop()['content']
   showTypeWriter.value = false
@@ -151,16 +151,16 @@ const toggleStartPrompt = () => {
 const deleteBot = () => {
   axios
     .delete('/api/bot_info/' + botId.value)
-    .then((response) => {
+    .then(response => {
       store.addMessage('Boten er nå slettet', 'info')
       router.push({ name: 'home' })
     })
-    .catch((error) => {
+    .catch(error => {
       console.log(error)
     })
 }
 
-const clipboard = (response_nr) => {
+const clipboard = response_nr => {
   try {
     navigator.clipboard.writeText(messages.value[response_nr].content)
   } catch (error) {
@@ -168,7 +168,7 @@ const clipboard = (response_nr) => {
   }
 }
 
-const clipboardAll = (bot) => {
+const clipboardAll = bot => {
   const roles = {
     system: 'Ledetekst',
     user: 'Du',
@@ -181,7 +181,7 @@ const clipboardAll = (bot) => {
   }
   // console.log(copy_text)
   try {
-    navigator.clipboard.writeText(copy_text.map((x) => `${roles[x.role]}: ${x.content}`).join('\n'))
+    navigator.clipboard.writeText(copy_text.map(x => `${roles[x.role]}: ${x.content}`).join('\n'))
   } catch (error) {
     console.log(error)
   }
@@ -317,8 +317,7 @@ watchEffect(() => {
                 v-html="message_line.content"
                 class="chat"
                 :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''"
-              >
-              </span>
+              ></span>
             </div>
             <div class="col-1 edit-link invisible">
               <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
@@ -370,10 +369,10 @@ watchEffect(() => {
           Kopier samtalen
         </button>
         <div>
-          <small
-            >Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med
-            virkeligheten, og den gir ikke beskjed om når den gjør det.</small
-          >
+          <small>
+            Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med virkeligheten,
+            og den gir ikke beskjed om når den gjør det.
+          </small>
         </div>
       </div>
     </div>

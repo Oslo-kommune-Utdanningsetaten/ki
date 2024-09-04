@@ -43,16 +43,16 @@ const filterBots = computed(() => {
     filter.value.forEach((filterArray, i) => {
       if (filterArray.length > 0) {
         const binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
-        botsFiltered = botsFiltered.filter((bot) => (bot.tag[i] & binarySum) > 0)
+        botsFiltered = botsFiltered.filter(bot => (bot.tag[i] & binarySum) > 0)
       }
     })
-    return botsFiltered.filter((bot) => !bot.personal && !bot.mandatory)
+    return botsFiltered.filter(bot => !bot.personal && !bot.mandatory)
   } else {
-    return bots.value.filter((bot) => bot.mandatory || bot.personal || bot.favorite)
+    return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite)
   }
 })
 
-const bot_tile_bg = (bot) => {
+const bot_tile_bg = bot => {
   if (bot.personal) {
     return 'oslo-bg-light'
   } else {
@@ -60,7 +60,7 @@ const bot_tile_bg = (bot) => {
   }
 }
 
-const toggle_favorite = async (bot) => {
+const toggle_favorite = async bot => {
   try {
     const { data } = await axios.put('/api/favorite/' + bot.uuid)
     bot.favorite = data.favorite
@@ -69,11 +69,11 @@ const toggle_favorite = async (bot) => {
   }
 }
 
-const setActiveBot = (bot) => {
+const setActiveBot = bot => {
   active_bot.value = bot
 }
 
-const getBotImage = (bot) => {
+const getBotImage = bot => {
   if (bot.bot_img === 'bot1.svg') {
     return botIcon1
   } else if (bot.bot_img === 'bot2.svg') {
@@ -151,7 +151,7 @@ const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/
       Utdanningsetaten og veilederteamet for bruk av læringsteknologi i Osloskolen.
     </p>
     <div v-if="status === 'not_feide'">
-      <a href="/auth/feidelogin" role="button" class="btn oslo-btn-primary">Logg inn </a>
+      <a href="/auth/feidelogin" role="button" class="btn oslo-btn-primary">Logg inn</a>
     </div>
     <div v-else-if="status === 'not_school'">
       <div class="card">
@@ -165,8 +165,9 @@ const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/
         <a
           href="https://uustatus.no/nb/erklaringer/publisert/a049250e-d0fb-4510-8f7c-29427e8876e8"
           target="_blank"
-          >Tilgjengelighetserklæring</a
         >
+          Tilgjengelighetserklæring
+        </a>
       </p>
     </div>
   </div>

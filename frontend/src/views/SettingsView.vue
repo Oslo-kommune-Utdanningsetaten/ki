@@ -43,7 +43,7 @@ const getSettings = async () => {
   }
 }
 
-const settingsChange = async (setting) => {
+const settingsChange = async setting => {
   try {
     const { data } = await axios.put('/api/settings', { setting })
   } catch (error) {
@@ -60,7 +60,7 @@ const getSchoolAccess = async () => {
   }
 }
 
-const schoolAccessChange = async (school) => {
+const schoolAccessChange = async school => {
   try {
     const { data } = await axios.put('/api/school_access', { school })
     // schoolAccess.value = data.schools;
@@ -71,7 +71,7 @@ const schoolAccessChange = async (school) => {
 
 const schoolAccessFiltered = computed(() => {
   if (filter_list.value.length > 0) {
-    return schoolAccess.value.filter((school) => filter_list.value.includes(school.access))
+    return schoolAccess.value.filter(school => filter_list.value.includes(school.access))
   }
   return schoolAccess.value
 })
@@ -81,9 +81,9 @@ const schoolAccessFiltered = computed(() => {
   <div class="card">
     <div class="card-body">
       <div v-for="setting in settings" class="form-group row">
-        <label :for="setting.setting_key" class="col-sm-3 col-form-label">{{
-          setting.label
-        }}</label>
+        <label :for="setting.setting_key" class="col-sm-3 col-form-label">
+          {{ setting.label }}
+        </label>
         <div class="col-sm-3">
           <input
             :type="setting.type"
@@ -115,9 +115,9 @@ const schoolAccessFiltered = computed(() => {
                 type="checkbox"
                 v-model="filter_list"
               />
-              <label class="form-check-label" :for="'filter' + option.value">{{
-                option.label
-              }}</label>
+              <label class="form-check-label" :for="'filter' + option.value">
+                {{ option.label }}
+              </label>
             </div>
           </div>
         </li>

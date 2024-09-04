@@ -40,10 +40,10 @@ watchEffect(() => {
 
   <nav class="d-flex flex-row-reverse">
     <div v-if="menuItems.length === 0" class="nav-item">
-      <a class="nav-link p-3" href="/auth/feidelogin"> Logg inn </a>
+      <a class="nav-link p-3" href="/auth/feidelogin">Logg inn</a>
     </div>
     <div v-else class="nav-item">
-      <a class="nav-link p-3" href="/auth/logout"> Logg ut </a>
+      <a class="nav-link p-3" href="/auth/logout">Logg ut</a>
     </div>
     <div v-for="item in menuItems" :key="item.id" class="nav-item">
       <RouterLink active-class="active" class="nav-link p-3" :class="item.class" :to="item.url">
