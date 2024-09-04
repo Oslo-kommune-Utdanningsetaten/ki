@@ -12,34 +12,34 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView
+      component: HomeView,
     },
     {
       path: '/message/:text/:type',
       name: 'message',
-      component: MessageView
+      component: MessageView,
     },
     {
       path: '/bot/:id',
       name: 'bot',
-      component: BotView
+      component: BotView,
     },
     {
       path: '/editbot/:method/:id?',
       name: 'editbot',
-      component: EditBotView
+      component: EditBotView,
     },
     {
       path: '/info/:page',
       name: 'info',
-      component: InfoView
+      component: InfoView,
     },
     {
       path: '/settings',
       name: 'settings',
-      component: SettingsView
-    }
-  ]
+      component: SettingsView,
+    },
+  ],
 })
 
 export default router

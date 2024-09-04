@@ -1,12 +1,12 @@
 <script setup>
-import { RouterView } from 'vue-router';
-import Navbar from '@/components/Navbar.vue';
-import Messages from '@/components/Messages.vue';
+import { RouterView } from 'vue-router'
+import Navbar from '@/components/Navbar.vue'
+import Messages from '@/components/Messages.vue'
 </script>
 
 <template>
   <Navbar />
-  <div class="container mt-3">   
+  <div class="container mt-3">
     <Messages />
     <RouterView />
   </div>
@@ -69,9 +69,4 @@ import Messages from '@/components/Messages.vue';
   font-style: italic;
 }
  */
-
 </style>
-
-
-
-
