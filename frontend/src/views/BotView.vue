@@ -1,21 +1,20 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, watchEffect, useTemplateRef } from 'vue'
 import { store } from '../store.js'
-import $ from 'jquery'
 
 const route = useRoute()
 const router = useRouter()
 const bot = ref({})
-const botId = ref(0)
 const messages = ref([])
 const message = ref('')
-const showTypeWriter = ref(false)
+const isProcessingInput = ref(false)
 const showSystemPrompt = ref(false)
+const botId = ref(0)
 botId.value = route.params.id
 
-const textInput = ref(null) // Add a ref for the text input element
+const textInput = useTemplateRef('text-input') // Add a ref for the text input element
 
 const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
@@ -69,58 +68,36 @@ const sendMessage = async () => {
     }
   )
   message.value = ''
-  $('#input_line').addClass('d-none')
-  $('.edit-link').addClass('invisible')
-  showTypeWriter.value = true
+  isProcessingInput.value = true
 
-  await callChatStream(
-    '/api/send_message',
-    { uuid: botId.value, messages: messages.value },
-    messages.value
-  )
+  const data = { uuid: botId.value, messages: messages.value }
+  const handleStreamText = streamedText => {
+    messages.value[messages.value.length - 1].content = streamedText
+  }
+  await callChatStream(data, handleStreamText).then(() => {
+    // stream is done, return control to user
+    isProcessingInput.value = false
+  })
   textInput.value.focus() // Set focus to the text input element
 }
 
-const callChatStream = async (url = '', data = {}, messages) => {
+const callChatStream = async (data, progressCallback) => {
   const csrf = getCookie('csrftoken')
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrf,
-    },
-    body: JSON.stringify(data),
-  })
-
-  if (!response.body) return
-
-  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
-
-  // Read the eventstream until done
-  while (true) {
-    var { value, done } = await reader.read()
-    if (done) {
-      $('#input_line').removeClass('d-none')
-      $('.edit-link').removeClass('invisible')
-      showTypeWriter.value = false
-
-      // Handle markdown parsing
-      let updatedMessage = messages[messages.length - 1]
-      // updatedMessage.content = marked.parse(updatedMessage.content);
-      messages[messages.length - 1] = updatedMessage
-
-      break
-    }
-
-    // Append response to last message object
-    let updatedMessage = messages[messages.length - 1]
-    updatedMessage.content += value
-    messages[messages.length - 1] = updatedMessage
-
-    // Scroll to bottom of page
-    // const scrollingElement = (document.scrollingElement || document.body);
-    // scrollingElement.scrollTop = scrollingElement.scrollHeight;
-  }
+  return await axios
+    .post('/api/send_message', data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf,
+      },
+      responseType: 'stream',
+      onDownloadProgress: progressEvent => {
+        // axios doesn't support streaming on post, so we need to update messages manually on download progress
+        progressCallback(progressEvent.event.target.responseText)
+      },
+    })
+    .catch(error => {
+      console.error('Something went wrong while streaming the chat response', error)
+    })
 }
 
 const getCookie = name => {
@@ -141,7 +118,7 @@ const getCookie = name => {
 const editPrompt = response_nr => {
   messages.value.splice(response_nr + 1)
   message.value = messages.value.pop()['content']
-  showTypeWriter.value = false
+  isProcessingInput.value = false
 }
 
 const toggleStartPrompt = () => {
@@ -316,10 +293,10 @@ watchEffect(() => {
               <span
                 v-html="message_line.content"
                 class="chat"
-                :class="msg_nr === messages.length - 1 && showTypeWriter ? 'type-writer' : ''"
+                :class="msg_nr === messages.length - 1 && isProcessingInput ? 'type-writer' : ''"
               ></span>
             </div>
-            <div class="col-1 edit-link invisible">
+            <div class="col-1 edit-link" :class="{ invisible: isProcessingInput }">
               <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
                 <img src="@/components/icons/rediger.svg" alt="rediger" />
               </a>
@@ -334,10 +311,10 @@ watchEffect(() => {
       </span>
     </ul>
   </div>
-  <div id="input_line" class="mt-3">
+  <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInput }">
     <textarea
       id="text-input"
-      ref="textInput"
+      ref="text-input"
       type="text"
       rows="5"
       aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
