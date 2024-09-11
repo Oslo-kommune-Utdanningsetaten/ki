@@ -286,7 +286,7 @@ def bot_info(request, bot_uuid=None):
         bot.owner = None if bot.owner == '' else bot.owner
         default_model = models.Setting.objects.get(
             setting_key='default_model').txt_val
-        if bot.model == '':
+        if bot.model == '' or bot.model == None:
             bot.model = default_model
         if is_admin or (is_author and is_owner):
             bot.model = body.get('model', bot.model)
