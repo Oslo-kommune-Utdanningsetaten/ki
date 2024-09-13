@@ -30,6 +30,7 @@ class Bot(models.Model):
     owner = models.CharField(max_length=50, null=True)
     allow_distribution = models.BooleanField(default=False)
     mandatory = models.BooleanField(default=False)
+    img_bot = models.BooleanField(default=False)
     bot_info = models.TextField(null=True)
     tag_cat_1 = models.IntegerField(default=0)
     tag_cat_2 = models.IntegerField(default=0)
