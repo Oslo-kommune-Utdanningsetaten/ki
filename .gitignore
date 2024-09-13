@@ -9,7 +9,10 @@ log/prometheus/*
 !/log/prometheus/prometheus.yml
 !/log/grafana/datasources/prometheus_ds.yml
 __pycache__/
-.vscode/
 public/
 env/
 *.log*
+.vscode/launch.json
+
+# macos
+.DS_Store

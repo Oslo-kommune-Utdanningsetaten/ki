@@ -1,0 +1,15 @@
+{
+  "prettier.configPath": "./frontend/.prettierrc.json",
+  "prettier.ignorePath": "",
+  "prettier.prettierPath": "./frontend/node_modules/prettier",
+  "prettier.requireConfig": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.bracketSpacing": false,
+  "prettier.printWidth": 100,
+  "vue.format.template.initialIndent": false,
+  "prettier.bracketSameLine": true,
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
