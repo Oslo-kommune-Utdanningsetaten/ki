@@ -96,14 +96,9 @@ const botIconWidth = computed(
   //   "col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6"
 )
 
-const newLink = computed(() => (
-  showLibrary.value ? 'editbot/newlib' : 'editbot/new'
-))
+const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/new'))
 
-const botLink = (bot) => (
-  bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid
-)
-
+const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
 </script>
 
 <template>
@@ -225,16 +220,16 @@ const botLink = (bot) => (
         </div>
       </div> -->
       <div class="col">
-      <div class="row">
-      <div v-for="bot in filterBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
-        <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)" >
-          <div class="card text-center h-100" :class="bot_tile_bg(bot)">
-            <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
-            <div class="row text-center m-0 pt-3">
-              <div class="col-2"></div>
-              <div class="col-8 p-0">
-                <img :src='getBotImage(bot)' :alt="'Åpne '+bot.bot_title">
-              </div>
+        <div class="row">
+          <div v-for="bot in filterBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
+            <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)">
+              <div class="card text-center h-100" :class="bot_tile_bg(bot)">
+                <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
+                <div class="row text-center m-0 pt-3">
+                  <div class="col-2"></div>
+                  <div class="col-8 p-0">
+                    <img :src="getBotImage(bot)" :alt="'Åpne ' + bot.bot_title" />
+                  </div>
 
                   <div v-if="store.isEmployee" class="col-2 px-0">
                     <div v-if="bot.mandatory"></div>
