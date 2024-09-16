@@ -18,7 +18,6 @@ class Setting(models.Model):
 
 class Bot(models.Model):
     uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
-    bot_nr = models.IntegerField(null=True)
     title = models.CharField(max_length=40, null=True) 
     ingress = models.TextField(null=True)  
     prompt = models.TextField(null=True) 
@@ -42,7 +41,6 @@ class Bot(models.Model):
 class Favorite(models.Model):
     id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="favorites")
-    bot_nr = models.IntegerField(null=True)
     user_id = models.CharField(max_length=50)
     # created = models.DateTimeField(auto_now_add=True)
 
@@ -54,7 +52,6 @@ class Favorite(models.Model):
 class PromptChoice(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="prompt_choices")
-    bot_nr = models.IntegerField(null=True)
     label = models.CharField(max_length=50)
     order = models.IntegerField()
     text = models.TextField(null=True) 
@@ -102,7 +99,6 @@ class BotAccess(models.Model):
 
     access_id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="accesses")
-    bot_nr = models.IntegerField(null=True)
     school_id = models.ForeignKey(
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="accesses")
     level = models.CharField(max_length=20, null=True) 
@@ -146,7 +142,6 @@ class SubjectAccess(models.Model):
     id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, 
                                db_column='bot_id', to_field='uuid', related_name="subjects")
-    bot_nr = models.IntegerField(null=True)
     subject_id = models.CharField(max_length=200, null=True) 
     created = models.DateTimeField(auto_now_add=True) 
 
