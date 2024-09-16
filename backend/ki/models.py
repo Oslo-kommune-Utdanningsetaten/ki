@@ -7,7 +7,7 @@ class Setting(models.Model):
     label = models.CharField(max_length=50)
     int_val = models.IntegerField(null=True)
     txt_val = models.CharField(max_length=250, null=True)
-    is_txt = models.BooleanField(null=True)
+    is_txt = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.setting_key}-{self.int_val}{self.txt_val}"
@@ -17,7 +17,7 @@ class Setting(models.Model):
 
 
 class Bot(models.Model):
-    uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4, editable=False)
+    uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
     bot_nr = models.IntegerField(null=True)
     title = models.CharField(max_length=40, null=True) 
     ingress = models.TextField(null=True)  
@@ -66,7 +66,7 @@ class ChoiceOption(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
     choice_id = models.ForeignKey(PromptChoice, on_delete=models.CASCADE, db_column='choice_id', to_field='id', related_name="options")
     label = models.CharField(max_length=50)
-    text = models.TextField()
+    text = models.TextField(default="")
     order = models.IntegerField()
     is_default = models.BooleanField(default=False)
 

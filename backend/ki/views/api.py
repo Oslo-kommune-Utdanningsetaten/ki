@@ -560,8 +560,6 @@ async def send_message(request):
     # Need to conver to uuid if uuid in database 
     # if not uuid.UUID(bot_uuid) in request.g.get('bots', []): 
     if not bot_uuid in request.g.get('bots', []):
-        print("Bot not in user", uuid.UUID(bot_uuid), request.g.get('bots', []))
-        print(type(uuid.UUID(bot_uuid)), type(request.g.get('bots', [])[0]))
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
