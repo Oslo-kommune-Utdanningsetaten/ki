@@ -293,7 +293,7 @@ def bot_info(request, bot_uuid=None):
         bot.owner = None if bot.owner == '' else bot.owner
         default_model = models.Setting.objects.get(
             setting_key='default_model').txt_val
-        if bot.model == '':
+        if not bool(bot.model):
             bot.model = default_model
         if is_admin or (is_author and is_owner):
             bot.model = body.get('model', bot.model)
@@ -561,17 +561,22 @@ async def send_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
-    if not uuid.UUID(bot_uuid) in request.g.get('bots', []):
+    # Need to conver to uuid if uuid in database 
+    # if not uuid.UUID(bot_uuid) in request.g.get('bots', []): 
+    if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
+        bot_model = bot.model
+        if not bool(bot_model):
+            bot_model = models.Setting.objects.get(setting_key='default_model').txt_val
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
     async def stream():
         try:
             completion = await azureClient.chat.completions.create(
-                model=bot.model,
+                model=bot_model,
                 messages=messages,
                 temperature=float(bot.temperature),
                 stream=True,

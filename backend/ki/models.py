@@ -13,17 +13,16 @@ class Setting(models.Model):
         return f"{self.setting_key}-{self.int_val}{self.txt_val}"
 
     class Meta:
-        managed = False
         db_table = 'setting'
 
 
 class Bot(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    title = models.CharField(max_length=40)
-    ingress = models.TextField()
-    prompt = models.TextField()
-    model = models.CharField(max_length=20)
-    temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
+    uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    title = models.CharField(max_length=40, null=True) 
+    ingress = models.TextField(null=True)  
+    prompt = models.TextField(null=True) 
+    model = models.CharField(max_length=20, null=True) 
+    temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0) 
     image = models.CharField(max_length=20, null=True)
     prompt_visibility = models.BooleanField(default=True)
     library = models.BooleanField(default=False)
@@ -37,7 +36,6 @@ class Bot(models.Model):
     tag_cat_3 = models.IntegerField(default=0)
 
     class Meta:
-        managed = False
         db_table = 'bot'
 
 
@@ -48,7 +46,6 @@ class Favorite(models.Model):
     # created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        managed = False
         db_table = 'favorite'
         unique_together = ('bot_id', 'user_id')
 
@@ -58,10 +55,9 @@ class PromptChoice(models.Model):
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="prompt_choices")
     label = models.CharField(max_length=50)
     order = models.IntegerField()
-    # text = models.TextField()
+    text = models.TextField(null=True) 
 
     class Meta:
-        managed = False
         db_table = 'prompt_choice'
 
 class ChoiceOption(models.Model):
@@ -73,7 +69,6 @@ class ChoiceOption(models.Model):
     is_default = models.BooleanField(default=False)
 
     class Meta:
-        managed = False
         db_table = 'choice_option'
 
 class School(models.Model):
@@ -84,15 +79,14 @@ class School(models.Model):
         LEVELS = 'levels'
 
     org_nr = models.CharField(max_length=20, primary_key=True)
-    school_name = models.CharField(max_length=50)
-    school_code = models.CharField(max_length=3)
+    school_name = models.CharField(max_length=50, null=True, default='')  
+    school_code = models.CharField(max_length=3, null=True)  
     access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
 
     def __repr__(self):
         return f"{self.org_nr}-{self.school_name}"
 
     class Meta:
-        managed = False
         db_table = 'school'
         ordering = ['school_name']
 
@@ -108,15 +102,13 @@ class BotAccess(models.Model):
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="accesses")
     school_id = models.ForeignKey(
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="accesses")
-    # school_id = models.CharField(max_length=20)
-    level = models.CharField(max_length=20)
-    access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
+    level = models.CharField(max_length=20, null=True) 
+    access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE, null=True) 
 
     def __str__(self):
         return f"{self.bot_id}-{self.school_id}{self.level}"
 
     class Meta:
-        managed = False
         db_table = 'bot_access'
         unique_together = ('bot_id', 'school_id')
 
@@ -125,13 +117,12 @@ class BotLevel(models.Model):
     level_id = models.AutoField(primary_key=True)
     access_id = models.ForeignKey(
         BotAccess, on_delete=models.CASCADE, db_column='access_id', related_name="levels")
-    level = models.CharField(max_length=20)
+    level = models.CharField(max_length=20, default='') 
 
     def __str__(self):
         return f"{self.level_id}-{self.access_id}{self.level}"
     
     class Meta:
-        managed = False
         db_table = 'bot_level'
 
 
@@ -139,14 +130,12 @@ class SchoolAccess(models.Model):
     access_id = models.AutoField(primary_key=True)
     school_id = models.ForeignKey(
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="school_accesses")
-    # school_id = models.CharField(max_length=20)
     level = models.CharField(max_length=20)
 
     def __str__(self):
         return f"global-{self.access_id}:{self.school_id}{self.level}"
 
     class Meta:
-        managed = False
         db_table = 'school_access'
 
 
@@ -154,11 +143,10 @@ class SubjectAccess(models.Model):
     id = models.AutoField(primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, 
                                db_column='bot_id', to_field='uuid', related_name="subjects")
-    subject_id = models.CharField(max_length=200)
-    created = models.DateTimeField(auto_now_add=True)
+    subject_id = models.CharField(max_length=200, null=True) 
+    created = models.DateTimeField(auto_now_add=True) 
 
     class Meta:
-        managed = False
         db_table = 'subject_access'
         unique_together = ('bot_id', 'subject_id')
 
@@ -166,11 +154,10 @@ class SubjectAccess(models.Model):
 class PageText(models.Model):
     page_id = models.CharField(max_length=10, primary_key=True)
     page_title = models.CharField(max_length=50)
-    page_text = models.TextField()
-    public = models.BooleanField()
+    page_text = models.TextField(null=True) 
+    public = models.BooleanField() 
 
     class Meta:
-        managed = False
         db_table = 'page_text'
 
 class Role(models.Model):
@@ -181,11 +168,11 @@ class Role(models.Model):
 
     user_id = models.CharField(max_length=50, primary_key=True)
     role = models.CharField(max_length=10, choices=RoleEnum.choices, default=RoleEnum.EMP)
-    school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school', to_field='org_nr', related_name="roles", null=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school', to_field='org_nr', related_name="roles", null=True) 
 
     def __str__(self):
         return f"{self.user_id}-{self.role}"
 
     class Meta:
-        managed = False
         db_table = 'role'
+
