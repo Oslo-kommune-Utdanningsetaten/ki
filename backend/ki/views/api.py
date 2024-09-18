@@ -561,8 +561,6 @@ async def send_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
-    # Need to conver to uuid if uuid in database 
-    # if not uuid.UUID(bot_uuid) in request.g.get('bots', []): 
     if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
@@ -607,7 +605,7 @@ def send_img_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     prompt = body.get('prompt')
-    if not uuid.UUID(bot_uuid) in request.g.get('bots', []):
+    if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
         bot = models.Bot.objects.get(uuid=bot_uuid)
