@@ -71,6 +71,7 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
                         'http://localhost:5173'
                         ]
                         
+CSP_IMG_SRC = ["'self'", "https://dalleprodsec.blob.core.windows.net"]
 
 ROOT_URLCONF = 'app.urls'
 
