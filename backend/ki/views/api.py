@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
 import requests
-from openai import AsyncAzureOpenAI
+from openai import AsyncAzureOpenAI, AzureOpenAI
 import openai
 import uuid
 import os
@@ -13,6 +13,12 @@ import json
 
 
 azureClient = AsyncAzureOpenAI(
+    azure_endpoint=os.environ.get('OPENAI_API_BASE'),
+    api_key=os.environ.get('OPENAI_API_KEY'),
+    api_version=os.environ.get('OPENAI_API_VERSION'),
+)
+
+azureImgClient = AzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
     api_key=os.environ.get('OPENAI_API_KEY'),
     api_version=os.environ.get('OPENAI_API_VERSION'),
@@ -153,6 +159,7 @@ def user_bots(request):
                     if (bot.favorites.filter(user_id=request.g.get('username', '')).first())
                     else False,
             'mandatory': bot.mandatory,
+            'img_bot': bot.img_bot,
             'personal': not bot.library,
             'allow_distribution': bot.allow_distribution and open_for_distribution,
             'bot_info': bot.bot_info or '',
@@ -554,8 +561,6 @@ async def send_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
-    # Need to conver to uuid if uuid in database 
-    # if not uuid.UUID(bot_uuid) in request.g.get('bots', []): 
     if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
@@ -594,3 +599,36 @@ async def send_message(request):
                     yield chunk
 
     return StreamingHttpResponse(stream(), content_type='text/event-stream')
+
+@api_view(["POST"])
+def send_img_message(request):
+    body = json.loads(request.body)
+    bot_uuid = body.get('uuid')
+    prompt = body.get('prompt')
+    if not bot_uuid in request.g.get('bots', []):
+        return HttpResponseForbidden()
+    try:
+        bot = models.Bot.objects.get(uuid=bot_uuid)
+    except models.Bot.DoesNotExist:
+        return HttpResponseNotFound()
+
+    # def send():
+    try:
+        response = azureImgClient.images.generate(
+            model=bot.model,
+            # model='dall-e-3',
+            size='1024x1024',
+            quality='standard',
+            prompt=prompt,
+            response_format='url',
+            n=1,
+        )
+        json_response = json.loads(response.model_dump_json())
+        data = json_response['data'][0]
+    except openai.BadRequestError as e:
+        if e.code == "content_policy_violation":
+            data ={'msg': "Dette er ikke et passende emne. Velg noe annet å lage bilde av."}
+        else:
+            data ={'msg': "Noe gikk galt. Prøv igjen senere."}
+
+    return Response(data)

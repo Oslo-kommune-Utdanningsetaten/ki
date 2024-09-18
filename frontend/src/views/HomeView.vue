@@ -97,6 +97,8 @@ const botIconWidth = computed(
 )
 
 const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/new'))
+
+const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
 </script>
 
 <template>
@@ -194,6 +196,7 @@ const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/
     </div>
 
     <div class="row align-items-stretch">
+      <!-- TODO de-comment this to activate the filter -->
       <!-- <div v-if="showLibrary" class="col-xxl-3 col-lg-3 col-md-4 col-6">
         <div class="card card-body">
           <div class="card-title">
@@ -219,7 +222,7 @@ const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/
       <div class="col">
         <div class="row">
           <div v-for="bot in filterBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
-            <RouterLink active-class="active" class="bot_tile" :to="'bot/' + bot.uuid">
+            <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)">
               <div class="card text-center h-100" :class="bot_tile_bg(bot)">
                 <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
                 <div class="row text-center m-0 pt-3">

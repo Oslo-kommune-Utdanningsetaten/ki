@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import BotView from '../views/BotView.vue'
+import ImgBotView from '../views/ImgBotView.vue'
 import EditBotView from '../views/EditBotView.vue'
 import InfoView from '../views/InfoView.vue'
 import SettingsView from '../views/SettingsView.vue'
@@ -23,6 +24,11 @@ const router = createRouter({
       path: '/bot/:id',
       name: 'bot',
       component: BotView,
+    },
+    {
+      path: '/imgbot/:id',
+      name: 'imgbot',
+      component: ImgBotView
     },
     {
       path: '/editbot/:method/:id?',
