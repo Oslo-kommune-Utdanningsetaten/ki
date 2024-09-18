@@ -55,6 +55,7 @@ if ADMIN_ENABLED:
     INSTALLED_APPS.append('django.contrib.admin')
 
 MIDDLEWARE = [
+    'csp.middleware.CSPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
