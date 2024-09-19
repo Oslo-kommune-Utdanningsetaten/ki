@@ -18,7 +18,6 @@ uvicorn = "^0.27.1"
 django = "^4.2.6"
 djangorestframework = "^3.14.0"
 mysqlclient = "^2.2.4"
-django-csp = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
 daphne = "^4.1.0"

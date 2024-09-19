@@ -55,7 +55,6 @@ if ADMIN_ENABLED:
     INSTALLED_APPS.append('django.contrib.admin')
 
 MIDDLEWARE = [
-    'csp.middleware.CSPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -72,7 +71,6 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
                         'http://localhost:5173'
                         ]
                         
-CSP_IMG_SRC = ["'self'", "https://dalleprodsec.blob.core.windows.net"]
 
 ROOT_URLCONF = 'app.urls'
 
