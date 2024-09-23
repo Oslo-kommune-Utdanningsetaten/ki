@@ -102,7 +102,7 @@ const schoolAccessFiltered = computed(() => {
       <ul class="list-group">
         <li class="list-group-item">
           <div class="row">
-            <div class="col-4">Skole</div>
+            <div class="col-4">Filter (viser {{ schoolAccessFiltered.length }} skoler)</div>
             <div
               v-for="option in access_options"
               :key="option.value"
