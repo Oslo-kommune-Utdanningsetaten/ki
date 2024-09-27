@@ -164,7 +164,7 @@ def auth_middleware(get_response):
             if bots is not None:
                 has_access = True
 
-        request.g['bots'] = list(bots)
+        request.g['bots'] = list(bots) if bots else []
         request.g['admin'] = admin
         request.g['has_access'] = has_access
         request.g['username'] = username
