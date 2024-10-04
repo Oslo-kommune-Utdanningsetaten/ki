@@ -176,3 +176,24 @@ class Role(models.Model):
     class Meta:
         db_table = 'role'
 
+
+class UseLog(models.Model):
+    id = models.AutoField(primary_key=True)
+    role = models.CharField(max_length=20)
+    bot_id = models.CharField(max_length=36)
+    message_length = models.IntegerField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'use_log'
+        ordering = ['-timestamp']
+
+
+class LogSchool(models.Model):
+    id = models.AutoField(primary_key=True)
+    log_id = models.ForeignKey(UseLog, on_delete=models.CASCADE, db_column='log_id', related_name="schools")
+    school_id = models.ForeignKey(School, on_delete=models.DO_NOTHING, db_column='school', related_name="school_logs")
+
+    class Meta:
+        db_table = 'log_school'
+        unique_together = ('log_id', 'school_id')
