@@ -2,10 +2,10 @@ from .. import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from asgiref.sync import async_to_sync
-from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden
+from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden, JsonResponse
 from datetime import datetime, timedelta
 import requests
-from openai import AsyncAzureOpenAI, AzureOpenAI
+from openai import AsyncAzureOpenAI
 import openai
 import uuid
 import os
@@ -14,12 +14,6 @@ import json
 
 
 azureClient = AsyncAzureOpenAI(
-    azure_endpoint=os.environ.get('OPENAI_API_BASE'),
-    api_key=os.environ.get('OPENAI_API_KEY'),
-    api_version=os.environ.get('OPENAI_API_VERSION'),
-)
-
-azureImgClient = AzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
     api_key=os.environ.get('OPENAI_API_KEY'),
     api_version=os.environ.get('OPENAI_API_VERSION'),
@@ -620,20 +614,20 @@ async def send_message(request):
     await use_log(bot, request, len(messages))
     return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
-@api_view(["POST"])
-def send_img_message(request):
+# @api_view(["POST"])
+async def send_img_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     prompt = body.get('prompt')
     if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
-        bot = models.Bot.objects.get(uuid=bot_uuid)
+        bot = await models.Bot.objects.aget(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
     try:
-        response = azureImgClient.images.generate(
+        response = await azureClient.images.generate(
             model=bot.model,
             # model='dall-e-3',
             size='1024x1024',
@@ -650,5 +644,5 @@ def send_img_message(request):
         else:
             data ={'msg': "Noe gikk galt. Prøv igjen senere."}
 
-    async_to_sync(use_log)(bot, request, 1)
-    return Response(data, content_type='application/json')
+    await use_log(bot, request, 1)
+    return JsonResponse(data)
