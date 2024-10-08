@@ -580,7 +580,7 @@ async def send_message(request):
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
         bot_model = bot.model
         if not bool(bot_model):
-            bot_model = models.Setting.objects.aget(setting_key='default_model').txt_val
+            bot_model = await models.Setting.objects.aget(setting_key='default_model').txt_val
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
