@@ -126,7 +126,7 @@ def favorite(request, bot_uuid):
     if not request.g.get('employee', False):
         return Response(status=403)
 
-    if not bot_uuid in request.g.get('bots', []):
+    if not str(bot_uuid) in request.g.get('bots', []):
         return Response(status=403)
 
     try:
