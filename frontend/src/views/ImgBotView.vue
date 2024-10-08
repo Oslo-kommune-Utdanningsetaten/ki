@@ -34,16 +34,40 @@ const sendMessage = async () => {
     prompt.value = insertPrompt.value
     image.value = ''
     spinner.value = true
-    const { data } = await axios.post('/api/send_img_message', {
-      uuid: botId.value,
-      prompt: prompt.value,
-    })
+    const { data } = await axios.post(
+      '/api/send_img_message',
+      {
+        uuid: botId.value,
+        prompt: prompt.value,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+      }
+    )
     image.value = data
     insertPrompt.value = data.revised_prompt
     spinner.value = false
   } catch (error) {
     console.log(error)
   }
+}
+
+const getCookie = name => {
+  let cookieValue = null
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim()
+      if (cookie.substring(0, name.length + 1) === name + '=') {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+        break
+      }
+    }
+  }
+  return cookieValue
 }
 
 watchEffect(() => {

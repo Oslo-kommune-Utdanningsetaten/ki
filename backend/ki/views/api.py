@@ -1,10 +1,11 @@
 from .. import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden
+from asgiref.sync import async_to_sync
+from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden, JsonResponse
 from datetime import datetime, timedelta
 import requests
-from openai import AsyncAzureOpenAI, AzureOpenAI
+from openai import AsyncAzureOpenAI
 import openai
 import uuid
 import os
@@ -18,11 +19,23 @@ azureClient = AsyncAzureOpenAI(
     api_version=os.environ.get('OPENAI_API_VERSION'),
 )
 
-azureImgClient = AzureOpenAI(
-    azure_endpoint=os.environ.get('OPENAI_API_BASE'),
-    api_key=os.environ.get('OPENAI_API_KEY'),
-    api_version=os.environ.get('OPENAI_API_VERSION'),
-)
+
+async def use_log(bot, request, message_length):
+    role = 'student'
+    role = 'employee' if request.g.get('employee', False) else role
+    role = 'admin' if request.g.get('admin', False) else role
+    log_line = models.UseLog()
+    log_line.role = role
+    log_line.bot_id = bot.uuid
+    log_line.message_length = message_length
+    await log_line.asave()
+   
+    for school in request.g.get('schools', []):
+        await models.LogSchool(
+            school_id=school,
+            log_id=log_line
+        ).asave()
+
 
 def get_groups(request):
     subjects = []
@@ -567,7 +580,7 @@ async def send_message(request):
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
         bot_model = bot.model
         if not bool(bot_model):
-            bot_model = models.Setting.objects.get(setting_key='default_model').txt_val
+            bot_model = await models.Setting.objects.aget(setting_key='default_model').txt_val
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
@@ -598,23 +611,23 @@ async def send_message(request):
                 if chunk:
                     yield chunk
 
+    await use_log(bot, request, len(messages))
     return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
-@api_view(["POST"])
-def send_img_message(request):
+# @api_view(["POST"])
+async def send_img_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     prompt = body.get('prompt')
     if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
-        bot = models.Bot.objects.get(uuid=bot_uuid)
+        bot = await models.Bot.objects.aget(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
-    # def send():
     try:
-        response = azureImgClient.images.generate(
+        response = await azureClient.images.generate(
             model=bot.model,
             # model='dall-e-3',
             size='1024x1024',
@@ -631,4 +644,5 @@ def send_img_message(request):
         else:
             data ={'msg': "Noe gikk galt. Prøv igjen senere."}
 
-    return Response(data)
+    await use_log(bot, request, 1)
+    return JsonResponse(data)
