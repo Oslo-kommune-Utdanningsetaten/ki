@@ -17,7 +17,7 @@ class Setting(models.Model):
 
 
 class Bot(models.Model):
-    uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
+    uuid = models.UUIDField(primary_key=True, max_length=36, default=uuid.uuid4)
     title = models.CharField(max_length=40, null=True) 
     ingress = models.TextField(null=True)  
     prompt = models.TextField(null=True) 
