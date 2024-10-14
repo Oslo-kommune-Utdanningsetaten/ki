@@ -31,9 +31,6 @@ class Bot(models.Model):
     mandatory = models.BooleanField(default=False)
     img_bot = models.BooleanField(default=False)
     bot_info = models.TextField(null=True)
-    tag_cat_1 = models.IntegerField(default=0)
-    tag_cat_2 = models.IntegerField(default=0)
-    tag_cat_3 = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'bot'
@@ -160,6 +157,7 @@ class PageText(models.Model):
     class Meta:
         db_table = 'page_text'
 
+
 class Role(models.Model):
     class RoleEnum(models.TextChoices):
         ADMIN = 'admin'
@@ -197,3 +195,44 @@ class LogSchool(models.Model):
     class Meta:
         db_table = 'log_school'
         unique_together = ('log_id', 'school_id')
+
+
+class TagCategory(models.Model):
+    category_id = models.AutoField(primary_key=True)
+    category_name = models.CharField(max_length=50)
+    category_order = models.IntegerField(unique=True)
+
+    def __str__(self):
+        return f"{self.category_id}-{self.category_name}"
+
+    class Meta:
+        db_table = 'tag_category'
+
+
+class TagLabel(models.Model):
+    tag_label_id = models.AutoField(primary_key=True)
+    tag_label_name = models.CharField(max_length=50)
+    tag_label_order = models.IntegerField()
+    category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id', related_name="tag_labels")
+
+    def __str__(self):
+        return f"{self.tag_label_id}-{self.tag_label_name}"
+    
+    class Meta:
+        db_table = 'tag_label'
+        unique_together = ('tag_label_order', 'category_id')
+
+
+class Tag(models.Model):
+    tag_id = models.AutoField(primary_key=True)
+    tag_value = models.IntegerField()
+    category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id', related_name="tags")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="tags")
+
+
+    def __str__(self):
+        return f"{self.tag_id}-{self.category_id}{self.bot_id}"
+    
+    class Meta:
+        db_table = 'tag'
+        unique_together = ('category_id', 'bot_id')

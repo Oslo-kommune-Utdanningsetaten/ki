@@ -161,6 +161,22 @@ def user_bots(request):
     open_for_distribution = (request.g['settings']['allow_groups'] 
                             and request.g['dist_to_groups'])
 
+    tag_categories = []
+    for category in models.TagCategory.objects.all():
+        tag_categories.append({
+            'id': category.category_id,
+            'label': category.category_name,
+            'order': category.category_order,
+            'tag_items': [
+                {
+                    'id': tag.tag_label_id,
+                    'label': tag.tag_label_name,
+                    'order': tag.tag_label_order,
+                }
+                for tag in category.tag_labels.all()
+            ],
+        })
+
     users_bots = [models.Bot.objects.get(uuid=bot_id)
                   for bot_id in request.g.get('bots', [])]
     return_bots = [
@@ -176,13 +192,13 @@ def user_bots(request):
             'personal': not bot.library,
             'allow_distribution': bot.allow_distribution and open_for_distribution,
             'bot_info': bot.bot_info or '',
-            'tag': [bot.tag_cat_1, bot.tag_cat_2, bot.tag_cat_3],
+            'tag': bot.tags.all().values_list('tag_value', flat=True) if bot.library else [],
         }
         for bot in users_bots]
 
     return Response({
         'bots': return_bots,
-        'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
+        'tag_categories': tag_categories,
         'status': 'ok',
     })
 
@@ -287,7 +303,7 @@ def bot_info(request, bot_uuid=None):
             return Response(status=403)
 
         def array_to_tag(arr):
-            return sum([1 << n for n in arr])
+            return sum([1 << tag.get('order') for tag in arr if tag.get('checked', False)])
         body = json.loads(request.body)
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
@@ -310,10 +326,15 @@ def bot_info(request, bot_uuid=None):
             bot.model = default_model
         if is_admin or (is_author and is_owner):
             bot.model = body.get('model', bot.model)
-        if body.get('tags') and len(body.get('tags')) == 3:
-            bot.tag_cat_1 = array_to_tag(body.get('tags', [0, 0, 0])[0])
-            bot.tag_cat_2 = array_to_tag(body.get('tags', [0, 0, 0])[1])
-            bot.tag_cat_3 = array_to_tag(body.get('tags', [0, 0, 0])[2])
+        if body.get('tag_categories', False):
+            for tag_category in body.get('tag_categories', []):
+                tag_obj = bot.tags.filter(category_id=tag_category.get('id')).first()
+                if not tag_obj:
+                    tag_obj = models.Tag(bot_id=bot, category_id=tag_category)
+                tag_obj.tag_value = array_to_tag([
+                        {'order': tag.get('order'), 'checked': tag.get('checked')} 
+                        for tag in tag_category.get('tags', [])])
+                tag_obj.save()
         bot.save()
         
         # save choices and options
@@ -456,8 +477,24 @@ def bot_info(request, bot_uuid=None):
                 'access_list': access_list,
             })
 
-    def tag_to_array(tag):
-        return [n for n in range(30) if (tag >> n & 1)]
+    tag_categories = []
+    for category in models.TagCategory.objects.all().order_by('category_order'):
+        tag_obj = bot.tags.filter(category_id=category.category_id).first()
+        tag_items = []
+        for tag_label in category.tag_labels.all().order_by('tag_label_order'):
+            tag_items.append({
+                'id': tag_label.tag_label_id,
+                'label': tag_label.tag_label_name,
+                'order': tag_label.tag_label_order,
+                'value': tag_obj.tag_value if tag_obj else 'ingen',
+                'checked': bool(tag_obj.tag_value >> tag_label.tag_label_order & 1) if tag_obj else False,
+            })
+        tag_categories.append({
+            'id': category.category_id,
+            'label': category.category_name,
+            'order': category.category_order,
+            'tags': tag_items,
+        })
 
     return Response({
         'bot': {
@@ -479,8 +516,7 @@ def bot_info(request, bot_uuid=None):
             'choices': choices,
             'groups': group_list if distribute else None,
             'schoolAccesses': school_access_list if is_admin or is_author else None,
-            'tags': [tag_to_array(bot.tag_cat_1), tag_to_array(bot.tag_cat_2), tag_to_array(bot.tag_cat_3)],
-            'tag_categories': json.loads(request.g['settings']['tag_categories']) or [],
+            'tag_categories': tag_categories,
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
     })
