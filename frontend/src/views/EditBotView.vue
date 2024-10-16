@@ -433,22 +433,17 @@ watch(
       <div class="row mb-3">
         <div class="col-sm-2">Filtertag for</div>
         <div class="col-sm-10">
-          <div v-for="(tagCategory, catName, catIndex) in bot.tag_categories" :key="catIndex">
-            <div>{{ catName }}</div>
-            <div
-              v-for="(tagName, tagIndex) in tagCategory"
-              :key="tagIndex"
-              class="form-check form-check-inline"
-            >
+          <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
+            <div>{{ tagCategory.label }}</div>
+            <div v-for="tag in tagCategory.tags" :key="tag.id" class="form-check form-check-inline">
               <input
                 class="form-check-input"
                 type="checkbox"
-                v-model="bot.tags[catIndex]"
-                :value="tagIndex"
-                :id="`filterCheck${catIndex}:${tagIndex}`"
+                v-model="tag.checked"
+                :id="`filterCheck${tagCategory.id}:${tag.id}`"
               />
-              <label class="form-check-label" :for="`filterCheck${catIndex}:${tagIndex}`">
-                {{ tagName }}
+              <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tag.id}`">
+                {{ tag.label }}
               </label>
             </div>
           </div>
