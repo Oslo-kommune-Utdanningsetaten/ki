@@ -200,6 +200,7 @@ def user_bots(request):
         'bots': return_bots,
         'tag_categories': tag_categories,
         'status': 'ok',
+        'view_filter': request.g['settings']['view_filter'],
     })
 
 
@@ -330,7 +331,7 @@ def bot_info(request, bot_uuid=None):
             for tag_category in body.get('tag_categories', []):
                 tag_obj = bot.tags.filter(category_id=tag_category.get('id')).first()
                 if not tag_obj:
-                    tag_obj = models.Tag(bot_id=bot, category_id=tag_category)
+                    tag_obj = models.Tag(bot_id=bot, category_id_id=tag_category.get('id'))
                 tag_obj.tag_value = array_to_tag([
                         {'order': tag.get('order'), 'checked': tag.get('checked')} 
                         for tag in tag_category.get('tags', [])])

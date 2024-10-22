@@ -12,6 +12,7 @@ import botIcon5 from '@/components/icons/bot5.svg'
 const bots = ref([])
 const status = ref(null)
 const showLibrary = ref(false)
+const view_filter = ref(false)
 const active_bot = ref(null)
 const filter = ref([])
 const tagCategories = ref([])
@@ -26,6 +27,7 @@ async function getBots() {
     const { data } = await axios.get('/api/user_bots')
     bots.value = data.bots
     status.value = data.status
+    view_filter.value = data.view_filter
     tagCategories.value = data.tag_categories
     filter.value = new Array(Object.keys(tagCategories.value).length).fill([])
   } catch (error) {
@@ -99,7 +101,7 @@ const getBotImage = bot => {
 }
 
 const botIconWidth = computed(() =>
-  showLibrary.value
+  showLibrary.value && view_filter.value
     ? 'col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12'
     : 'col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6'
 )
@@ -204,7 +206,7 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
     </div>
 
     <div class="row align-items-stretch">
-      <div v-if="showLibrary" class="col-xxl-2 col-lg-3 col-md-3 col-4">
+      <div v-if="showLibrary && view_filter" class="col-xxl-2 col-lg-3 col-md-3 col-4">
         <div class="card card-body">
           <div class="card-title">Filtrer:</div>
           <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.order">
