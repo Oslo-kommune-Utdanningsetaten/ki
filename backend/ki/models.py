@@ -23,7 +23,7 @@ class Bot(models.Model):
     prompt = models.TextField(null=True) 
     model = models.CharField(max_length=20, null=True) 
     temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0) 
-    image = models.CharField(max_length=20, null=True)
+    image_attr = models.CharField(max_length=50, null=True)
     prompt_visibility = models.BooleanField(default=True)
     library = models.BooleanField(default=False)
     owner = models.CharField(max_length=50, null=True)

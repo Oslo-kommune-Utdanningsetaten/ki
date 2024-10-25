@@ -105,9 +105,6 @@ button img {
 .avatar {
   text-align: center !important;
   padding: 0 !important;
-}
-
-.avatar img {
   width: 2em;
 }
 
@@ -285,30 +282,50 @@ button img {
   color: #818181 !important;
 }
 
-.oslo-fill-green {
-  fill: #43f8b6;
-}
-
-.oslo-fill-dark-green {
-  fill: #034b45;
+.oslo-fill-dark-blue {
+  fill: #2a2859;
 }
 
 .oslo-fill-blue {
   fill: #6fe9ff;
 }
 
-.oslo-fill-dark-blue {
-  fill: #2a2859;
+.oslo-fill-light-blue {
+  fill: #b3f5ff;
 }
 
-.oslo-fill-yellow {
-  fill: #f9c66b;
+.oslo-fill-red {
+  fill: #ff8274;
+}
+
+.oslo-fill-dark-green {
+  fill: #034b45;
+}
+
+.oslo-fill-green {
+  fill: #43f8b6;
 }
 
 .oslo-fill-light-green {
   fill: #c7f6c9;
 }
 
-.oslo-fill-red {
-  fill: #ff8274;
+.oslo-fill-yellow {
+  fill: #f9c66b;
+}
+
+.oslo-fill-dark-beige {
+  fill: #d0bfae;
+}
+
+.oslo-fill-light-beige {
+  fill: #f8f0dd;
+}
+
+.oslo-fill-light-grey {
+  fill: #f5f5f5;
+}
+
+.oslo-fill-black {
+  fill: #2c2c2c;
 }

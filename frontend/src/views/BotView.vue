@@ -3,6 +3,7 @@ import { RouterLink, useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ref, watchEffect, useTemplateRef } from 'vue'
 import { store } from '../store.js'
+import BotAvatar from '@/components/BotAvatar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -283,9 +284,9 @@ watchEffect(() => {
                 src="@/components/icons/user.svg"
                 alt="du:"
               />
-              <img
+              <BotAvatar
                 v-if="message_line.role === 'assistant'"
-                src="@/components/icons/oslobot.svg"
+                :image_attr="bot.image_attr"
                 alt="bot:"
               />
             </div>

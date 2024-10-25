@@ -3,11 +3,7 @@ import { RouterLink } from 'vue-router'
 import axios from 'axios'
 import { ref, onMounted, watchEffect, computed } from 'vue'
 import { store } from '../store.js'
-import botIcon1 from '@/components/icons/bot1.svg'
-import botIcon2 from '@/components/icons/bot2.svg'
-import botIcon3 from '@/components/icons/bot3.svg'
-import botIcon4 from '@/components/icons/bot4.svg'
-import botIcon5 from '@/components/icons/bot5.svg'
+import BotAvatar from '@/components/BotAvatar.vue'
 
 const bots = ref([])
 const status = ref(null)
@@ -82,22 +78,6 @@ const toggle_favorite = async bot => {
 
 const setActiveBot = bot => {
   active_bot.value = bot
-}
-
-const getBotImage = bot => {
-  if (bot.bot_img === 'bot1.svg') {
-    return botIcon1
-  } else if (bot.bot_img === 'bot2.svg') {
-    return botIcon2
-  } else if (bot.bot_img === 'bot3.svg') {
-    return botIcon3
-  } else if (bot.bot_img === 'bot4.svg') {
-    return botIcon4
-  } else if (bot.bot_img === 'bot5.svg') {
-    return botIcon5
-  } else {
-    return bot.bot_img
-  }
 }
 
 const botIconWidth = computed(() =>
@@ -242,7 +222,7 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
                 <div class="row text-center m-0 pt-3">
                   <div class="col-2"></div>
                   <div class="col-8 p-0">
-                    <img :src="getBotImage(bot)" :alt="'Åpne ' + bot.bot_title" />
+                    <BotAvatar :image_attr="bot.image_attr" />
                   </div>
 
                   <div v-if="store.isEmployee" class="col-2 px-0">
@@ -287,7 +267,10 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
               <div class="row text-center pt-3">
                 <div class="col-2"></div>
                 <div class="col-8">
-                  <img src="@/components/icons/pluss.svg" alt="" />
+                  <svg viewBox="0 0 12 18">
+                    <rect class="oslo-fill-black" x="3" y="8" width="6" height="2" />
+                    <rect class="oslo-fill-black" x="5" y="6" width="2" height="6" />
+                  </svg>
                 </div>
               </div>
               <div class="card-body d-flex flex-column">

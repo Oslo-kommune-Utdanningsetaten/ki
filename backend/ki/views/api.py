@@ -183,12 +183,12 @@ def user_bots(request):
         {
             'uuid': bot.uuid,
             'bot_title': bot.title,
-            'bot_img': bot.image or "bot5.svg",
             'favorite': True 
                     if (bot.favorites.filter(user_id=request.g.get('username', '')).first())
                     else False,
             'mandatory': bot.mandatory,
             'img_bot': bot.img_bot,
+            'image_attr': [int(a) for a in bot.image_attr.split(',')] if bot.image_attr else [0, 0, 0, 0, 0, 0, 0],
             'personal': not bot.library,
             'allow_distribution': bot.allow_distribution and open_for_distribution,
             'bot_info': bot.bot_info or '',
@@ -316,7 +316,7 @@ def bot_info(request, bot_uuid=None):
             'allow_distribution', bot.allow_distribution)
         bot.mandatory = body.get(
             'mandatory', bot.mandatory)
-        bot.image = body.get('bot_img', bot.image)
+        bot.image_attr = ','.join([str(a) for a in body.get('image_attr', bot.image_attr)]) if body.get('image_attr', False) else bot.image_attr
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
@@ -508,7 +508,7 @@ def bot_info(request, bot_uuid=None):
             'allow_distribution': bot.allow_distribution,
             'mandatory': bot.mandatory,
             'library': bot.library,
-            'bot_img': bot.image or "bot5.svg",
+            'image_attr': [int(a) for a in bot.image_attr.split(',')] if bot.image_attr else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
             'model': bot.model,
             'edit': edit,

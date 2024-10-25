@@ -4,6 +4,7 @@ import axios from 'axios'
 import { ref, onMounted, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
 import router from '@/router/index.js'
+import BotAvatar from '@/components/BotAvatar.vue'
 
 const route = useRoute()
 const $router = useRouter()
@@ -13,6 +14,7 @@ const bot = ref({
   prompt: '',
   prompt_visibility: false,
   bot_img: 'bot1.svg',
+  image_attr: [0, 0, 0, 0, 0, 0, 0],
   temperature: 1,
   model: 'gpt-35-turbo',
   mandatory: false,
@@ -65,6 +67,71 @@ const botImages = [
   { id: 'bot4.svg', text: 'Rød' },
   { id: 'bot5.svg', text: 'Grå' },
 ]
+const botAttrs = [
+  {
+    id: 0,
+    text: 'Farge',
+    values: [
+      { id: 0, text: 'Blå' },
+      { id: 1, text: 'Gul' },
+      { id: 2, text: 'Grønn' },
+      { id: 3, text: 'Rød' },
+      { id: 4, text: 'Grå' },
+    ],
+  },
+  {
+    id: 1,
+    text: 'Hode',
+    values: [
+      { id: 0, text: 'Firkant' },
+      { id: 1, text: 'Høy' },
+    ],
+  },
+  {
+    id: 2,
+    text: 'Øyne',
+    values: [
+      { id: 0, text: 'Sirkel' },
+      { id: 1, text: 'Firkant' },
+      { id: 2, text: 'Rektangel' },
+      { id: 3, text: 'Glimt' },
+    ],
+  },
+  {
+    id: 3,
+    text: 'Hår',
+    values: [
+      { id: 0, text: 'Ingen' },
+      { id: 1, text: 'Caps' },
+      { id: 2, text: 'Hår' },
+    ],
+  },
+  {
+    id: 4,
+    text: 'Ører',
+    values: [
+      { id: 0, text: 'Nei' },
+      { id: 1, text: 'Ja' },
+    ],
+  },
+  {
+    id: 5,
+    text: 'Armer',
+    values: [
+      { id: 0, text: 'Skulder' },
+      { id: 1, text: 'Rett' },
+    ],
+  },
+  {
+    id: 6,
+    text: 'Nakke',
+    values: [
+      { id: 0, text: 'Tykk' },
+      { id: 1, text: 'Tynn' },
+    ],
+  },
+]
+
 const getBotInfo = async () => {
   var url = ''
   if (method.value == 'new') {
@@ -266,6 +333,58 @@ watch(
 </script>
 
 <template>
+  <!-- modal -->
+  <div
+    class="modal fade"
+    id="gen_bot_img"
+    tabindex="-1"
+    aria-labelledby="gen_bot_img_label"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="gen_bot_img_label">Bot avatar</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">Her kan du generere utseendet på din bot</div>
+        <div class="modal-body row">
+          <div class="col-6">
+            <div class="form-check">
+              <div v-for="attr in botAttrs">
+                <div>
+                  <strong>{{ attr.text }}</strong>
+                </div>
+                <div v-for="value in attr.values" class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    :name="attr.id"
+                    :id="`${attr.id}:${value.id}`"
+                    :value="value.id"
+                    v-model="bot.image_attr[attr.id]"
+                  />
+                  <label :for="`${attr.id}:${value.id}`">{{ value.text }}</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <BotAvatar :image_attr="bot.image_attr" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="d-flex justify-content-end">
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
     <RouterLink class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/' + bot.uuid : '/'">
@@ -327,20 +446,14 @@ watch(
       </div>
     </div>
     <div class="row mb-3">
-      <div class="col-sm-2 col-form-label">Farge på bot</div>
-      <div class="col-sm-10">
-        <div v-for="image in botImages" class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="radio"
-            :id="image.id"
-            :value="image.id"
-            v-model="bot.bot_img"
-          />
-          <label class="form-check-label" :for="image.id">
-            {{ image.text }}
-          </label>
-        </div>
+      <div class="col-sm-2 col-form-label">Utseende på bot</div>
+      <div class="col-sm-1">
+        <BotAvatar :image_attr="bot.image_attr" />
+      </div>
+      <div class="col-sm-2">
+        <button class="btn oslo-btn-secondary" data-bs-toggle="modal" data-bs-target="#gen_bot_img">
+          Endre
+        </button>
       </div>
     </div>
     <div class="row mb-3">

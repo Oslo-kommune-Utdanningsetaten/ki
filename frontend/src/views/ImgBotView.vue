@@ -2,6 +2,7 @@
 import { RouterLink, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ref, watchEffect } from 'vue'
+import BotAvatar from '@/components/BotAvatar.vue'
 
 const route = useRoute()
 const bot = ref({})
@@ -112,7 +113,7 @@ watchEffect(() => {
       <li class="container-fluid list-group-item response assistant">
         <span class="row">
           <div class="col-1 avatar">
-            <img src="@/components/icons/oslobot.svg" alt="bot:" />
+            <BotAvatar :image_attr="bot.image_attr" alt="bot:" />
           </div>
           <div v-if="spinner" class="col">
             <span class="spinner-border spinner-border-sm" role="status"></span>
