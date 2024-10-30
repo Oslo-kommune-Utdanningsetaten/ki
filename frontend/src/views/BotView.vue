@@ -286,7 +286,7 @@ watchEffect(() => {
               />
               <BotAvatar
                 v-if="message_line.role === 'assistant'"
-                :image_attr="bot.image_attr"
+                :avatar_scheme="bot.avatar_scheme"
                 alt="bot:"
               />
             </div>

@@ -13,21 +13,21 @@ class Migration(migrations.Migration):
         Bot = apps.get_model('ki', 'Bot')
         for bot in Bot.objects.all():
             if bot.image == "bot2.svg":
-                bot.image_attr = "1,0,0,0,0,0,0"
+                bot.avatar_scheme = "1,0,0,0,0,0,0"
             elif bot.image == "bot3.svg":
-                bot.image_attr = "2,0,0,0,0,0,0"
+                bot.avatar_scheme = "2,0,0,0,0,0,0"
             elif bot.image == "bot4.svg":
-                bot.image_attr = "3,0,0,0,0,0,0"
+                bot.avatar_scheme = "3,0,0,0,0,0,0"
             elif bot.image == "bot5.svg":
-                bot.image_attr = "4,0,0,0,0,0,0"
+                bot.avatar_scheme = "4,0,0,0,0,0,0"
             else:
-                bot.image_attr = "0,0,0,0,0,0,0"
+                bot.avatar_scheme = "0,0,0,0,0,0,0"
             bot.save()
 
     operations = [
         migrations.AddField(
             model_name='bot',
-            name='image_attr',
+            name='avatar_scheme',
             field=models.CharField(max_length=50, null=True),
         ),
         migrations.RunPython(update_image_attr),

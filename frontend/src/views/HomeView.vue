@@ -222,7 +222,7 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
                 <div class="row text-center m-0 pt-3">
                   <div class="col-2"></div>
                   <div class="col-8 p-0">
-                    <BotAvatar :image_attr="bot.image_attr" />
+                    <BotAvatar :avatar_scheme="bot.avatar_scheme" />
                   </div>
 
                   <div v-if="store.isEmployee" class="col-2 px-0">

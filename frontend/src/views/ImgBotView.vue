@@ -113,7 +113,7 @@ watchEffect(() => {
       <li class="container-fluid list-group-item response assistant">
         <span class="row">
           <div class="col-1 avatar">
-            <BotAvatar :image_attr="bot.image_attr" alt="bot:" />
+            <BotAvatar :avatar_scheme="bot.avatar_scheme" alt="bot:" />
           </div>
           <div v-if="spinner" class="col">
             <span class="spinner-border spinner-border-sm" role="status"></span>

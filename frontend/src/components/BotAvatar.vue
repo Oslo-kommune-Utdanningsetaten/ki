@@ -1,7 +1,7 @@
 <script setup>
 import { watchEffect, watch } from 'vue'
 
-const attr = defineProps(['image_attr'])
+const attr = defineProps(['avatar_scheme'])
 
 let color = []
 let highHead = false
@@ -21,9 +21,8 @@ const colors = [
 
 watchEffect(() => {
   color = colors[0]
-  console.log(attr.image_attr)
   try {
-    for (const [key, value] of attr.image_attr.entries()) {
+    for (const [key, value] of attr.avatar_scheme.entries()) {
       if (key === 0) {
         color = colors[value]
       } else if (key === 1) {
@@ -50,7 +49,7 @@ watchEffect(() => {
 <template>
   <!-- Is used to trigger the watchEffect() function -->
   <div hidden>
-    {{ attr.image_attr }}
+    {{ attr.avatar_scheme }}
   </div>
 
   <svg viewBox="0 0 12 18">

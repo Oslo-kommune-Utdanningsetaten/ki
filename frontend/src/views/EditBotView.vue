@@ -14,7 +14,7 @@ const bot = ref({
   prompt: '',
   prompt_visibility: false,
   bot_img: 'bot1.svg',
-  image_attr: [0, 0, 0, 0, 0, 0, 0],
+  avatar_scheme: [0, 0, 0, 0, 0, 0, 0],
   temperature: 1,
   model: 'gpt-35-turbo',
   mandatory: false,
@@ -367,7 +367,7 @@ watch(
                     :name="attr.id"
                     :id="`${attr.id}:${value.id}`"
                     :value="value.id"
-                    v-model="bot.image_attr[attr.id]"
+                    v-model="bot.avatar_scheme[attr.id]"
                   />
                   <label :for="`${attr.id}:${value.id}`">{{ value.text }}</label>
                 </div>
@@ -375,7 +375,7 @@ watch(
             </div>
           </div>
           <div class="col-6">
-            <BotAvatar :image_attr="bot.image_attr" />
+            <BotAvatar :avatar_scheme="bot.avatar_scheme" />
           </div>
         </div>
         <div class="modal-footer">
@@ -448,7 +448,7 @@ watch(
     <div class="row mb-3">
       <div class="col-sm-2 col-form-label">Utseende på bot</div>
       <div class="col-sm-1">
-        <BotAvatar :image_attr="bot.image_attr" />
+        <BotAvatar :avatar_scheme="bot.avatar_scheme" />
       </div>
       <div class="col-sm-2">
         <button class="btn oslo-btn-secondary" data-bs-toggle="modal" data-bs-target="#gen_bot_img">

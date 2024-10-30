@@ -188,7 +188,7 @@ def user_bots(request):
                     else False,
             'mandatory': bot.mandatory,
             'img_bot': bot.img_bot,
-            'image_attr': [int(a) for a in bot.image_attr.split(',')] if bot.image_attr else [0, 0, 0, 0, 0, 0, 0],
+            'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'personal': not bot.library,
             'allow_distribution': bot.allow_distribution and open_for_distribution,
             'bot_info': bot.bot_info or '',
@@ -316,7 +316,7 @@ def bot_info(request, bot_uuid=None):
             'allow_distribution', bot.allow_distribution)
         bot.mandatory = body.get(
             'mandatory', bot.mandatory)
-        bot.image_attr = ','.join([str(a) for a in body.get('image_attr', bot.image_attr)]) if body.get('image_attr', False) else bot.image_attr
+        bot.avatar_scheme = ','.join([str(a) for a in body.get('avatar_scheme', bot.avatar_scheme)]) if body.get('avatar_scheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
@@ -508,7 +508,7 @@ def bot_info(request, bot_uuid=None):
             'allow_distribution': bot.allow_distribution,
             'mandatory': bot.mandatory,
             'library': bot.library,
-            'image_attr': [int(a) for a in bot.image_attr.split(',')] if bot.image_attr else [0, 0, 0, 0, 0, 0, 0],
+            'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
             'model': bot.model,
             'edit': edit,
