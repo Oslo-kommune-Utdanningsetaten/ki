@@ -4,15 +4,14 @@ export const createBotDescriptionFromScheme = (scheme) => {
   const [colorValue, headValue, eyesValue, hairValue, earsValue, armsValue, neckValue] = scheme && scheme.length === 7 ? scheme : [0, 0, 0, 0, 0, 0, 0]
 
   // Empty bot object
-  // Each shape is implicitly a rectangle, unless type says otherwise
   const bot = {
     colors: [],
-    hair: {},
-    head: {},
+    hair: { shapes: [] },
+    head: { shapes: [] },
     eyes: { shapes: [] },
     ears: { shapes: [] },
-    neck: {},
-    body: {},
+    neck: { shapes: [] },
+    body: { shapes: [] },
     arms: { shapes: [] },
   }
 
@@ -27,20 +26,28 @@ export const createBotDescriptionFromScheme = (scheme) => {
 
   // Hair
   if (bot.hair.description === 'flat') {
-    bot.hair.x = 2
-    bot.hair.y = 0
-    bot.hair.width = 8
-    bot.hair.height = 2
+    bot.hair.shapes.push({
+      x: 2,
+      y: 0,
+      width: 8,
+      height: 2,
+      type: 'rect',
+    })
   } else if (bot.hair.description === 'scruffy') {
-    bot.hair.type = 'polygon'
-    bot.hair.points = '2 0 10 0 10 2 9 2 9 1 8 1 8 2 6 2 6 1 5 1 5 2 4 2 4 1 3 1 3 2 2 2 2 0'
+    bot.hair.shapes.push({
+      type: 'polygon',
+      points: '2 0 10 0 10 2 9 2 9 1 8 1 8 2 6 2 6 1 5 1 5 2 4 2 4 1 3 1 3 2 2 2 2 0',
+    })
   }
 
   // Head
-  bot.head.x = 2
-  bot.head.y = 0
-  bot.head.width = 8
-  bot.head.height = bot.head.description === 'high' ? 4 : 8
+  bot.head.shapes.push({
+    x: 2,
+    y: 0,
+    width: 8,
+    height: bot.head.description === 'high' ? 4 : 8,
+    type: 'rect',
+  })
 
   // Eyes
   const eyePositionY = bot.head.description === 'high' ? 1 : 3
@@ -50,12 +57,14 @@ export const createBotDescriptionFromScheme = (scheme) => {
       y: eyePositionY,
       width: 2,
       height: 2,
+      type: 'rect',
     })
     bot.eyes.shapes.push({
       x: 7,
       y: eyePositionY,
       width: 2,
       height: 2,
+      type: 'rect',
     })
   } else if (bot.eyes.description === 'wink') {
     bot.eyes.shapes.push({
@@ -63,14 +72,16 @@ export const createBotDescriptionFromScheme = (scheme) => {
       y: eyePositionY,
       width: 2,
       height: 2,
+      type: 'rect',
     })
     bot.eyes.shapes.push({
       x: 7,
       y: eyePositionY,
       width: 2,
       height: 1,
+      type: 'rect',
     })
-  } else if (bot.eyes.description === 'circle') {
+  } else {
     bot.eyes.shapes.push({
       type: 'circle',
       cx: 4,
@@ -92,26 +103,34 @@ export const createBotDescriptionFromScheme = (scheme) => {
       y: eyePositionY,
       width: 1,
       height: 2,
+      type: 'rect',
     })
     bot.ears.shapes.push({
       x: 10,
       y: eyePositionY,
       width: 1,
       height: 2,
+      type: 'rect',
     })
   }
 
   // Neck
-  bot.neck.x = bot.neck.description === 'thin' ? 5 : 4
-  bot.neck.y = 4
-  bot.neck.width = bot.neck.description === 'thin' ? 2 : 4
-  bot.neck.height = 6
+  bot.neck.shapes.push({
+    x: bot.neck.description === 'thin' ? 5 : 4,
+    y: 4,
+    width: bot.neck.description === 'thin' ? 2 : 4,
+    height: 6,
+    type: 'rect',
+  })
 
   // Body is hard-coded so far
-  bot.body.x = 2
-  bot.body.y = 10
-  bot.body.width = 8
-  bot.body.height = 8
+  bot.body.shapes.push({
+    x: 2,
+    y: 10,
+    width: 8,
+    height: 8,
+    type: 'rect',
+  })
 
   // Arms
   if (bot.arms.description === 'present') {
@@ -120,12 +139,14 @@ export const createBotDescriptionFromScheme = (scheme) => {
       y: 10,
       width: 2,
       height: 6,
+      type: 'rect',
     })
     bot.arms.shapes.push({
       x: 8,
       y: 10,
       width: 2,
       height: 6,
+      type: 'rect',
     })
   } else {
     bot.arms.shapes.push({

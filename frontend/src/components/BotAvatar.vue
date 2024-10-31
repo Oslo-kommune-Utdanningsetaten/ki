@@ -3,6 +3,8 @@ import { watchEffect } from 'vue'
 import { createBotDescriptionFromScheme } from '../utils.js'
 
 const attr = defineProps(['avatar_scheme'])
+
+// Maybe move this to createBotDescriptionFromScheme?
 const colors = [
   ['oslo-fill-blue', 'oslo-fill-dark-blue'],
   ['oslo-fill-yellow', 'oslo-fill-black'],
@@ -22,41 +24,54 @@ watchEffect(() => {
   <!-- Is used to trigger the watchEffect() function -->
   <div hidden>
     {{ attr.avatar_scheme }}
+    <pre>{{ JSON.stringify(bot, null, 2) }}</pre>
   </div>
 
   <svg viewBox="0 0 12 18">
     <!-- neck -->
-    <rect
-      :class="bot.colors[1]"
-      :x="bot.neck.x"
-      :y="bot.neck.y"
-      :width="bot.neck.width"
-      :height="bot.neck.height"
-    />
+    <span v-for="neck in bot.neck.shapes">
+      <rect
+        :class="bot.colors[1]"
+        :x="neck.x"
+        :y="neck.y"
+        :width="neck.width"
+        :height="neck.height"
+      />
+    </span>
 
     <!-- head -->
-    <rect :class="color[0]" :x="bot.head.x" :width="bot.head.width" :height="bot.head.height" />
+    <span v-for="head in bot.head.shapes">
+      <rect :class="bot.colors[0]" :x="head.x" :width="head.width" :height="head.height" />
+    </span>
 
     <!-- ears -->
     <span v-for="ear in bot.ears.shapes">
-      <rect :class="color[1]" :x="ear.x" :y="ear.y" :width="ear.width" :height="ear.height" />
+      <rect :class="bot.colors[1]" :x="ear.x" :y="ear.y" :width="ear.width" :height="ear.height" />
     </span>
 
     <!-- body -->
-    <rect
-      :class="color[0]"
-      :x="bot.body.x"
-      :y="bot.body.y"
-      :width="bot.body.width"
-      :height="bot.body.height"
-    />
+    <span v-for="body in bot.body.shapes">
+      <rect
+        :class="bot.colors[0]"
+        :x="body.x"
+        :y="body.y"
+        :width="body.width"
+        :height="body.height"
+      />
+    </span>
 
     <!-- eyes -->
     <span v-for="eye in bot.eyes.shapes">
-      <circle v-if="eye.type === 'circle'" :class="color[1]" :cx="eye.cx" :cy="eye.cy" :r="eye.r" />
+      <circle
+        v-if="eye.type === 'circle'"
+        :class="bot.colors[1]"
+        :cx="eye.cx"
+        :cy="eye.cy"
+        :r="eye.r"
+      />
       <rect
         v-else
-        :class="color[1]"
+        :class="bot.colors[1]"
         :x="eye.x"
         :y="eye.y"
         :width="eye.width"
@@ -66,10 +81,10 @@ watchEffect(() => {
 
     <!-- arms -->
     <span v-for="arm in bot.arms.shapes">
-      <polygon v-if="arm.type === 'polygon'" :class="color[1]" :points="arm.points" />
+      <polygon v-if="arm.type === 'polygon'" :class="bot.colors[1]" :points="arm.points" />
       <rect
         v-else
-        :class="color[1]"
+        :class="bot.colors[1]"
         :x="arm.x"
         :y="arm.y"
         :width="arm.width"
@@ -78,18 +93,16 @@ watchEffect(() => {
     </span>
 
     <!-- hair -->
-    <rect
-      v-if="bot.hair.description === 'flat'"
-      :class="color[1]"
-      :x="bot.hair.x"
-      :y="bot.hair.y"
-      :width="bot.hair.width"
-      :height="bot.hair.height"
-    />
-    <polygon
-      v-else-if="bot.hair.description === 'scruffy'"
-      :class="color[1]"
-      :points="bot.hair.points"
-    />
+    <span v-for="hair in bot.hair.shapes">
+      <polygon v-if="hair.type === 'polygon'" :class="bot.colors[1]" :points="hair.points" />
+      <rect
+        v-else
+        :class="bot.colors[1]"
+        :x="hair.x"
+        :y="hair.y"
+        :width="hair.width"
+        :height="hair.height"
+      />
+    </span>
   </svg>
 </template>
