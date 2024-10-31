@@ -246,6 +246,7 @@ def empty_bot(request, lib):
             'allow_distribution': True,
             'mandatory': False,
             'bot_img': "bot5.svg",
+            'avatar_scheme': [0, 0, 0, 0, 0, 0, 0],
             'temperature': '1',
             'model': default_model,
             'edit': True,
