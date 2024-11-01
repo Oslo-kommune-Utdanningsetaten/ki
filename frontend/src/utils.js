@@ -1,4 +1,4 @@
-// Each entry in the colors array is a pair of colors
+// Each entry in the colors array is a pair of colors used in the bot avatar
 const colors = [
   ['oslo-fill-blue', 'oslo-fill-dark-blue'],
   ['oslo-fill-yellow', 'oslo-fill-black'],
@@ -7,10 +7,11 @@ const colors = [
   ['oslo-fill-dark-beige', 'oslo-fill-black'],
 ]
 
-// Takes an array of values, where each describes a body part of the bot
+// Takes an array of values, where each describes a body part of the bot avatar
 // Returns an object where the various parts are described in detail
 export const createBotDescriptionFromScheme = (scheme) => {
-  const [colorValue, headValue, eyesValue, hairValue, earsValue, armsValue, neckValue] = scheme && scheme.length === 7 ? scheme : [0, 0, 0, 0, 0, 0, 0]
+  const defaultScheme = [0, 0, 0, 0, 0, 0, 0]
+  const [colorValue, headValue, eyesValue, hairValue, earsValue, armsValue, neckValue] = scheme && scheme.length === 7 ? scheme : defaultScheme
 
   // Empty bot object
   const bot = {
@@ -24,7 +25,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
   }
 
   // Translate the values to human readable descriptions for easier reference
-  bot.head.description = headValue === 1 ? 'high' : 'low'
+  bot.head.description = headValue === 0 ? 'low' : headValue === 1 ? 'high' : 'slanted'
   bot.eyes.description = eyesValue === 0 ? 'round' : eyesValue === 1 ? 'square' : eyesValue === 2 ? 'rect' : 'wink'
   bot.hair.description = hairValue === 0 ? 'absent' : hairValue === 1 ? 'flat' : 'scruffy'
   bot.ears.description = earsValue === 1 ? 'present' : 'absent'
@@ -44,21 +45,29 @@ export const createBotDescriptionFromScheme = (scheme) => {
   } else if (bot.hair.description === 'scruffy') {
     bot.hair.shapes.push({
       type: 'polygon',
-      points: '2 0 10 0 10 2 9 2 9 1 8 1 8 2 6 2 6 1 5 1 5 2 4 2 4 1 3 1 3 2 2 2 2 0',
+      points: '2,0 10,0 10,2 9,2 9,1 8,1 8,2 6,2 6,1 5,1 5,2 4,2 4,1 3,1 3,2 2,2 2,0',
       color: colors[colorValue][1]
     })
   }
 
   // Head
-  bot.head.shapes.push({
-    x: 2,
-    y: 0,
-    width: 8,
-    height: bot.head.description === 'high' ? 4 : 8,
-    type: 'rect',
-    color: colors[colorValue][0]
-  })
+  if (bot.head.description === 'slanted') {
+    bot.head.shapes.push({
+      type: 'polygon',
+      points: '2,0 10,0 10,6 6,8 2,6',
+      color: colors[colorValue][0]
+    })
+  } else {
+    bot.head.shapes.push({
+      x: 2,
+      y: 0,
+      width: 8,
+      height: bot.head.description === 'high' ? 4 : 8,
+      type: 'rect',
+      color: colors[colorValue][0]
+    })
 
+  }
   // Eyes
   const eyePositionY = bot.head.description === 'high' ? 1 : 3
   if (bot.eyes.description === 'square') {
@@ -189,12 +198,12 @@ export const createBotDescriptionFromScheme = (scheme) => {
   } else {
     bot.arms.shapes.push({
       type: 'polygon',
-      points: '0 10 0 14 2 14 2 12 4 12 4 10 0 10',
+      points: '0,10 0,14 2,14 2,12 4,12 4,10 0,10',
       color: colors[colorValue][1]
     })
     bot.arms.shapes.push({
       type: 'polygon',
-      points: '8 10 8 12 10 12 10 14 12 14 12 10 8 10',
+      points: '8,10 8,12 10,12 10,14 12,14 12,10 8,10',
       color: colors[colorValue][1]
     })
   }

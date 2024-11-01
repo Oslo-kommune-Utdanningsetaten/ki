@@ -85,6 +85,7 @@ const botAttrs = [
     values: [
       { id: 0, text: 'Firkant' },
       { id: 1, text: 'Høy' },
+      { id: 2, text: 'Smal hake' },
     ],
   },
   {
