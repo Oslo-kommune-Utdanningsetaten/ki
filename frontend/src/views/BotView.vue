@@ -1,9 +1,10 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
-import { ref, watchEffect, useTemplateRef } from 'vue'
+import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
+import AudioWave from '@/components/AudioWave.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,8 +13,12 @@ const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
 const showSystemPrompt = ref(false)
+const isSpeechRecognitionActive = ref(false)
+const isBrowserSpeechEnabled = ref(false)
 const botId = ref(0)
 botId.value = route.params.id
+
+let speechRecognitionSession
 
 const textInput = useTemplateRef('text-input') // Add a ref for the text input element
 
@@ -68,7 +73,6 @@ const sendMessage = async () => {
       content: '',
     }
   )
-  message.value = ''
   isProcessingInput.value = true
 
   const data = { uuid: botId.value, messages: messages.value }
@@ -78,8 +82,9 @@ const sendMessage = async () => {
   await callChatStream(data, handleStreamText).then(() => {
     // stream is done, return control to user
     isProcessingInput.value = false
+    message.value = ''
+    textInput.value.focus() // Set focus to the text input element
   })
-  textInput.value.focus() // Set focus to the text input element
 }
 
 const callChatStream = async (data, progressCallback) => {
@@ -165,8 +170,57 @@ const clipboardAll = bot => {
   }
 }
 
+const toggleSpeechInput = () => {
+  if (!speechRecognitionSession) return
+  if (isSpeechRecognitionActive.value) {
+    speechRecognitionSession.stop()
+  } else {
+    speechRecognitionSession.start()
+  }
+}
+
 watchEffect(() => {
   startpromt()
+})
+
+onMounted(() => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+  if (SpeechRecognition) {
+    isBrowserSpeechEnabled.value = true
+
+    speechRecognitionSession = new SpeechRecognition()
+    speechRecognitionSession.lang = navigator.language || navigator.userLanguage
+    speechRecognitionSession.interimResults = true
+    speechRecognitionSession.maxAlternatives = 1
+
+    // Set up event handlers
+    speechRecognitionSession.onstart = () => {
+      isSpeechRecognitionActive.value = true
+    }
+
+    speechRecognitionSession.onresult = event => {
+      const transcript = event.results[0][0].transcript
+      message.value = transcript
+      isSpeechRecognitionActive.value = false
+    }
+
+    speechRecognitionSession.onerror = event => {
+      console.error('Speech recognition error:', event.error)
+      isSpeechRecognitionActive.value = false
+    }
+
+    speechRecognitionSession.onend = () => {
+      isSpeechRecognitionActive.value = false
+      // Speech is assumend finished, now send the message
+      if (message.value !== '') {
+        sendMessage()
+      }
+    }
+  } else {
+    isBrowserSpeechEnabled.value = false
+    console.warn('Speech recognition not supported in this browser.')
+  }
 })
 </script>
 
@@ -326,8 +380,18 @@ watchEffect(() => {
     ></textarea>
     <div class="card">
       <div class="card-body bg-body-tertiary">
+        <button
+          v-if="isBrowserSpeechEnabled"
+          @click="toggleSpeechInput"
+          class="btn oslo-btn-secondary mic-button"
+          title="Trykk for å snakke inn tekst"
+        >
+          <AudioWave v-if="isSpeechRecognitionActive" />
+          <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
+        </button>
+
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">
-          Send
+          Send!
         </button>
         <button
           class="btn oslo-btn-secondary"
@@ -357,3 +421,15 @@ watchEffect(() => {
   </div>
   <div>&nbsp;</div>
 </template>
+
+<style scoped>
+.mic-icon {
+  transform: scale(1.2);
+  display: inline-block;
+  transition: transform 0.2s ease-out;
+}
+
+.mic-button:hover .mic-icon {
+  transform: scale(1.5);
+}
+</style>
