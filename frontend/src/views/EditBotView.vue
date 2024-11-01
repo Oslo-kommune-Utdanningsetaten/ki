@@ -360,14 +360,14 @@ watch(
                 <div>
                   <strong>{{ attr.text }}</strong>
                 </div>
-                <div v-for="(value, index) in attr.values" class="form-check form-check-inline">
+                <div v-for="value in attr.values" class="form-check form-check-inline">
                   <input
                     class="form-check-input"
                     type="radio"
                     :name="attr.id"
                     :id="`${attr.id}:${value.id}`"
                     :value="value.id"
-                    v-model="bot.avatar_scheme[index]"
+                    v-model="bot.avatar_scheme[attr.id]"
                   />
                   <label :for="`${attr.id}:${value.id}`">{{ value.text }}</label>
                 </div>
