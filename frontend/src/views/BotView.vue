@@ -1,6 +1,8 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
@@ -173,6 +175,13 @@ const clipboardAll = bot => {
   } catch (error) {
     console.log(error)
   }
+}
+
+const renderMessage = (aMessage, index) => {
+  if (aMessage.role === 'assistant') {
+    return DOMPurify.sanitize(marked.parse(aMessage.content))
+  }
+  return aMessage.content
 }
 
 const checkmicrophonePermissionStatus = async () => {
@@ -357,7 +366,7 @@ onMounted(() => {
             </div>
             <div class="col">
               <span
-                v-html="message_line.content"
+                v-html="renderMessage(message_line, msg_nr)"
                 class="chat"
                 :class="msg_nr === messages.length - 1 && isProcessingInput ? 'type-writer' : ''"
               ></span>
