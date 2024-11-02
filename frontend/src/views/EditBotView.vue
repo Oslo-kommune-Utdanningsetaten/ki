@@ -60,13 +60,7 @@ const models = [
   { id: '4o', value: 'gpt-4o', label: 'gpt-4o' },
   { id: '4om', value: 'gpt-4o-mini', label: 'gpt-4o mini' },
 ]
-const botImages = [
-  { id: 'bot1.svg', text: 'Blå' },
-  { id: 'bot2.svg', text: 'Gul' },
-  { id: 'bot3.svg', text: 'Grønn' },
-  { id: 'bot4.svg', text: 'Rød' },
-  { id: 'bot5.svg', text: 'Grå' },
-]
+
 const botAttrs = [
   {
     id: 0,
@@ -299,6 +293,14 @@ const schoolAccessFiltered = computed(() => {
   })
 })
 
+const randomizeAttributes = () => {
+  const randomAttributes = []
+  Object.values(botAttrs).forEach(attr => {
+    randomAttributes.push(Math.floor(Math.random() * attr.values.length))
+  })
+  bot.value.avatar_scheme = randomAttributes
+}
+
 watchEffect(() => {
   if (method.value == 'new' || method.value == 'newlib') {
     newBot.value = true
@@ -353,7 +355,16 @@ watch(
             aria-label="Close"
           ></button>
         </div>
-        <div class="modal-body">Her kan du generere utseendet på din bot</div>
+        <div class="modal-body">
+          Her kan du bestemme utseendet på din bot. Eller trille en terning!
+          <button
+            class="randomButton"
+            @click="randomizeAttributes"
+            title="La tilfeldighetene bestemme!"
+          >
+            🎲
+          </button>
+        </div>
         <div class="modal-body row">
           <div class="col-6">
             <div class="form-check">
@@ -816,3 +827,51 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+.randomButton {
+  background-color: white;
+  border: none;
+}
+
+.randomButton:hover {
+  animation: shake 0.9s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+  0% {
+    transform: translate(1px, 1px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -2px) rotate(-1deg);
+  }
+  20% {
+    transform: translate(-3px, 0px) rotate(1deg);
+  }
+  30% {
+    transform: translate(3px, 2px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(1deg);
+  }
+  50% {
+    transform: translate(-1px, 2px) rotate(-1deg);
+  }
+  60% {
+    transform: translate(-3px, 1px) rotate(0deg);
+  }
+  70% {
+    transform: translate(3px, 1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(1deg);
+  }
+  90% {
+    transform: translate(1px, 2px) rotate(0deg);
+  }
+  100% {
+    transform: translate(1px, -2px) rotate(-1deg);
+  }
+}
+</style>
