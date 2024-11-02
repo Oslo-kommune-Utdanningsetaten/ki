@@ -11,13 +11,18 @@ const router = useRouter()
 const bot = ref({})
 const messages = ref([])
 const message = ref('')
-const isProcessingInput = ref(false)
-const showSystemPrompt = ref(false)
-const isSpeechRecognitionActive = ref(false)
-const isBrowserSpeechEnabled = ref(false)
 const botId = ref(0)
 botId.value = route.params.id
+const isProcessingInput = ref(false)
+const showSystemPrompt = ref(false)
 
+// Does the browser support speech recognition
+const isBrowserSpeechEnabled = ref(false)
+// Are we currently listening for speech input
+const isSpeechRecognitionActive = ref(false)
+// Has the user granted permission to use the microphone
+let microphonePermissionStatus = ref('denied')
+// Speech recognition session
 let speechRecognitionSession
 
 const textInput = useTemplateRef('text-input') // Add a ref for the text input element
@@ -170,6 +175,12 @@ const clipboardAll = bot => {
   }
 }
 
+const checkmicrophonePermissionStatus = async () => {
+  const permission = await navigator.permissions.query({ name: 'microphone' })
+  microphonePermissionStatus.value = permission.state
+  console.info('Microphone permission:', microphonePermissionStatus.value)
+}
+
 const toggleSpeechInput = () => {
   if (!speechRecognitionSession) return
   if (isSpeechRecognitionActive.value) {
@@ -181,6 +192,7 @@ const toggleSpeechInput = () => {
 
 watchEffect(() => {
   startpromt()
+  checkmicrophonePermissionStatus()
 })
 
 onMounted(() => {
@@ -341,7 +353,6 @@ onMounted(() => {
               <BotAvatar
                 v-if="message_line.role === 'assistant'"
                 :avatar_scheme="bot.avatar_scheme"
-                alt="bot:"
               />
             </div>
             <div class="col">
@@ -384,7 +395,12 @@ onMounted(() => {
           v-if="isBrowserSpeechEnabled"
           @click="toggleSpeechInput"
           class="btn oslo-btn-secondary mic-button"
-          title="Trykk for å snakke inn tekst"
+          :title="
+            microphonePermissionStatus === 'denied'
+              ? 'Nettleseren har ikke tilgang til mikrofonen'
+              : 'Trykk for å snakke inn tekst'
+          "
+          :disabled="microphonePermissionStatus === 'denied'"
         >
           <AudioWave v-if="isSpeechRecognitionActive" />
           <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
@@ -423,6 +439,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.mic-button {
+  pointer-events: auto;
+}
+
 .mic-icon {
   transform: scale(1.2);
   display: inline-block;
