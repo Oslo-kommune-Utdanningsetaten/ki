@@ -177,7 +177,7 @@ const clipboardAll = bot => {
   }
 }
 
-const renderMessage = (aMessage, index) => {
+const renderMessage = aMessage => {
   if (aMessage.role === 'assistant') {
     return DOMPurify.sanitize(marked.parse(aMessage.content))
   }
@@ -191,6 +191,7 @@ const checkmicrophonePermissionStatus = async () => {
 }
 
 const toggleSpeechInput = () => {
+  // Fail early if speech recognition has not been set up
   if (!speechRecognitionSession) return
   if (isSpeechRecognitionActive.value) {
     speechRecognitionSession.stop()
@@ -199,12 +200,7 @@ const toggleSpeechInput = () => {
   }
 }
 
-watchEffect(() => {
-  startpromt()
-  checkmicrophonePermissionStatus()
-})
-
-onMounted(() => {
+const configureSpeechRecognition = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
   if (SpeechRecognition) {
@@ -240,8 +236,17 @@ onMounted(() => {
     }
   } else {
     isBrowserSpeechEnabled.value = false
-    console.warn('Speech recognition not supported in this browser.')
+    console.info('Speech recognition not supported in this browser.')
   }
+}
+
+watchEffect(() => {
+  startpromt()
+  checkmicrophonePermissionStatus()
+})
+
+onMounted(() => {
+  configureSpeechRecognition()
 })
 </script>
 
