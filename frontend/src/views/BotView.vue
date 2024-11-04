@@ -20,10 +20,10 @@ const showSystemPrompt = ref(false)
 
 // Does the browser support speech recognition
 const isBrowserSpeechEnabled = ref(false)
-// Are we currently listening for speech input
-const isSpeechRecognitionActive = ref(false)
 // Has the user granted permission to use the microphone
 let microphonePermissionStatus = ref('denied')
+// Are we currently listening for speech input
+const isSpeechRecognitionActive = ref(false)
 // Speech recognition session
 let speechRecognitionSession
 
