@@ -356,32 +356,36 @@ watch(
           ></button>
         </div>
         <div class="modal-body">
-          Her kan du bestemme utseendet på din bot. Eller trille en terning!
+          Her kan du bestemme utseendet på din bot. Eller
           <button
-            class="randomButton"
+            class="btn oslo-btn-secondary ms-0"
             @click="randomizeAttributes"
-            title="La tilfeldighetene bestemme!"
+            title="La tilfeldighetene avgjøre"
           >
-            🎲
+            La tilfeldighetene avgjøre
           </button>
         </div>
         <div class="modal-body row">
           <div class="col-6">
-            <div class="form-check">
+            <div>
               <div v-for="attr in botAttrs">
-                <div>
+                <div class="mt-2 border-bottom">
                   <strong>{{ attr.text }}</strong>
                 </div>
-                <div v-for="value in attr.values" class="form-check form-check-inline">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    :name="attr.id"
-                    :id="`${attr.id}:${value.id}`"
-                    :value="value.id"
-                    v-model="bot.avatar_scheme[attr.id]"
-                  />
-                  <label :for="`${attr.id}:${value.id}`">{{ value.text }}</label>
+                <div class="row">
+                  <div v-for="value in attr.values" class="col-md-6 align-items-center">
+                    <input
+                      class="me-2"
+                      type="radio"
+                      :name="attr.id"
+                      :id="`${attr.id}:${value.id}`"
+                      :value="value.id"
+                      v-model="bot.avatar_scheme[attr.id]"
+                    />
+                    <label :for="`${attr.id}:${value.id}`" class="form-check-label">
+                      {{ value.text }}
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -828,50 +832,4 @@ watch(
   </div>
 </template>
 
-<style scoped>
-.randomButton {
-  background-color: white;
-  border: none;
-}
-
-.randomButton:hover {
-  animation: shake 0.9s;
-  animation-iteration-count: infinite;
-}
-
-@keyframes shake {
-  0% {
-    transform: translate(1px, 1px) rotate(0deg);
-  }
-  10% {
-    transform: translate(-1px, -2px) rotate(-1deg);
-  }
-  20% {
-    transform: translate(-3px, 0px) rotate(1deg);
-  }
-  30% {
-    transform: translate(3px, 2px) rotate(0deg);
-  }
-  40% {
-    transform: translate(1px, -1px) rotate(1deg);
-  }
-  50% {
-    transform: translate(-1px, 2px) rotate(-1deg);
-  }
-  60% {
-    transform: translate(-3px, 1px) rotate(0deg);
-  }
-  70% {
-    transform: translate(3px, 1px) rotate(-1deg);
-  }
-  80% {
-    transform: translate(-1px, -1px) rotate(1deg);
-  }
-  90% {
-    transform: translate(1px, 2px) rotate(0deg);
-  }
-  100% {
-    transform: translate(1px, -2px) rotate(-1deg);
-  }
-}
-</style>
+<style scoped></style>

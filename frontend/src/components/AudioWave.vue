@@ -19,7 +19,7 @@
 .audioWave span {
   display: inline-block;
   width: 3px;
-  background-color: black;
+  background-color: #2c2c2c;
   margin-right: 1px;
   animation: sound 0.8s infinite;
   animation-timing-function: ease-out;

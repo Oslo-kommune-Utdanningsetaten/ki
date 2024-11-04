@@ -66,8 +66,8 @@ export const createBotDescriptionFromScheme = (scheme) => {
       type: 'rect',
       color: colors[colorValue][0]
     })
-
   }
+
   // Eyes
   const eyePositionY = bot.head.description === 'high' ? 1 : 3
   if (bot.eyes.description === 'square') {
@@ -85,6 +85,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
       width: 2,
       height: 2,
       type: 'rect',
+      color: colors[colorValue][1]
     })
   } else if (bot.eyes.description === 'wink') {
     bot.eyes.shapes.push({
