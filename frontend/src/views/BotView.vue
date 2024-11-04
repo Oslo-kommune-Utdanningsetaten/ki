@@ -7,6 +7,7 @@ import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import AudioWave from '@/components/AudioWave.vue'
+import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -376,15 +377,22 @@ onMounted(() => {
                 :class="msg_nr === messages.length - 1 && isProcessingInput ? 'type-writer' : ''"
               ></span>
             </div>
-            <div class="col-1 edit-link" :class="{ invisible: isProcessingInput }">
-              <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
-                <img src="@/components/icons/rediger.svg" alt="rediger" />
-              </a>
-            </div>
-            <div class="col-1 clipboard">
-              <a href="#" @click="clipboard(msg_nr)">
-                <img src="@/components/icons/clipboard.svg" alt="kopier" />
-              </a>
+            <div class="col-1">
+              <div class="d-flex justify-content-end">
+                <div class="edit-link" :class="{ invisible: isProcessingInput }">
+                  <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
+                    <img src="@/components/icons/rediger.svg" alt="rediger" />
+                  </a>
+                </div>
+                <div class="clipboard">
+                  <a href="#" @click="clipboard(msg_nr)">
+                    <img src="@/components/icons/clipboard.svg" alt="kopier" />
+                  </a>
+                </div>
+                <div class="speech-synth">
+                  <SpeechSynthesizer v-if="!isProcessingInput" :textInput="message_line.content" />
+                </div>
+              </div>
             </div>
           </span>
         </li>

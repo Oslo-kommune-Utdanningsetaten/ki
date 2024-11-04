@@ -109,13 +109,14 @@ button img {
 }
 
 .edit-link,
-.clipboard {
-  text-align: center !important;
+.clipboard,
+.speech-synth {
   padding: 0 !important;
 }
 
 .edit-link,
-.clipboard img {
+.clipboard,
+.speech-synth img {
   width: 1.3em;
 }
 
