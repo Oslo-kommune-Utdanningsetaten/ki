@@ -1,13 +1,12 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
 import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import AudioWave from '@/components/AudioWave.vue'
-import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
+import Conversation from '@/components/Conversation.vue'
+import { renderMessage } from '../utils.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -70,11 +69,11 @@ const resetMessages = () => {
   ]
 }
 
-const sendMessage = async () => {
+const sendMessage = async updatedMessage => {
   messages.value.push(
     {
       role: 'user',
-      content: message.value,
+      content: updatedMessage || message.value,
     },
     {
       role: 'assistant',
@@ -129,10 +128,11 @@ const getCookie = name => {
   return cookieValue
 }
 
-const editPrompt = messageIndex => {
-  messages.value.splice(messageIndex + 1)
-  message.value = messages.value.pop()['content']
-  isProcessingInput.value = false
+const updateMessageContent = (messageContent, index) => {
+  // Delete all trailing messages
+  messages.value.splice(index + 1)
+  // Trigger a new sendMessage with the updated message
+  sendMessage(messageContent)
 }
 
 const toggleStartPrompt = () => {
@@ -149,14 +149,6 @@ const deleteBot = () => {
     .catch(error => {
       console.log(error)
     })
-}
-
-const copyToclipboard = textToCopy => {
-  try {
-    navigator.clipboard.writeText(textToCopy)
-  } catch (error) {
-    console.log(error)
-  }
 }
 
 const clipboardAll = bot => {
@@ -178,18 +170,7 @@ const clipboardAll = bot => {
   }
 }
 
-const renderMessage = aMessage => {
-  if (
-    aMessage.role === 'assistant' &&
-    (aMessage.content.includes('```') || aMessage.content.includes('**'))
-  ) {
-    // Only render MD if message is from the assistant and contains markdown
-    return DOMPurify.sanitize(marked.parse(aMessage.content))
-  }
-  return aMessage.content.replaceAll('\n', '<br/>')
-}
-
-const checkmicrophonePermissionStatus = async () => {
+const checkMicrophonePermissionStatus = async () => {
   const permission = await navigator.permissions.query({ name: 'microphone' })
   microphonePermissionStatus.value = permission.state
   console.info('Microphone permission:', microphonePermissionStatus.value)
@@ -247,7 +228,7 @@ const configureSpeechRecognition = () => {
 
 watchEffect(() => {
   startpromt()
-  checkmicrophonePermissionStatus()
+  checkMicrophonePermissionStatus()
 })
 
 onMounted(() => {
@@ -357,82 +338,17 @@ onMounted(() => {
       </div>
       <div class="position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått</strong>
-        <p class="mb-0">{{ renderMessage(messages[0]) }}</p>
+        <p class="mb-0">{{ renderMessage(messages[0].content) }}</p>
       </div>
     </div>
   </div>
 
-  <div v-if="messages.length > 1" class="card mt-3 p-3">
-    <div
-      v-for="(aMessage, messageIndex) in messages.slice(1, messages.length)"
-      :key="messageIndex"
-      class="message-container mb-4 mt-1"
-    >
-      <div v-if="aMessage.role === 'user'" class="d-flex justify-content-end align-items-start">
-        <!-- User -->
-        <div class="w-60 position-relative text-right">
-          <div class="position-relative p-3 border text-right oslo-bg-light-green">
-            {{ renderMessage(aMessage) }}
-          </div>
-          <div class="widget-container position-absolute d-flex">
-            <!-- Edit widget -->
-            <a
-              class="message-widget"
-              href="#"
-              @click="editPrompt(messageIndex + 1)"
-              :class="{ invisible: isProcessingInput }"
-            >
-              <img
-                class="oslo-fill-dark-black"
-                src="@/components/icons/rediger.svg"
-                alt="rediger"
-              />
-            </a>
-            <!-- Copy to clipboard widget -->
-            <a class="message-widget" href="#" @click="copyToclipboard(aMessage.content)">
-              <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
-            </a>
-            <!-- Speech synth widget -->
-            <SpeechSynthesizer
-              v-if="!isProcessingInput"
-              :textInput="aMessage.content"
-              class="message-widget"
-            />
-          </div>
-        </div>
-
-        <div class="avatar ms-2">
-          <img alt="User Avatar" class="ms-2" src="@/components/icons/user.svg" />
-        </div>
-      </div>
-
-      <!-- Assistant -->
-      <div v-else class="d-flex justify-content-start align-items-start">
-        <div class="avatar mr-2 me-3">
-          <BotAvatar :avatar_scheme="bot.avatar_scheme" />
-        </div>
-
-        <div class="w-60 position-relative text-right">
-          <div
-            class="position-relative bg-light p-3 border text-right"
-            v-html="renderMessage(aMessage)"
-          ></div>
-          <div class="widget-container position-absolute d-flex">
-            <!-- Copy to clipboard widget -->
-            <a class="message-widget" href="#" @click="copyToclipboard(aMessage.content)">
-              <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
-            </a>
-            <!-- Speech synth widget -->
-            <SpeechSynthesizer
-              v-if="!isProcessingInput"
-              :textInput="aMessage.content"
-              class="message-widget"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <Conversation
+    :messages="messages.slice(1, messages.length)"
+    :bot="bot"
+    :isProcessingInput="isProcessingInput"
+    :handleUpdateMessageContent="updateMessageContent"
+  />
 
   <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInput }">
     <textarea
@@ -496,27 +412,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.avatar {
-  display: flex;
-  justify-content: center;
-  width: 50px;
-}
-
-.widget-container {
-  bottom: -30px;
-  right: 10px;
-}
-
-.message-container .widget-container {
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-  z-index: 10;
-}
-
-.message-container:hover .widget-container {
-  opacity: 1;
-}
-
 .mic-button {
   pointer-events: auto;
 }

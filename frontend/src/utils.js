@@ -1,3 +1,7 @@
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
+
+
 // Each entry in the colors array is a pair of colors used in the bot avatar
 const colors = [
   ['oslo-fill-blue', 'oslo-fill-dark-blue'],
@@ -210,4 +214,13 @@ export const createBotDescriptionFromScheme = (scheme) => {
   }
 
   return bot
+}
+
+export const renderMessage = messageContent => {
+  if (messageContent.includes('```') || messageContent.includes('**')) {
+    // Only render MD if message contains markdown
+    return DOMPurify.sanitize(marked.parse(aMessage))
+  }
+  // okay, let's cooperate with the newlines
+  return messageContent.replaceAll('\n', '<br/>')
 }
