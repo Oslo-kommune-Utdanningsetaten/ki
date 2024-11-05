@@ -1,0 +1,113 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import AudioWave from '@/components/AudioWave.vue'
+
+// Does the browser support speech recognition
+const isBrowserSpeechEnabled = ref(false)
+// Has the user granted permission to use the microphone
+let microphonePermissionStatus = ref('denied')
+// Are we currently listening for speech input
+const isSpeechRecognitionActive = ref(false)
+// Speech recognition session
+let speechRecognitionSession
+
+const attr = defineProps(['onMessageReceived'])
+let handleMessageInput = ref(attr.onMessageReceived)
+let speechTranscript = null
+
+const configureSpeechRecognition = () => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+  if (SpeechRecognition) {
+    isBrowserSpeechEnabled.value = true
+
+    speechRecognitionSession = new SpeechRecognition()
+    speechRecognitionSession.lang = navigator.language || navigator.userLanguage
+    speechRecognitionSession.interimResults = true
+    speechRecognitionSession.maxAlternatives = 1
+
+    // Set up event handlers
+    speechRecognitionSession.onstart = () => {
+      isSpeechRecognitionActive.value = true
+    }
+
+    speechRecognitionSession.onresult = event => {
+      const transcript = event.results[0][0].transcript
+      speechTranscript = transcript
+      handleMessageInput.value(speechTranscript, false)
+      isSpeechRecognitionActive.value = false
+    }
+
+    speechRecognitionSession.onerror = event => {
+      console.error('Speech recognition error:', event.error)
+      isSpeechRecognitionActive.value = false
+    }
+
+    speechRecognitionSession.onend = () => {
+      isSpeechRecognitionActive.value = false
+      // Speech is assumend finished, now send the message
+      if (speechTranscript !== '') {
+        handleMessageInput.value(speechTranscript, true)
+      }
+    }
+  } else {
+    isBrowserSpeechEnabled.value = false
+    console.info('Speech recognition not supported in this browser.')
+  }
+}
+
+const checkMicrophonePermissionStatus = async () => {
+  const permission = await navigator.permissions.query({ name: 'microphone' })
+  microphonePermissionStatus.value = permission.state
+  console.info('Microphone permission:', microphonePermissionStatus.value)
+}
+
+const toggleSpeechInput = () => {
+  // Fail early if speech recognition has not been set up
+  if (!speechRecognitionSession) return
+  if (isSpeechRecognitionActive.value) {
+    speechRecognitionSession.stop()
+  } else {
+    speechRecognitionSession.start()
+  }
+}
+
+onMounted(() => {
+  checkMicrophonePermissionStatus()
+  configureSpeechRecognition()
+})
+</script>
+
+<template>
+  <button
+    v-if="isBrowserSpeechEnabled"
+    @click="toggleSpeechInput"
+    class="btn oslo-btn-secondary mic-button ms-0"
+    :title="
+      microphonePermissionStatus === 'denied'
+        ? 'Nettleseren har ikke tilgang til mikrofonen'
+        : 'Trykk for å snakke inn tekst'
+    "
+    :disabled="microphonePermissionStatus === 'denied'"
+  >
+    <AudioWave v-if="isSpeechRecognitionActive" />
+    <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
+  </button>
+</template>
+
+<style scoped>
+.mic-button {
+  pointer-events: auto;
+}
+
+.mic-icon {
+  transform: scale(1.2);
+  display: inline-block;
+  transition: transform 0.2s ease-out;
+}
+
+.mic-button:hover .mic-icon {
+  transform: scale(1.5);
+}
+</style>
+s
