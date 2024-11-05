@@ -298,6 +298,7 @@ watchEffect(() => {
     <div class="card">
       <div class="card-body bg-body-tertiary">
         <SpeechToText :onMessageReceived="handleMessageInput" />
+
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">
           Send!
         </button>

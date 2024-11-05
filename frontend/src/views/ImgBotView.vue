@@ -3,6 +3,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ref, watchEffect } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
+import SpeechToText from '@/components/SpeechToText.vue'
 
 const route = useRoute()
 const bot = ref({})
@@ -28,6 +29,13 @@ const resetMessages = () => {
   prompt.value = ''
   image.value = ''
   insertPrompt.value = ''
+}
+
+const handleMessageInput = (messageContent, isDone) => {
+  insertPrompt.value = messageContent
+  if (isDone) {
+    sendMessage()
+  }
 }
 
 const sendMessage = async () => {
@@ -151,6 +159,7 @@ watchEffect(() => {
     ></textarea>
     <div class="card">
       <div class="card-body bg-body-tertiary">
+        <SpeechToText :onMessageReceived="handleMessageInput" />
         <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">
           Send
         </button>
