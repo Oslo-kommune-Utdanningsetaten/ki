@@ -4,6 +4,7 @@ import axios from 'axios'
 import { ref, watchEffect } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechToText from '@/components/SpeechToText.vue'
+import { getCookie } from '../store.js'
 
 const route = useRoute()
 const bot = ref({})
@@ -62,21 +63,6 @@ const sendMessage = async () => {
   } catch (error) {
     console.log(error)
   }
-}
-
-const getCookie = name => {
-  let cookieValue = null
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';')
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim()
-      if (cookie.substring(0, name.length + 1) === name + '=') {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
-        break
-      }
-    }
-  }
-  return cookieValue
 }
 
 watchEffect(() => {
