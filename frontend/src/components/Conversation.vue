@@ -59,6 +59,7 @@ watchEffect(() => {
           <div v-else class="position-relative p-3 border text-right oslo-bg-primary">
             {{ aMessage.content }}
           </div>
+
           <div class="widget-container position-absolute d-flex">
             <!-- Edit widget -->
             <a
@@ -89,7 +90,7 @@ watchEffect(() => {
 
       <!-- Assistant -->
       <div v-else class="d-flex justify-content-start align-items-start">
-        <div class="avatar mr-2 me-3">
+        <div class="avatar me-3">
           <BotAvatar :avatar_scheme="bot.avatar_scheme" />
         </div>
 
@@ -129,6 +130,6 @@ watchEffect(() => {
 }
 
 .message-container:hover .widget-container {
-  opacity: 1;
+  opacity: 0.8;
 }
 </style>

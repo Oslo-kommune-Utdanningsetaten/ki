@@ -27,7 +27,7 @@ const isSpeechRecognitionActive = ref(false)
 // Speech recognition session
 let speechRecognitionSession
 
-const textInput = useTemplateRef('text-input') // Add a ref for the text input element
+const textInput = useTemplateRef('text-input')
 
 const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
@@ -42,10 +42,6 @@ const startpromt = async () => {
     const { data } = await axios.get('/api/bot_info/' + botId.value)
     bot.value = data.bot
     resetMessages()
-    // messages.value = [{
-    //   "role": "system",
-    //   "content": bot.value.prompt,
-    // }];
   } catch (error) {
     console.log(error)
   }
@@ -56,7 +52,6 @@ const resetMessages = () => {
   if (bot.value.choices) {
     choicesSorted().forEach(choice => {
       if (choice.selected !== null) {
-        // fullChoicesText += choice.text + ' ' + choice.selected.text + ' ';
         fullChoicesText += choice.selected.text + ' '
       }
     })
@@ -73,7 +68,7 @@ const sendMessage = async updatedMessage => {
   messages.value.push(
     {
       role: 'user',
-      content: updatedMessage || message.value,
+      content: updatedMessage || message.value, // use either updatedMessage or input from textarea
     },
     {
       role: 'assistant',
@@ -142,7 +137,7 @@ const toggleStartPrompt = () => {
 const deleteBot = () => {
   axios
     .delete('/api/bot_info/' + botId.value)
-    .then(response => {
+    .then(() => {
       store.addMessage('Boten er nå slettet', 'info')
       router.push({ name: 'home' })
     })
