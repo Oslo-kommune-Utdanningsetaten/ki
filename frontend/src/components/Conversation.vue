@@ -4,14 +4,16 @@ import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
 import { renderMessage } from '../utils.js'
 
-const attr = defineProps(['messages', 'isProcessingInput', 'bot', 'handleUpdateMessageContent'])
+const attr = defineProps([
+  'messages',
+  'isProcessingInputAtIndex',
+  'bot',
+  'handleEditMessageAtIndex',
+])
 let messages = ref(attr.messages)
-let isProcessingInput = ref(attr.isProcessingInput)
+let isProcessingInputAtIndex = ref(attr.isProcessingInputAtIndex)
 let bot = ref(attr.bot)
-let handleEditMessage = ref(attr.handleEditMessage)
-let handleUpdateMessageContent = ref(attr.handleUpdateMessageContent)
-
-let isEditingMessageAtIndex = ref(-1)
+let handleEditMessageAtIndex = ref(attr.handleEditMessageAtIndex)
 
 const copyToclipboard = textToCopy => {
   try {
@@ -21,21 +23,15 @@ const copyToclipboard = textToCopy => {
   }
 }
 
-const editPrompt = index => {
-  isEditingMessageAtIndex.value = index
-  console.log('Editing message at index:', index)
-}
-
-const updateMessageContent = (newContent, index) => {
-  handleUpdateMessageContent.value(newContent, index)
-  isEditingMessageAtIndex.value = -1
+const editMessageAtIndex = index => {
+  handleEditMessageAtIndex.value(index)
 }
 
 watchEffect(() => {
   messages.value = attr.messages
-  isProcessingInput.value = attr.isProcessingInput
+  isProcessingInputAtIndex.value = attr.isProcessingInputAtIndex
   bot.value = attr.bot
-  handleEditMessage.value = attr.handleEditMessage
+  handleEditMessageAtIndex.value = attr.handleEditMessageAtIndex
 })
 </script>
 
@@ -49,14 +45,7 @@ watchEffect(() => {
       <div v-if="aMessage.role === 'user'" class="d-flex justify-content-end align-items-start">
         <!-- User -->
         <div class="w-60 position-relative text-right">
-          <div v-if="isEditingMessageAtIndex === messageIndex">
-            <textarea
-              class="form-control"
-              v-model="aMessage.content"
-              @keydown.enter="updateMessageContent(aMessage.content, messageIndex)"
-            ></textarea>
-          </div>
-          <div v-else class="position-relative p-3 border text-right oslo-bg-primary">
+          <div class="position-relative p-3 border text-right oslo-bg-primary">
             {{ aMessage.content }}
           </div>
 
@@ -65,8 +54,8 @@ watchEffect(() => {
             <a
               class="message-widget"
               href="#"
-              @click="editPrompt(messageIndex)"
-              :class="{ invisible: isProcessingInput }"
+              @click="editMessageAtIndex(messageIndex)"
+              :class="{ invisible: isProcessingInputAtIndex > -1 }"
             >
               <img class="oslo-fill-dark-black" src="@/components/icons/edit.svg" alt="rediger" />
             </a>
@@ -76,7 +65,7 @@ watchEffect(() => {
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="!isProcessingInput"
+              v-if="isProcessingInputAtIndex > -1"
               :textInput="aMessage.content"
               class="message-widget"
             />
@@ -95,7 +84,13 @@ watchEffect(() => {
         </div>
 
         <div class="w-60 position-relative text-right">
+          <span
+            v-if="isProcessingInputAtIndex === messageIndex + 1"
+            class="spinner-border spinner-border-sm"
+            role="status"
+          ></span>
           <div
+            v-else
             class="position-relative bg-light p-3 border text-right"
             v-html="renderMessage(aMessage.content)"
           ></div>
@@ -106,7 +101,7 @@ watchEffect(() => {
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="!isProcessingInput"
+              v-if="isProcessingInputAtIndex > -1"
               :textInput="aMessage.content"
               class="message-widget"
             />

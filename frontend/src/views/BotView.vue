@@ -15,7 +15,7 @@ const messages = ref([])
 const message = ref('')
 const botId = ref(0)
 botId.value = route.params.id
-const isProcessingInput = ref(false)
+const isProcessingInputAtIndex = ref(-1)
 const showSystemPrompt = ref(false)
 
 // Does the browser support speech recognition
@@ -68,14 +68,14 @@ const sendMessage = async updatedMessage => {
   messages.value.push(
     {
       role: 'user',
-      content: updatedMessage || message.value, // use either updatedMessage or input from textarea
+      content: message.value,
     },
     {
       role: 'assistant',
       content: '',
     }
   )
-  isProcessingInput.value = true
+  isProcessingInputAtIndex.value = messages.value.length - 1
 
   const data = { uuid: botId.value, messages: messages.value }
   const handleStreamText = streamedText => {
@@ -83,7 +83,7 @@ const sendMessage = async updatedMessage => {
   }
   await callChatStream(data, handleStreamText).then(() => {
     // stream is done, return control to user
-    isProcessingInput.value = false
+    isProcessingInputAtIndex.value = -1
     message.value = ''
     textInput.value.focus() // Set focus to the text input element
   })
@@ -123,11 +123,12 @@ const getCookie = name => {
   return cookieValue
 }
 
-const updateMessageContent = (messageContent, index) => {
+const editMessageAtIndex = index => {
+  const messageContent = messages.value[index + 1].content
   // Delete all trailing messages
   messages.value.splice(index + 1)
-  // Trigger a new sendMessage with the updated message
-  sendMessage(messageContent)
+  message.value = messageContent
+  textInput.value.focus() // Set focus to the text input element
 }
 
 const toggleStartPrompt = () => {
@@ -341,11 +342,11 @@ onMounted(() => {
   <Conversation
     :messages="messages.slice(1, messages.length)"
     :bot="bot"
-    :isProcessingInput="isProcessingInput"
-    :handleUpdateMessageContent="updateMessageContent"
+    :isProcessingInputAtIndex="isProcessingInputAtIndex"
+    :handleEditMessageAtIndex="editMessageAtIndex"
   />
 
-  <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInput }">
+  <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInputAtIndex > -1 }">
     <textarea
       id="text-input"
       ref="text-input"
