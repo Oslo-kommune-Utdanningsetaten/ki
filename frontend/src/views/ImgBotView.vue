@@ -105,7 +105,7 @@ watchEffect(() => {
           </div>
           <div class="col-1 clipboard">
             <a href="#" @click="clipboard(msg_nr)">
-              <img src="@/components/icons/clipboard.svg" alt="kopier" />
+              <img src="@/components/icons/copy.svg" alt="kopier" />
             </a>
           </div>
         </span>

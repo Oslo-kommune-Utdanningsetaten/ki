@@ -2,12 +2,12 @@
 import { ref, onMounted } from 'vue'
 const synth = window.speechSynthesis
 
-const isResumeable = ref(false) // use this to keep track of whether the start function should play or resume
+const isResumeable = ref(false) // use this to keep track of whether the play function should play from the beginning, or resume
 const isCurrentlyPlaying = ref(false)
 const utterance = new SpeechSynthesisUtterance()
 
-// the text to be spoken
 const attr = defineProps(['textInput'])
+// the text to be spoken
 let textInput = ref(attr.textInput)
 
 const configureSynthesizer = () => {
@@ -67,9 +67,19 @@ onMounted(() => {
 })
 </script>
 
-<template>
+<template v-if="!!synth">
   <a href="#" @click="toggleSpeech">
-    <img v-if="isCurrentlyPlaying" src="@/components/icons/pause.svg" alt="Pause avspilling" />
-    <img v-else src="@/components/icons/play.svg" alt="Spill av denne meldingen" />
+    <img
+      v-if="isCurrentlyPlaying"
+      class="oslo-fill-dark-black"
+      src="@/components/icons/pause.svg"
+      alt="Pause avspilling"
+    />
+    <img
+      v-else
+      class="oslo-fill-dark-black"
+      src="@/components/icons/play.svg"
+      alt="Spill av denne meldingen"
+    />
   </a>
 </template>

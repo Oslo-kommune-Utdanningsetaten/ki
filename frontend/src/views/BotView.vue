@@ -129,8 +129,8 @@ const getCookie = name => {
   return cookieValue
 }
 
-const editPrompt = response_nr => {
-  messages.value.splice(response_nr + 1)
+const editPrompt = messageIndex => {
+  messages.value.splice(messageIndex + 1)
   message.value = messages.value.pop()['content']
   isProcessingInput.value = false
 }
@@ -151,9 +151,9 @@ const deleteBot = () => {
     })
 }
 
-const clipboard = response_nr => {
+const copyToclipboard = textToCopy => {
   try {
-    navigator.clipboard.writeText(messages.value[response_nr].content)
+    navigator.clipboard.writeText(textToCopy)
   } catch (error) {
     console.log(error)
   }
@@ -179,10 +179,14 @@ const clipboardAll = bot => {
 }
 
 const renderMessage = aMessage => {
-  if (aMessage.role === 'assistant') {
+  if (
+    aMessage.role === 'assistant' &&
+    (aMessage.content.includes('```') || aMessage.content.includes('**'))
+  ) {
+    // Only render MD if message is from the assistant and contains markdown
     return DOMPurify.sanitize(marked.parse(aMessage.content))
   }
-  return aMessage.content
+  return aMessage.content.replaceAll('\n', '<br/>')
 }
 
 const checkmicrophonePermissionStatus = async () => {
@@ -309,96 +313,127 @@ onMounted(() => {
       Slett bot
     </button>
   </div>
-  <h1 class="h2 mb-3">
-    {{ bot.title }}
-  </h1>
-  <p>
-    {{ bot.ingress }}
-  </p>
 
-  <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
-    <div v-for="choice in choicesSorted()" class="row mb-2">
-      <div class="col-4 col-form-label">{{ choice.label }}</div>
-      <div class="col-8" role="group">
-        <span v-for="option in optionsSorted(choice)" :key="option.id">
-          <input
-            class="btn-check"
-            type="radio"
-            :id="`${choice.id}-${option.id}`"
-            :value="option"
-            v-model="choice.selected"
-            @change="resetMessages()"
-          />
-          <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
-            {{ option.label }}
-          </label>
-        </span>
+  <div class="p-1">
+    <h1 class="h2 mb-3">
+      {{ bot.title }}
+    </h1>
+    <p>
+      {{ bot.ingress }}
+    </p>
+
+    <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
+      <div v-for="choice in choicesSorted()" class="row mb-2">
+        <div class="col-4 col-form-label">{{ choice.label }}</div>
+        <div class="col-8" role="group">
+          <span v-for="option in optionsSorted(choice)" :key="option.id">
+            <input
+              class="btn-check"
+              type="radio"
+              :id="`${choice.id}-${option.id}`"
+              :value="option"
+              v-model="choice.selected"
+              @change="resetMessages()"
+            />
+            <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+              {{ option.label }}
+            </label>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <button
+      v-if="bot.prompt_visibility"
+      class="me-auto btn oslo-btn-secondary ms-0"
+      @click="toggleStartPrompt"
+    >
+      {{ showSystemPrompt ? 'Skjul' : 'Vis' }} ledetekst
+    </button>
+
+    <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-start mt-3">
+      <div class="avatar p-2 me-3">
+        <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+      </div>
+      <div class="position-relative bg-light p-3 border text-right">
+        <strong>Dette er instruksene jeg har fått</strong>
+        <p class="mb-0">{{ renderMessage(messages[0]) }}</p>
       </div>
     </div>
   </div>
 
-  <button
-    v-if="bot.prompt_visibility"
-    class="me-auto btn oslo-btn-secondary"
-    @click="toggleStartPrompt"
-  >
-    Vis ledetekst
-  </button>
+  <div v-if="messages.length > 1" class="card mt-3 p-3">
+    <div
+      v-for="(aMessage, messageIndex) in messages.slice(1, messages.length)"
+      :key="messageIndex"
+      class="message-container mb-4 mt-1"
+    >
+      <div v-if="aMessage.role === 'user'" class="d-flex justify-content-end align-items-start">
+        <!-- User -->
+        <div class="w-60 position-relative text-right">
+          <div class="position-relative p-3 border text-right oslo-bg-light-green">
+            {{ renderMessage(aMessage) }}
+          </div>
+          <div class="widget-container position-absolute d-flex">
+            <!-- Edit widget -->
+            <a
+              class="message-widget"
+              href="#"
+              @click="editPrompt(messageIndex + 1)"
+              :class="{ invisible: isProcessingInput }"
+            >
+              <img
+                class="oslo-fill-dark-black"
+                src="@/components/icons/rediger.svg"
+                alt="rediger"
+              />
+            </a>
+            <!-- Copy to clipboard widget -->
+            <a class="message-widget" href="#" @click="copyToclipboard(aMessage.content)">
+              <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
+            </a>
+            <!-- Speech synth widget -->
+            <SpeechSynthesizer
+              v-if="!isProcessingInput"
+              :textInput="aMessage.content"
+              class="message-widget"
+            />
+          </div>
+        </div>
 
-  <div class="card">
-    <ul class="list-group list-group-flush">
-      <span v-for="(message_line, msg_nr) in messages" :key="msg_nr">
-        <li
-          v-if="message_line.role != 'system' || showSystemPrompt"
-          class="container-fluid list-group-item response"
-          :class="message_line.role"
-        >
-          <span class="row">
-            <div class="col-1 avatar">
-              <img
-                v-if="message_line.role === 'system'"
-                src="@/components/icons/system.svg"
-                alt="ledetekst:"
-              />
-              <img
-                v-if="message_line.role === 'user'"
-                src="@/components/icons/user.svg"
-                alt="du:"
-              />
-              <BotAvatar
-                v-if="message_line.role === 'assistant'"
-                :avatar_scheme="bot.avatar_scheme"
-              />
-            </div>
-            <div class="col">
-              <span
-                v-html="renderMessage(message_line, msg_nr)"
-                class="chat"
-                :class="msg_nr === messages.length - 1 && isProcessingInput ? 'type-writer' : ''"
-              ></span>
-            </div>
-            <div class="col-1">
-              <div class="d-flex justify-content-end">
-                <div class="edit-link" :class="{ invisible: isProcessingInput }">
-                  <a v-if="message_line.role === 'user'" href="#" @click="editPrompt(msg_nr)">
-                    <img src="@/components/icons/rediger.svg" alt="rediger" />
-                  </a>
-                </div>
-                <div class="clipboard">
-                  <a href="#" @click="clipboard(msg_nr)">
-                    <img src="@/components/icons/clipboard.svg" alt="kopier" />
-                  </a>
-                </div>
-                <div class="speech-synth">
-                  <SpeechSynthesizer v-if="!isProcessingInput" :textInput="message_line.content" />
-                </div>
-              </div>
-            </div>
-          </span>
-        </li>
-      </span>
-    </ul>
+        <div class="avatar ms-2">
+          <img alt="User Avatar" class="ms-2" src="@/components/icons/user.svg" />
+        </div>
+      </div>
+
+      <!-- Assistant -->
+      <div v-else class="d-flex justify-content-start align-items-start">
+        <div class="avatar mr-2 me-3">
+          <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+        </div>
+
+        <div class="w-60 position-relative text-right">
+          <div
+            class="position-relative bg-light p-3 border text-right"
+            v-html="renderMessage(aMessage)"
+          ></div>
+          <div class="widget-container position-absolute d-flex">
+            <!-- Copy to clipboard widget -->
+            <a class="message-widget" href="#" @click="copyToclipboard(aMessage.content)">
+              <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
+            </a>
+            <!-- Speech synth widget -->
+            <SpeechSynthesizer
+              v-if="!isProcessingInput"
+              :textInput="aMessage.content"
+              class="message-widget"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
   <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInput }">
     <textarea
       id="text-input"
@@ -445,7 +480,7 @@ onMounted(() => {
           id="button-clipboard"
           @click="clipboardAll(bot)"
         >
-          <img src="@/components/icons/clipboard.svg" alt="" />
+          <img src="@/components/icons/copy.svg" alt="" />
           Kopier samtalen
         </button>
         <div>
@@ -461,6 +496,27 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.avatar {
+  display: flex;
+  justify-content: center;
+  width: 50px;
+}
+
+.widget-container {
+  bottom: -30px;
+  right: 10px;
+}
+
+.message-container .widget-container {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10;
+}
+
+.message-container:hover .widget-container {
+  opacity: 1;
+}
+
 .mic-button {
   pointer-events: auto;
 }

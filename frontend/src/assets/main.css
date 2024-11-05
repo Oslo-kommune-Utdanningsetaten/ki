@@ -108,18 +108,6 @@ button img {
   width: 2em;
 }
 
-.edit-link,
-.clipboard,
-.speech-synth {
-  padding: 0 !important;
-}
-
-.edit-link,
-.clipboard,
-.speech-synth img {
-  width: 1.3em;
-}
-
 .chat p {
   margin-bottom: 0;
 }
@@ -170,6 +158,27 @@ button img {
 
 .show-advanced[aria-expanded='true']:after {
   content: 'Skjul avanserte innstillinger';
+}
+
+.message-widget {
+  background-color: white;
+  margin-left: 5px;
+}
+.message-widget:hover {
+  background-color: #f8f0dd;
+  border-radius: 50%;
+}
+.message-widget img {
+  height: 25px;
+  width: 25px;
+}
+
+.message {
+  margin-bottom: 2rem;
+}
+
+.w-60 {
+  width: 60%;
 }
 
 .oslo-btn-primary,
@@ -252,6 +261,32 @@ button img {
 
 .oslo-bg-blue {
   background-color: #6fe9ff !important;
+}
+
+.oslo-bg-light-green {
+  background-color: #c7f6c9 !important;
+}
+
+.oslo-bg-green {
+  background-color: #43f8b6 !important;
+}
+
+.oslo-bg-dark-green {
+  background-color: #034b45 !important;
+  color: white;
+}
+
+.oslo-bg-blue {
+  background-color: #6fe9ff !important;
+}
+
+.oslo-bg-dark-blue {
+  background-color: #2a2859 !important;
+  color: white;
+}
+
+.oslo-bg-light-blue {
+  background-color: #b3f5ff !important;
 }
 
 .oslo-text-primary {

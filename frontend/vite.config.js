@@ -1,13 +1,13 @@
-import { fileURLToPath, URL } from 'node:url';
+import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig, loadEnv } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import vueJsx from '@vitejs/plugin-vue-jsx';
+import { defineConfig, loadEnv } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') };
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') }
 
   // Proxy requests with Vite in dev, Nginx in prod
   const proxyConfig = process.env.VITE_API_BASE_URL ? {
@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
       secure: false
       // rewrite: (path: string) => path.replace(/^\/api/, ''),
     },
-  } : undefined;
+  } : undefined
 
   return {
     plugins: [
@@ -46,5 +46,5 @@ export default defineConfig(({ mode }) => {
       // port: 5000,
       proxy: proxyConfig
     }
-  };
-});
+  }
+})
