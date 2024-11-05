@@ -68,7 +68,7 @@ onMounted(() => {
 </script>
 
 <template v-if="!!synth">
-  <a href="#" @click="toggleSpeech">
+  <a name="toggleSpeech" @click="toggleSpeech">
     <img
       v-if="isCurrentlyPlaying"
       class="oslo-fill-dark-black"

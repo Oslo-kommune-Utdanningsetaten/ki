@@ -53,19 +53,23 @@ watchEffect(() => {
             <!-- Edit widget -->
             <a
               class="message-widget"
-              href="#"
+              name="editMessageAtIndex"
               @click="editMessageAtIndex(messageIndex)"
               :class="{ invisible: isProcessingInputAtIndex > -1 }"
             >
               <img class="oslo-fill-dark-black" src="@/components/icons/edit.svg" alt="rediger" />
             </a>
             <!-- Copy to clipboard widget -->
-            <a class="message-widget" href="#" @click="copyToclipboard(aMessage.content)">
+            <a
+              class="message-widget"
+              name="copyToclipboard"
+              @click="copyToclipboard(aMessage.content)"
+            >
               <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="isProcessingInputAtIndex > -1"
+              v-if="isProcessingInputAtIndex === -1"
               :textInput="aMessage.content"
               class="message-widget"
             />
@@ -96,12 +100,16 @@ watchEffect(() => {
           ></div>
           <div class="widget-container position-absolute d-flex">
             <!-- Copy to clipboard widget -->
-            <a class="message-widget" href="#" @click="copyToclipboard(aMessage.content)">
+            <a
+              class="message-widget"
+              name="copyToclipboard"
+              @click="copyToclipboard(aMessage.content)"
+            >
               <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="isProcessingInputAtIndex > -1"
+              v-if="isProcessingInputAtIndex === -1"
               :textInput="aMessage.content"
               class="message-widget"
             />
