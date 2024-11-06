@@ -100,7 +100,14 @@ watchEffect(() => {
               <span v-else>Interessant. Jeg tenker...</span>
             </div>
             <div v-else>
-              <div v-html="renderMessage(aMessage.content)"></div>
+              <div
+                v-html="
+                  renderMessage(
+                    `${bot.img_bot ? '<strong>Ledeteksten jeg brukte:</strong><br/> ' : ''}` +
+                      aMessage.content
+                  )
+                "
+              ></div>
               <div v-if="aMessage.imageUrl">
                 <img :src="aMessage.imageUrl" class="img-fluid" alt="Bilde" />
               </div>

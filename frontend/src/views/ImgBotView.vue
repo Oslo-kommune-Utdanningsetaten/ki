@@ -67,8 +67,7 @@ const sendMessage = async () => {
     )
     message.value = data.revised_prompt
     // patch the last message with the revised prompt and image url
-    messages.value[messages.value.length - 1].content =
-      `<b>Ledeteksten jeg brukt</b>: ${data.revised_prompt}`
+    messages.value[messages.value.length - 1].content = data.revised_prompt
     messages.value[messages.value.length - 1].imageUrl = data.url
     isProcessingInput.value = false
   } catch (error) {
