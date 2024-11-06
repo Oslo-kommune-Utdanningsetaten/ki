@@ -13,8 +13,6 @@ const router = useRouter()
 const bot = ref({})
 const messages = ref([])
 const message = ref('')
-const botId = ref(0)
-botId.value = route.params.id
 const isProcessingInput = ref(false)
 const showSystemPrompt = ref(false)
 
@@ -30,7 +28,7 @@ const optionsSorted = choice => {
 
 const startpromt = async () => {
   try {
-    const { data } = await axios.get('/api/bot_info/' + botId.value)
+    const { data } = await axios.get('/api/bot_info/' + route.params.id)
     bot.value = data.bot
     resetMessages()
   } catch (error) {
@@ -75,7 +73,7 @@ const sendMessage = async () => {
   )
   isProcessingInput.value = true
 
-  const data = { uuid: botId.value, messages: messages.value }
+  const data = { uuid: bot.value.uuid, messages: messages.value }
   const handleStreamText = streamedText => {
     messages.value[messages.value.length - 1].content = streamedText
   }
@@ -120,7 +118,7 @@ const toggleStartPrompt = () => {
 
 const deleteBot = () => {
   axios
-    .delete('/api/bot_info/' + botId.value)
+    .delete('/api/bot_info/' + bot.value.uuid)
     .then(() => {
       store.addMessage('Boten er nå slettet', 'info')
       router.push({ name: 'home' })
