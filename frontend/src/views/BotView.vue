@@ -2,10 +2,10 @@
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
-import { store, getCookie } from '../store.js'
+import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
-import { renderMessage } from '../utils.js'
+import { renderMessage, getCookie } from '../utils.js'
 import SpeechToText from '@/components/SpeechToText.vue'
 
 const route = useRoute()
@@ -15,7 +15,7 @@ const messages = ref([])
 const message = ref('')
 const botId = ref(0)
 botId.value = route.params.id
-const isProcessingInputAtIndex = ref(-1)
+const isProcessingInput = ref(false)
 const showSystemPrompt = ref(false)
 
 const textInput = useTemplateRef('text-input')
@@ -73,7 +73,7 @@ const sendMessage = async () => {
       content: '',
     }
   )
-  isProcessingInputAtIndex.value = messages.value.length - 1
+  isProcessingInput.value = true
 
   const data = { uuid: botId.value, messages: messages.value }
   const handleStreamText = streamedText => {
@@ -81,7 +81,7 @@ const sendMessage = async () => {
   }
   await callChatStream(data, handleStreamText).then(() => {
     // stream is done, return control to user
-    isProcessingInputAtIndex.value = -1
+    isProcessingInput.value = false
     message.value = ''
     textInput.value.focus() // Set focus to the text input element
   })
@@ -264,11 +264,11 @@ watchEffect(() => {
   <Conversation
     :messages="messages.slice(1, messages.length)"
     :bot="bot"
-    :isProcessingInputAtIndex="isProcessingInputAtIndex"
+    :isProcessingInput="isProcessingInput"
     :handleEditMessageAtIndex="editMessageAtIndex"
   />
 
-  <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInputAtIndex > -1 }">
+  <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInput }">
     <textarea
       id="text-input"
       ref="text-input"

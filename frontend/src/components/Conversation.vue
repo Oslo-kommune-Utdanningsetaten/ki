@@ -4,14 +4,9 @@ import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
 import { renderMessage } from '../utils.js'
 
-const attr = defineProps([
-  'messages',
-  'isProcessingInputAtIndex',
-  'bot',
-  'handleEditMessageAtIndex',
-])
+const attr = defineProps(['messages', 'isProcessingInput', 'bot', 'handleEditMessageAtIndex'])
 let messages = ref(attr.messages)
-let isProcessingInputAtIndex = ref(attr.isProcessingInputAtIndex)
+let isProcessingInput = ref(attr.isProcessingInput)
 let bot = ref(attr.bot)
 let handleEditMessageAtIndex = ref(attr.handleEditMessageAtIndex)
 
@@ -29,7 +24,7 @@ const editMessageAtIndex = index => {
 
 watchEffect(() => {
   messages.value = attr.messages
-  isProcessingInputAtIndex.value = attr.isProcessingInputAtIndex
+  isProcessingInput.value = attr.isProcessingInput
   bot.value = attr.bot
   handleEditMessageAtIndex.value = attr.handleEditMessageAtIndex
 })
@@ -52,10 +47,11 @@ watchEffect(() => {
           <div class="widget-container position-absolute d-flex">
             <!-- Edit widget -->
             <a
+              v-if="!bot.img_bot"
               class="message-widget"
               name="editMessageAtIndex"
               @click="editMessageAtIndex(messageIndex)"
-              :class="{ invisible: isProcessingInputAtIndex > -1 }"
+              :class="{ invisible: isProcessingInput }"
             >
               <img class="oslo-fill-dark-black" src="@/components/icons/edit.svg" alt="rediger" />
             </a>
@@ -69,7 +65,7 @@ watchEffect(() => {
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="isProcessingInputAtIndex === -1"
+              v-if="!isProcessingInput"
               :textInput="aMessage.content"
               class="message-widget"
             />
@@ -88,17 +84,25 @@ watchEffect(() => {
         </div>
 
         <div class="w-60 position-relative text-right">
-          <span
-            v-if="isProcessingInputAtIndex === messageIndex + 1"
-            class="spinner-border spinner-border-sm"
-            role="status"
-          ></span>
-          <div
-            v-else
-            class="position-relative bg-light p-3 border text-right"
-            v-html="renderMessage(aMessage.content)"
-          ></div>
+          <div class="position-relative bg-light p-3 border text-right">
+            <div v-if="isProcessingInput && messageIndex === messages.length - 1">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              <span v-if="bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
+              <span v-else>Interessant. Jeg tenker...</span>
+            </div>
+            <div v-else>
+              <div v-html="renderMessage(aMessage.content)"></div>
+              <div v-if="aMessage.imageUrl">
+                <img :src="aMessage.imageUrl" class="img-fluid" alt="Bilde" />
+              </div>
+            </div>
+          </div>
+
           <div class="widget-container position-absolute d-flex">
+            <!-- Image in new tab -->
+            <a v-if="bot.img_bot" :href="aMessage.imageUrl" target="_blank" class="message-widget">
+              <img src="@/components/icons/new_window.svg" alt="Åpne bilde i nytt vindu" />
+            </a>
             <!-- Copy to clipboard widget -->
             <a
               class="message-widget"
@@ -109,7 +113,7 @@ watchEffect(() => {
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="isProcessingInputAtIndex === -1"
+              v-if="!isProcessingInput"
               :textInput="aMessage.content"
               class="message-widget"
             />

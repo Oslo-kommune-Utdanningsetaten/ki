@@ -505,6 +505,7 @@ def bot_info(request, bot_uuid=None):
             'ingress': bot.ingress,
             'prompt': bot.prompt,
             'bot_info': bot.bot_info,
+            'img_bot': bot.img_bot,
             'prompt_visibility': bot.prompt_visibility,
             'allow_distribution': bot.allow_distribution,
             'mandatory': bot.mandatory,

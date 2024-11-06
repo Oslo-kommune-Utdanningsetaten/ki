@@ -2,24 +2,20 @@
 import { RouterLink, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ref, watchEffect } from 'vue'
-import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechToText from '@/components/SpeechToText.vue'
-import { getCookie } from '../store.js'
+import Conversation from '@/components/Conversation.vue'
+import { getCookie } from '../utils.js'
 
 const route = useRoute()
 const bot = ref({})
-const botId = ref(0)
-const prompt = ref('')
-const insertPrompt = ref('')
-const image = ref('')
-const spinner = ref(false)
-botId.value = route.params.id
+const messages = ref([])
+const message = ref('')
+const isProcessingInput = ref(false)
+const textInput = ref(null)
 
-const textInput = ref(null) // Add a ref for the text input element
-
-const startpromt = async () => {
+const getBot = async () => {
   try {
-    const { data } = await axios.get('/api/bot_info/' + botId.value)
+    const { data } = await axios.get('/api/bot_info/' + route.params.id)
     bot.value = data.bot
   } catch (error) {
     console.log(error)
@@ -27,28 +23,40 @@ const startpromt = async () => {
 }
 
 const resetMessages = () => {
-  prompt.value = ''
-  image.value = ''
-  insertPrompt.value = ''
+  message.value = ''
+  messages.value = []
 }
 
 const handleMessageInput = (messageContent, isDone) => {
-  insertPrompt.value = messageContent
+  message.value = messageContent
   if (isDone) {
     sendMessage()
   }
 }
 
+const editMessageAtIndex = index => {
+  console.log('editMessageAtIndex', index)
+}
+
 const sendMessage = async () => {
+  messages.value.push(
+    {
+      role: 'user',
+      content: message.value,
+    },
+    {
+      role: 'assistant',
+      content: '',
+      imageUrl: '',
+    }
+  )
   try {
-    prompt.value = insertPrompt.value
-    image.value = ''
-    spinner.value = true
+    isProcessingInput.value = true
     const { data } = await axios.post(
       '/api/send_img_message',
       {
-        uuid: botId.value,
-        prompt: prompt.value,
+        uuid: bot.value.uuid,
+        prompt: message.value,
       },
       {
         headers: {
@@ -57,16 +65,19 @@ const sendMessage = async () => {
         },
       }
     )
-    image.value = data
-    insertPrompt.value = data.revised_prompt
-    spinner.value = false
+    message.value = data.revised_prompt
+    // patch the last message with the revised prompt and image url
+    messages.value[messages.value.length - 1].content =
+      `<b>Ledeteksten jeg brukt</b>: ${data.revised_prompt}`
+    messages.value[messages.value.length - 1].imageUrl = data.url
+    isProcessingInput.value = false
   } catch (error) {
     console.log(error)
   }
 }
 
 watchEffect(() => {
-  startpromt()
+  getBot()
 })
 </script>
 
@@ -87,58 +98,24 @@ watchEffect(() => {
     {{ bot.ingress }}
   </p>
 
-  <div v-if="spinner || image.url || image.msg" class="card">
-    <ul class="list-group list-group-flush">
-      <li class="container-fluid list-group-item response user">
-        <span class="row">
-          <div class="col-1 avatar">
-            <img src="@/components/icons/user.svg" alt="du:" />
-          </div>
-          <div class="col">
-            {{ prompt }}
-          </div>
-          <div class="col-1 clipboard">
-            <a href="#" @click="clipboard(msg_nr)">
-              <img src="@/components/icons/copy.svg" alt="kopier" />
-            </a>
-          </div>
-        </span>
-      </li>
-      <li class="container-fluid list-group-item response assistant">
-        <span class="row">
-          <div class="col-1 avatar">
-            <BotAvatar :avatar_scheme="bot.avatar_scheme" alt="bot:" />
-          </div>
-          <div v-if="spinner" class="col">
-            <span class="spinner-border spinner-border-sm" role="status"></span>
-            <span class="ms-3">Vent litt mens jeg lager bildet ditt</span>
-          </div>
-          <div v-if="image.url" class="col-4">
-            <img :src="image.url" class="img-fluid" alt="Bilde" />
-          </div>
-          <div v-if="image.url" class="col-6"></div>
-          <div v-if="image.url" class="col-1 clipboard">
-            <a :href="image.url" target="_blank">
-              <img src="@/components/icons/new_window.svg" alt="åpne i nytt vindu" />
-            </a>
-          </div>
-          <div v-if="image.msg" class="col">
-            {{ image.msg }}
-          </div>
-        </span>
-      </li>
-    </ul>
-  </div>
+  <Conversation
+    :messages="messages"
+    :bot="bot"
+    :isProcessingInput="isProcessingInput"
+    :handleEditMessageAtIndex="editMessageAtIndex"
+  />
 
   <div id="input_line" class="mt-3">
-    <div v-if="image != ''">Du kan redigere ledeteksten jeg brukte for å forbedre bildet:</div>
+    <div v-if="messages.length" class="mb-1">
+      Du kan redigere ledeteksten for å lage et nytt bilde som ligner:
+    </div>
     <textarea
       id="text-input"
       ref="textInput"
       type="text"
       rows="5"
       aria-label="Forklar hva bildet skal vise. Ikke legg inn personlige og sensitive opplysninger."
-      v-model="insertPrompt"
+      v-model="message"
       class="form-control"
       placeholder="Forklar hva bildet skal vise. Ikke legg inn personlige og sensitive opplysninger."
       @keypress.enter.exact="sendMessage()"
