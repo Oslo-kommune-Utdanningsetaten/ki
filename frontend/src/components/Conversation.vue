@@ -52,6 +52,7 @@ watchEffect(() => {
             <a
               v-if="!bot.img_bot"
               class="message-widget"
+              title="Rediger ledetekst"
               name="editMessageAtIndex"
               @click="editMessageAtIndex(messageIndex)"
               :class="{ invisible: isProcessingInput }"
@@ -62,6 +63,7 @@ watchEffect(() => {
             <a
               class="message-widget"
               name="copyToclipboard"
+              title="Kopier til utklippstavlen"
               @click="copyToclipboard(aMessage.content)"
             >
               <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
@@ -71,6 +73,7 @@ watchEffect(() => {
               v-if="!isProcessingInput"
               :textInput="aMessage.content"
               class="message-widget"
+              title="Spill av"
             />
           </div>
         </div>
@@ -106,13 +109,20 @@ watchEffect(() => {
 
           <div class="widget-container position-absolute d-flex">
             <!-- Image in new tab -->
-            <a v-if="bot.img_bot" :href="aMessage.imageUrl" target="_blank" class="message-widget">
+            <a
+              v-if="bot.img_bot"
+              :href="aMessage.imageUrl"
+              target="_blank"
+              class="message-widget"
+              title="Åpne bildet i ny fane"
+            >
               <img src="@/components/icons/new_window.svg" alt="Åpne bilde i nytt vindu" />
             </a>
             <!-- Copy to clipboard widget -->
             <a
               class="message-widget"
               name="copyToclipboard"
+              title="Kopier til utklippstavlen"
               @click="copyToclipboard(aMessage.content)"
             >
               <img class="oslo-fill-dark-black" src="@/components/icons/copy.svg" alt="kopier" />
@@ -122,6 +132,7 @@ watchEffect(() => {
               v-if="!isProcessingInput"
               :textInput="aMessage.content"
               class="message-widget"
+              title="Spill av"
             />
           </div>
         </div>
