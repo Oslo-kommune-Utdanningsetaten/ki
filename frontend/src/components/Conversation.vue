@@ -37,10 +37,13 @@ watchEffect(() => {
       :key="messageIndex"
       class="message-container mb-4 mt-1"
     >
-      <div v-if="aMessage.role === 'user'" class="d-flex justify-content-end align-items-start">
+      <div v-if="aMessage.role === 'user'" class="d-flex justify-content-end align-items-end">
         <!-- User -->
-        <div class="w-60 position-relative text-right">
-          <div class="position-relative p-3 border text-right oslo-bg-primary">
+        <div class="w-60 position-relative">
+          <div
+            class="position-relative p-3 border oslo-bg-primary"
+            :class="`speech-bubble-${aMessage.role}`"
+          >
             {{ aMessage.content }}
           </div>
 
@@ -78,13 +81,16 @@ watchEffect(() => {
       </div>
 
       <!-- Assistant -->
-      <div v-else class="d-flex justify-content-start align-items-start">
+      <div v-else class="d-flex justify-content-start align-items-end">
         <div class="avatar me-3">
           <BotAvatar :avatar_scheme="bot.avatar_scheme" />
         </div>
 
-        <div class="w-60 position-relative text-right">
-          <div class="position-relative bg-light p-3 border text-right">
+        <div class="w-60 position-relative">
+          <div
+            class="position-relative bg-light p-3 border"
+            :class="`speech-bubble-${aMessage.role}`"
+          >
             <div v-if="isProcessingInput && messageIndex === messages.length - 1">
               <span class="spinner-border spinner-border-sm me-2" role="status"></span>
               <span v-if="bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
@@ -126,7 +132,7 @@ watchEffect(() => {
 
 <style scoped>
 .widget-container {
-  bottom: -30px;
+  bottom: -27px;
   right: 10px;
 }
 

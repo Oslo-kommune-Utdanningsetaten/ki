@@ -112,6 +112,20 @@ button img {
   margin-bottom: 0;
 }
 
+.speech-bubble-user {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 0px !important;
+  border-bottom-left-radius: 12px !important;
+}
+
+.speech-bubble-assistant {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  border-bottom-left-radius: 0px !important;
+}
+
 @keyframes typing {
   from {
     width: 0;

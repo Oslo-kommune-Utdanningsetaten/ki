@@ -248,11 +248,11 @@ watchEffect(() => {
       {{ showSystemPrompt ? 'Skjul' : 'Vis' }} ledetekst
     </button>
 
-    <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-start mt-3">
+    <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-end mt-3">
       <div class="avatar p-2 me-3">
         <BotAvatar :avatar_scheme="bot.avatar_scheme" />
       </div>
-      <div class="position-relative bg-light p-3 border text-right">
+      <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått</strong>
         <p class="mb-0">{{ renderMessage(messages[0].content) }}</p>
       </div>
