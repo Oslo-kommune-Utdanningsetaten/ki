@@ -88,7 +88,7 @@ onMounted(() => {
         ? 'Nettleseren har ikke tilgang til mikrofonen'
         : 'Trykk for å snakke inn tekst'
     "
-    :disabled="microphonePermissionStatus === 'denied'"
+    :disabled="microphonePermissionStatus === 'denied' || isSpeechRecognitionActive"
   >
     <AudioWave v-if="isSpeechRecognitionActive" />
     <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
