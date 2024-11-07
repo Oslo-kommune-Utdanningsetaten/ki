@@ -6,8 +6,7 @@ from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpRespons
 from datetime import datetime, timedelta
 import requests
 from openai import AsyncAzureOpenAI
-import openai
-import uuid
+from openai import OpenAI, BadRequestError
 import os
 import json
 # from ..mock import mock_acreate
@@ -17,6 +16,11 @@ azureClient = AsyncAzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
     api_key=os.environ.get('OPENAI_API_KEY'),
     api_version=os.environ.get('OPENAI_API_VERSION'),
+)
+
+huggingfaceClient = OpenAI(
+	base_url=os.environ.get('HUGGINGFACE_API_BASE_URL'),
+	api_key=os.environ.get('HUGGINGFACE_API_KEY')
 )
 
 
@@ -623,35 +627,58 @@ async def send_message(request):
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
-    async def stream():
-        try:
-            completion = await azureClient.chat.completions.create(
-                model=bot_model,
-                messages=messages,
-                temperature=float(bot.temperature),
-                stream=True,
-            )
-        except openai.BadRequestError as e:
-            if e.code == "content_filter":
-                yield "Dette er ikke et passende emne. Start samtalen på nytt."
-            else:
-                yield "Noe gikk galt. Prøv igjen senere."
-            return
-        async for line in completion:
-            if line.choices:
-                chunk = line.choices[0].delta.content or ""
-                if line.choices[0].finish_reason == "content_filter":
-                    yield "\n\nBeklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
-                    break
-                if line.choices[0].finish_reason == "length":
-                    print(line.choices[0].content_filter_results)
-                    yield "\n\nGrensen for antall tegn i samtalen er nådd."
-                    break
-                if chunk:
-                    yield chunk
-
     await use_log(bot, request, len(messages))
-    return StreamingHttpResponse(stream(), content_type='text/event-stream')
+
+    if (bot_model == 'norallm'):
+        return StreamingHttpResponse(streamFromHuggingface(messages, bot.temperature), content_type='text/event-stream')
+    else:
+        return StreamingHttpResponse(streamFromAzure(messages, bot_model, bot.temperature), content_type='text/event-stream')
+
+
+async def streamFromHuggingface(messages, temperature):
+    completion = huggingfaceClient.chat.completions.create(
+        model="nora-normistral-7b-warm-instruct",
+        messages=messages,
+        stream=True,
+        temperature=float(temperature),
+        frequency_penalty=float(0.2),
+        max_tokens=500,
+        top_p=float(0.9),
+        stop=["<|im_end|>"]
+    )
+    for line in completion:
+        message = line.choices[0].delta.content or ""
+        if len(message):
+            yield message
+
+
+async def streamFromAzure(messages, bot_model, temperature):
+    try:
+        completion = await azureClient.chat.completions.create(
+            model=bot_model,
+            messages=messages,
+            temperature=float(temperature),
+            stream=True,
+        )
+    except BadRequestError as e:
+        if e.code == "content_filter":
+            yield "Dette er ikke et passende emne. Start samtalen på nytt."
+        else:
+            yield "Noe gikk galt. Prøv igjen senere."
+        return
+    async for line in completion:
+        if line.choices:
+            chunk = line.choices[0].delta.content or ""
+            if line.choices[0].finish_reason == "content_filter":
+                yield "\n\nBeklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
+                break
+            if line.choices[0].finish_reason == "length":
+                print(line.choices[0].content_filter_results)
+                yield "\n\nGrensen for antall tegn i samtalen er nådd."
+                break
+            if chunk:
+                yield chunk
+
 
 # @api_view(["POST"])
 async def send_img_message(request):
@@ -677,7 +704,7 @@ async def send_img_message(request):
         )
         json_response = json.loads(response.model_dump_json())
         data = json_response['data'][0]
-    except openai.BadRequestError as e:
+    except BadRequestError as e:
         if e.code == "content_policy_violation":
             data ={'msg': "Dette er ikke et passende emne. Velg noe annet å lage bilde av."}
         else:
