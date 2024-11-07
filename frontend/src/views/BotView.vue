@@ -254,7 +254,10 @@ watchEffect(() => {
       </div>
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått:</strong>
-        <p class="mb-0">{{ renderMessage(messages[0].content) }}</p>
+        <p>{{ renderMessage(messages[0].content) }}</p>
+        <p class="mb-0">
+          <strong>Jeg bruker modellen {{ bot.model }}.</strong>
+        </p>
       </div>
     </div>
   </div>
