@@ -15,7 +15,7 @@ const attr = defineProps(['onMessageReceived'])
 let handleMessageInput = ref(attr.onMessageReceived)
 let speechTranscript = null
 
-const configureSpeechRecognition = () => {
+const initializeSpeechRecognition = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
   if (SpeechRecognition) {
@@ -23,7 +23,7 @@ const configureSpeechRecognition = () => {
 
     speechRecognitionSession = new SpeechRecognition()
     speechRecognitionSession.lang = navigator.language || navigator.userLanguage
-    speechRecognitionSession.interimResults = true
+    speechRecognitionSession.interimResults = false
     speechRecognitionSession.maxAlternatives = 1
 
     // Set up event handlers
@@ -34,7 +34,6 @@ const configureSpeechRecognition = () => {
     speechRecognitionSession.onresult = event => {
       const transcript = event.results[0][0].transcript
       speechTranscript = transcript
-      handleMessageInput.value(speechTranscript, false)
       isSpeechRecognitionActive.value = false
     }
 
@@ -45,9 +44,9 @@ const configureSpeechRecognition = () => {
 
     speechRecognitionSession.onend = () => {
       isSpeechRecognitionActive.value = false
-      // Speech is assumend finished, now send the message
       if (speechTranscript !== '') {
-        handleMessageInput.value(speechTranscript, true)
+        // Speech is assumend finished
+        handleMessageInput.value(speechTranscript)
       }
     }
   } else {
@@ -68,13 +67,14 @@ const toggleSpeechInput = () => {
   if (isSpeechRecognitionActive.value) {
     speechRecognitionSession.stop()
   } else {
+    initializeSpeechRecognition()
     speechRecognitionSession.start()
   }
 }
 
 onMounted(() => {
   checkMicrophonePermissionStatus()
-  configureSpeechRecognition()
+  initializeSpeechRecognition()
 })
 </script>
 
