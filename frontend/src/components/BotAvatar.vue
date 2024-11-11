@@ -21,24 +21,24 @@ watchEffect(() => {
   <!-- Body parts could have been drawn by iterating over bot key/values, but order (z-index) is important -->
   <svg viewBox="0 0 12 18">
     <!-- neck -->
-    <BotAvatarSvgBodyPart :body_part="bot.neck" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.neck" />
 
     <!-- head -->
-    <BotAvatarSvgBodyPart :body_part="bot.head" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.head" />
 
     <!-- ears -->
-    <BotAvatarSvgBodyPart :body_part="bot.ears" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.ears" />
 
     <!-- body -->
-    <BotAvatarSvgBodyPart :body_part="bot.body" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.body" />
 
     <!-- eyes -->
-    <BotAvatarSvgBodyPart :body_part="bot.eyes" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.eyes" />
 
     <!-- arms -->
-    <BotAvatarSvgBodyPart :body_part="bot.arms" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.arms" />
 
     <!-- hair -->
-    <BotAvatarSvgBodyPart :body_part="bot.hair" />
+    <BotAvatarSvgBodyPart :bodyPart="bot.hair" />
   </svg>
 </template>

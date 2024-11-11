@@ -1,17 +1,13 @@
 <script setup>
 // Draws a single body part of the bot avatar
 
-import { watchEffect } from 'vue'
-const attr = defineProps(['body_part'])
-let bodyPart = attr.body_part
-
-watchEffect(() => {
-  bodyPart = attr.body_part
+const props = defineProps({
+  bodyPart: Object,
 })
 </script>
 
-<template>
-  <g v-for="shape in bodyPart.shapes">
+<template v-if="props.bodyPart">
+  <g v-for="shape in props.bodyPart.shapes">
     <polygon v-if="shape.type === 'polygon'" :class="shape.color" :points="shape.points" />
     <circle
       v-else-if="shape.type === 'circle'"
