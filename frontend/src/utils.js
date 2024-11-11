@@ -219,7 +219,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
 export const renderMessage = messageContent => {
   if (messageContent.includes('```') || messageContent.includes('**')) {
     // Only render MD if message contains markdown
-    return DOMPurify.sanitize(marked.parse(aMessage))
+    return DOMPurify.sanitize(marked.parse(messageContent))
   }
   // okay, let's cooperate with the newlines
   return messageContent.replaceAll('\n', '<br/>')

@@ -53,11 +53,8 @@ const resetMessages = () => {
   ]
 }
 
-const handleMessageInput = (messageContent, isDone) => {
-  message.value = messageContent
-  if (isDone) {
-    sendMessage()
-  }
+const handleMessageInput = messageContent => {
+  message.value = message.value + ' ' + messageContent
 }
 
 const sendMessage = async () => {
