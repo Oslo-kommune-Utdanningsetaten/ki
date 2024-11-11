@@ -2,13 +2,13 @@
 import { ref, onMounted } from 'vue'
 const synth = window.speechSynthesis
 
-const isResumeable = ref(false) // use this to keep track of whether the play function should play from the beginning, or resume
+const props = defineProps({
+  textInput: String,
+})
+// Used to keep track of whether the play function should play from the beginning, or resume
+const isResumeable = ref(false)
 const isCurrentlyPlaying = ref(false)
 const utterance = new SpeechSynthesisUtterance()
-
-const attr = defineProps(['textInput'])
-// the text to be spoken
-let textInput = ref(attr.textInput)
 
 const configureSynthesizer = () => {
   if (synth) {
@@ -18,7 +18,7 @@ const configureSynthesizer = () => {
     utterance.volume = 1
     utterance.rate = 0.9
     utterance.pitch = 1
-    utterance.text = textInput.value
+    utterance.text = props.textInput
     utterance.lang = navigator.language || navigator.userLanguage
     // Set up event handlers
     utterance.onend = handleSpeechEnd
