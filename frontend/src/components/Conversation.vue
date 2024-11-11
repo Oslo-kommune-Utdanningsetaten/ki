@@ -1,14 +1,16 @@
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { ref, watchEffect, watch } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
 import { renderMessage } from '../utils.js'
 
-const attr = defineProps(['messages', 'isProcessingInput', 'bot', 'handleEditMessageAtIndex'])
-let messages = ref(attr.messages)
-let isProcessingInput = ref(attr.isProcessingInput)
-let bot = ref(attr.bot)
-let handleEditMessageAtIndex = ref(attr.handleEditMessageAtIndex)
+const props = defineProps({
+  messages: Array,
+  isProcessingInput: Boolean,
+  isStreaming: Boolean,
+  bot: Object,
+  handleEditMessageAtIndex: Function,
+})
 
 const copyToclipboard = textToCopy => {
   try {
@@ -19,21 +21,14 @@ const copyToclipboard = textToCopy => {
 }
 
 const editMessageAtIndex = index => {
-  handleEditMessageAtIndex.value(index)
+  props.handleEditMessageAtIndex.value(index)
 }
-
-watchEffect(() => {
-  messages.value = attr.messages
-  isProcessingInput.value = attr.isProcessingInput
-  bot.value = attr.bot
-  handleEditMessageAtIndex.value = attr.handleEditMessageAtIndex
-})
 </script>
 
 <template>
-  <div v-if="messages.length" class="card mt-3 p-3">
+  <div v-if="props.messages.length" class="card mt-3 p-3">
     <div
-      v-for="(aMessage, messageIndex) in messages"
+      v-for="(aMessage, messageIndex) in props.messages"
       :key="messageIndex"
       class="message-container mb-4 mt-1"
     >
@@ -50,12 +45,12 @@ watchEffect(() => {
           <div class="widget-container position-absolute d-flex">
             <!-- Edit widget -->
             <a
-              v-if="!bot.img_bot"
+              v-if="!props.bot.img_bot"
               class="message-widget"
               title="Rediger ledetekst"
               name="editMessageAtIndex"
               @click="editMessageAtIndex(messageIndex)"
-              :class="{ invisible: isProcessingInput }"
+              :class="{ invisible: props.isProcessingInput }"
             >
               <img class="oslo-fill-dark-black" src="@/components/icons/edit.svg" alt="rediger" />
             </a>
@@ -70,7 +65,7 @@ watchEffect(() => {
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="!isProcessingInput"
+              v-if="!props.isProcessingInput"
               :textInput="aMessage.content"
               class="message-widget"
               title="Spill av"
@@ -86,7 +81,7 @@ watchEffect(() => {
       <!-- Assistant -->
       <div v-else class="d-flex justify-content-start align-items-end">
         <div class="avatar me-3">
-          <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+          <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
         </div>
 
         <div class="w-60 position-relative">
@@ -94,9 +89,9 @@ watchEffect(() => {
             class="position-relative bg-light p-3 border"
             :class="`speech-bubble-${aMessage.role}`"
           >
-            <div v-if="isProcessingInput && messageIndex === messages.length - 1">
+            <div v-if="isProcessingInput && !isStreaming && messageIndex === messages.length - 1">
               <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              <span v-if="bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
+              <span v-if="props.bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
               <span v-else>Interessant. Jeg tenker...</span>
             </div>
             <div v-else>
@@ -108,6 +103,11 @@ watchEffect(() => {
                   )
                 "
               ></div>
+              <span
+                v-if="isStreaming"
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+              ></span>
               <div v-if="aMessage.imageUrl">
                 <img :src="aMessage.imageUrl" class="img-fluid" alt="Bilde" />
               </div>
@@ -117,7 +117,7 @@ watchEffect(() => {
           <div class="widget-container position-absolute d-flex">
             <!-- Image in new tab -->
             <a
-              v-if="bot.img_bot"
+              v-if="props.bot.img_bot"
               :href="aMessage.imageUrl"
               target="_blank"
               class="message-widget"
@@ -136,7 +136,7 @@ watchEffect(() => {
             </a>
             <!-- Speech synth widget -->
             <SpeechSynthesizer
-              v-if="!isProcessingInput"
+              v-if="!props.isProcessingInput"
               :textInput="aMessage.content"
               class="message-widget"
               title="Spill av"

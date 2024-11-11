@@ -44,10 +44,10 @@ const initializeSpeechRecognition = () => {
 
     speechRecognitionSession.onend = () => {
       isSpeechRecognitionActive.value = false
-      if (speechTranscript !== '') {
+      if (speechTranscript) {
         // Speech is assumend finished
         handleMessageInput.value(speechTranscript)
-      }
+      } // TODO: maybe show a heads-up to the user that recognition ended but no transcript was received
     }
   } else {
     isBrowserSpeechEnabled.value = false

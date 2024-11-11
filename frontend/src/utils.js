@@ -217,7 +217,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
 }
 
 export const renderMessage = messageContent => {
-  if (messageContent.includes('```') || messageContent.includes('**')) {
+  if (messageContent.includes('```') || messageContent.includes('**') || messageContent.includes('##')) {
     // Only render MD if message contains markdown
     return DOMPurify.sanitize(marked.parse(messageContent))
   }
