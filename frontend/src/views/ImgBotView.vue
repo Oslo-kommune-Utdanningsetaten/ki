@@ -98,11 +98,12 @@ watchEffect(() => {
     :messages="messages"
     :bot="bot"
     :isProcessingInput="isProcessingInput"
+    :isStreaming="false"
     :handleEditMessageAtIndex="editMessageAtIndex"
   />
 
   <div class="mt-3">
-    <div v-if="messages.length" class="mb-1">
+    <div v-if="messages.length && !isProcessingInput" class="mb-1">
       Du kan redigere ledeteksten for å lage et nytt bilde som ligner:
     </div>
     <textarea
