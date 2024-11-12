@@ -21,7 +21,7 @@ const copyToclipboard = textToCopy => {
 }
 
 const editMessageAtIndex = index => {
-  props.handleEditMessageAtIndex.value(index)
+  props.handleEditMessageAtIndex(index)
 }
 </script>
 
