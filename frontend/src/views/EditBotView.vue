@@ -20,7 +20,6 @@ const bot = ref({
   mandatory: false,
   allow_distribution: false,
   bot_info: '',
-  tags: {},
   tag_categories: [],
   choices: [],
   schoolAccesses: [],
