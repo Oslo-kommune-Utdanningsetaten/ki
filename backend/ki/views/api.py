@@ -236,6 +236,23 @@ def empty_bot(request, lib):
                 'access_list': [],
             })
 
+    tag_categories = []
+    for category in models.TagCategory.objects.all().order_by('category_order'):
+        tag_items = []
+        for tag_label in category.tag_labels.all().order_by('tag_label_order'):
+            tag_items.append({
+                'id': tag_label.tag_label_id,
+                'label': tag_label.tag_label_name,
+                'order': tag_label.tag_label_order,
+                'checked': False,
+            })
+        tag_categories.append({
+            'id': category.category_id,
+            'label': category.category_name,
+            'order': category.category_order,
+            'tags': tag_items,
+        })
+
     return Response({
         'bot': {
             'title': '',
@@ -255,8 +272,7 @@ def empty_bot(request, lib):
             'groups': get_groups(request) if edit_groups and not library else [],
             'schoolAccesses': school_access_list,
             'library': library,
-            'tags': [[], [], []],
-            'tag_categories': json.loads(request.g['settings']['tag_categories']) if library else [],
+            'tag_categories': tag_categories,
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
     })
@@ -304,8 +320,6 @@ def bot_info(request, bot_uuid=None):
         if not is_owner and not is_author and not is_admin:
             return Response(status=403)
 
-        def array_to_tag(arr):
-            return sum([1 << tag.get('order') for tag in arr if tag.get('checked', False)])
         body = json.loads(request.body)
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
@@ -328,16 +342,20 @@ def bot_info(request, bot_uuid=None):
             bot.model = default_model
         if is_admin or (is_author and is_owner):
             bot.model = body.get('model', bot.model)
+        bot.save()
+
+        # save tags
         if body.get('tag_categories', False):
+            def array_to_binary(arr):
+                return sum([1 << tag.get('order') for tag in arr if tag.get('checked', False)])
             for tag_category in body.get('tag_categories', []):
                 tag_obj = bot.tags.filter(category_id=tag_category.get('id')).first()
                 if not tag_obj:
                     tag_obj = models.Tag(bot_id=bot, category_id_id=tag_category.get('id'))
-                tag_obj.tag_value = array_to_tag([
+                tag_obj.tag_value = array_to_binary([
                         {'order': tag.get('order'), 'checked': tag.get('checked')} 
                         for tag in tag_category.get('tags', [])])
                 tag_obj.save()
-        bot.save()
         
         # save choices and options
         # delete all choices and options before saving new ones
@@ -488,7 +506,6 @@ def bot_info(request, bot_uuid=None):
                 'id': tag_label.tag_label_id,
                 'label': tag_label.tag_label_name,
                 'order': tag_label.tag_label_order,
-                'value': tag_obj.tag_value if tag_obj else 'ingen',
                 'checked': bool(tag_obj.tag_value >> tag_label.tag_label_order & 1) if tag_obj else False,
             })
         tag_categories.append({
