@@ -7,6 +7,7 @@ authurls = [
   path("auth/feidecallback", auth.feidecallback, name="feidecallback"),
   path("auth/logout/", auth.logout, name="auth.logout"),
   path("auth/logged_out/", auth.logged_out, name="auth.logged_out"),
+  path("auth/is_authenticated/", auth.is_authenticated, name="is_authenticated"),
 ]
 
 apiurls = [

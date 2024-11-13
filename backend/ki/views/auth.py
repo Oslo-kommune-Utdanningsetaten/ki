@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import redirect, resolve_url
 from django.urls import resolve
 import requests
@@ -10,11 +10,20 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_GET
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
 
 message_redirect = 'http://localhost:5173/message' if DEBUG else '/message'
+
+@require_GET
+def is_authenticated(request):
+    if request.session.get('user.username'):
+        return JsonResponse({'isAuthenticated': True}, status=200)
+    else:
+        return JsonResponse({'isAuthenticated': False}, status=401)
+    
 
 def get_user_bots(request, username):
     # bot_access = models.BotAccess.objects.all()
