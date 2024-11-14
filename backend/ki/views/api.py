@@ -632,7 +632,7 @@ async def send_message(request):
     if (bot_model == 'norallm'):
         return StreamingHttpResponse(streamFromHuggingface(messages, bot.temperature), content_type='text/event-stream')
     else:
-        return StreamingHttpResponse(streamFromAzure(messages, bot_model, bot.temperature), content_type='text/event-stream')
+        return StreamingHttpResponse(streamFromAzure(messages, bot.temperature, bot_model), content_type='text/event-stream')
 
 
 async def streamFromHuggingface(messages, temperature):
@@ -652,7 +652,7 @@ async def streamFromHuggingface(messages, temperature):
             yield message
 
 
-async def streamFromAzure(messages, bot_model, temperature):
+async def streamFromAzure(messages, temperature, bot_model):
     try:
         completion = await azureClient.chat.completions.create(
             model=bot_model,
@@ -670,11 +670,11 @@ async def streamFromAzure(messages, bot_model, temperature):
         if line.choices:
             chunk = line.choices[0].delta.content or ""
             if line.choices[0].finish_reason == "content_filter":
-                yield "\n\nBeklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
+                yield "Beklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
                 break
             if line.choices[0].finish_reason == "length":
                 print(line.choices[0].content_filter_results)
-                yield "\n\nGrensen for antall tegn i samtalen er nådd."
+                yield "Grensen for antall tegn i samtalen er nådd."
                 break
             if chunk:
                 yield chunk

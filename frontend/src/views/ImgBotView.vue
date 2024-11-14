@@ -27,11 +27,8 @@ const resetMessages = () => {
   messages.value = []
 }
 
-const handleMessageInput = (messageContent, isDone) => {
-  message.value = messageContent
-  if (isDone) {
-    sendMessage()
-  }
+const handleMessageInput = messageContent => {
+  message.value = message.value + ' ' + messageContent
 }
 
 const editMessageAtIndex = index => {
@@ -101,11 +98,12 @@ watchEffect(() => {
     :messages="messages"
     :bot="bot"
     :isProcessingInput="isProcessingInput"
+    :isStreaming="false"
     :handleEditMessageAtIndex="editMessageAtIndex"
   />
 
-  <div id="input_line" class="mt-3">
-    <div v-if="messages.length" class="mb-1">
+  <div class="mt-3">
+    <div v-if="messages.length && !isProcessingInput" class="mb-1">
       Du kan redigere ledeteksten for å lage et nytt bilde som ligner:
     </div>
     <textarea
@@ -116,6 +114,7 @@ watchEffect(() => {
       aria-label="Forklar hva bildet skal vise. Ikke legg inn personlige og sensitive opplysninger."
       v-model="message"
       class="form-control"
+      :disabled="isProcessingInput"
       placeholder="Forklar hva bildet skal vise. Ikke legg inn personlige og sensitive opplysninger."
       @keypress.enter.exact="sendMessage()"
     ></textarea>

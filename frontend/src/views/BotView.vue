@@ -14,6 +14,7 @@ const bot = ref({})
 const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
+const isStreaming = ref(false)
 const showSystemPrompt = ref(false)
 
 const textInput = useTemplateRef('text-input')
@@ -51,13 +52,12 @@ const resetMessages = () => {
       content: bot.value.prompt + ' ' + fullChoicesText,
     },
   ]
+  message.value = ''
+  textInput.value.focus()
 }
 
-const handleMessageInput = (messageContent, isDone) => {
-  message.value = messageContent
-  if (isDone) {
-    sendMessage()
-  }
+const handleMessageInput = messageContent => {
+  message.value = message.value + ' ' + messageContent
 }
 
 const sendMessage = async () => {
@@ -71,17 +71,20 @@ const sendMessage = async () => {
       content: '',
     }
   )
-  isProcessingInput.value = true
-
   const data = { uuid: bot.value.uuid, messages: messages.value }
   const handleStreamText = streamedText => {
+    isStreaming.value = true
     messages.value[messages.value.length - 1].content = streamedText
   }
+
+  isProcessingInput.value = true
+
   await callChatStream(data, handleStreamText).then(() => {
     // stream is done, return control to user
     isProcessingInput.value = false
+    isStreaming.value = false
     message.value = ''
-    textInput.value.focus() // Set focus to the text input element
+    textInput.value.focus()
   })
 }
 
@@ -109,7 +112,7 @@ const editMessageAtIndex = index => {
   // Delete all trailing messages
   messages.value.splice(index + 1)
   message.value = messageContent
-  textInput.value.focus() // Set focus to the text input element
+  textInput.value.focus()
 }
 
 const toggleStartPrompt = () => {
@@ -149,6 +152,10 @@ const clipboardAll = bot => {
 
 watchEffect(() => {
   startpromt()
+})
+
+onMounted(() => {
+  textInput.value.focus()
 })
 </script>
 
@@ -266,12 +273,12 @@ watchEffect(() => {
     :messages="messages.slice(1, messages.length)"
     :bot="bot"
     :isProcessingInput="isProcessingInput"
+    :isStreaming="isStreaming"
     :handleEditMessageAtIndex="editMessageAtIndex"
   />
 
-  <div id="input_line" class="mt-3" :class="{ 'd-none': isProcessingInput }">
+  <div class="mt-3" :class="{ 'd-none': isProcessingInput }">
     <textarea
-      id="text-input"
       ref="text-input"
       type="text"
       rows="5"

@@ -2,6 +2,10 @@
 import { ref, onMounted } from 'vue'
 import AudioWave from '@/components/AudioWave.vue'
 
+const props = defineProps({
+  onMessageReceived: Function,
+})
+
 // Does the browser support speech recognition
 const isBrowserSpeechEnabled = ref(false)
 // Has the user granted permission to use the microphone
@@ -11,19 +15,16 @@ const isSpeechRecognitionActive = ref(false)
 // Speech recognition session
 let speechRecognitionSession
 
-const attr = defineProps(['onMessageReceived'])
-let handleMessageInput = ref(attr.onMessageReceived)
-let speechTranscript = null
-
-const configureSpeechRecognition = () => {
+const initializeSpeechRecognition = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
   if (SpeechRecognition) {
+    let speechTranscript = null
     isBrowserSpeechEnabled.value = true
 
     speechRecognitionSession = new SpeechRecognition()
     speechRecognitionSession.lang = navigator.language || navigator.userLanguage
-    speechRecognitionSession.interimResults = true
+    speechRecognitionSession.interimResults = false
     speechRecognitionSession.maxAlternatives = 1
 
     // Set up event handlers
@@ -34,7 +35,6 @@ const configureSpeechRecognition = () => {
     speechRecognitionSession.onresult = event => {
       const transcript = event.results[0][0].transcript
       speechTranscript = transcript
-      handleMessageInput.value(speechTranscript, false)
       isSpeechRecognitionActive.value = false
     }
 
@@ -45,10 +45,10 @@ const configureSpeechRecognition = () => {
 
     speechRecognitionSession.onend = () => {
       isSpeechRecognitionActive.value = false
-      // Speech is assumend finished, now send the message
-      if (speechTranscript !== '') {
-        handleMessageInput.value(speechTranscript, true)
-      }
+      if (speechTranscript) {
+        // Speech is assumend finished
+        props.onMessageReceived(speechTranscript)
+      } // TODO: maybe show a heads-up to the user that recognition ended but no transcript was received
     }
   } else {
     isBrowserSpeechEnabled.value = false
@@ -68,13 +68,14 @@ const toggleSpeechInput = () => {
   if (isSpeechRecognitionActive.value) {
     speechRecognitionSession.stop()
   } else {
+    initializeSpeechRecognition()
     speechRecognitionSession.start()
   }
 }
 
 onMounted(() => {
   checkMicrophonePermissionStatus()
-  configureSpeechRecognition()
+  initializeSpeechRecognition()
 })
 </script>
 
