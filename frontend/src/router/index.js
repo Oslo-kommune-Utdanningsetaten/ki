@@ -6,6 +6,7 @@ import EditBotView from '../views/EditBotView.vue'
 import InfoView from '../views/InfoView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import MessageView from '../views/MessageView.vue'
+import { store } from '../store'
 
 const routes = [
   {
@@ -54,34 +55,43 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
+  const loginUrl = '/auth/feidelogin';
 
   if (to.meta && to.meta.requiresAuth) {
-    try {
-      const response = await fetch('/auth/is_authenticated/', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      if (response.ok) {
-        const data = await response.json()
-        if (data.isAuthenticated) {
-          next()
+    if (store.isAuthenticated === true) {
+      // Proceed if user is authenticated
+      return true;
+    } else if (store.isAuthenticated === false) {
+      // If user is not authenticated redirect to login page
+      window.location.href = loginUrl;
+      return false; // Abort navigation
+    } else {
+      // Authentication status unknown check with the server
+      try {
+        const response = await fetch('/api/menu_items', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const isAuthenticatedHeader = response.headers.get('X-Is-Authenticated');
+        if (isAuthenticatedHeader === 'true') {
+          store.isAuthenticated = true;
+          return true;
         } else {
-          window.location.href = loginUrl
+          store.isAuthenticated = false;
+          window.location.href = loginUrl;
+          return false; 
         }
-      } else {
-        window.location.href = loginUrl
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        store.isAuthenticated = false;
+        window.location.href = loginUrl;
+        return false; 
       }
-    } catch (error) {
-      console.error('Error checking authentication:', error)
-      next({ name: 'home' })
     }
   } else {
-    next()
+    return true;
   }
-})
+});
 
 export default router

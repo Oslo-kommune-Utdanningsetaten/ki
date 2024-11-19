@@ -5,6 +5,22 @@ export const store = reactive({
   isEmployee: false,
   editGroups: false,
   messages: [],
+  isAuthenticated: null,
+
+  logout() {
+    fetch('/auth/logout/', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(() => {
+        this.isAuthenticated = false
+        window.location.href = '/'
+      })
+      .catch(error => {
+        console.error('Error logging out:', error)
+      })
+  },
+
   removeMessage(index) {
     this.messages.splice(index, 1)
   },
