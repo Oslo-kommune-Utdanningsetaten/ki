@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import { axiosInstance as axios } from './clients'
 
 export const store = reactive({
   isAdmin: false,
@@ -8,17 +9,23 @@ export const store = reactive({
   isAuthenticated: null,
 
   logout() {
-    fetch('/auth/logout/', {
-      method: 'GET',
-      credentials: 'include',
-    })
+    axios
+      .get('/auth/logout/')
       .then(() => {
-        this.isAuthenticated = false
+        this.resetStore()
         window.location.href = '/'
       })
       .catch(error => {
         console.error('Error logging out:', error)
       })
+  },
+
+  resetStore() {
+    this.isAdmin = false
+    this.isEmployee = false
+    this.editGroups = false
+    this.messages = []
+    this.isAuthenticated = false
   },
 
   removeMessage(index) {

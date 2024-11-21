@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import axios from 'axios'
+import { axiosInstance as axios } from '../clients'
 import { onMounted, computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { store } from '../store.js'
@@ -9,7 +9,7 @@ const menuItems = ref([])
 
 const getMenuItems = async () => {
   try {
-    const { data } = await axios.get('/api/menu_items', { withCredentials: true })
+    const { data } = await axios.get('/api/menu_items')
     menuItems.value = data.menuItems
     store.isAdmin = data.role ? data.role.is_admin : false
     store.isEmployee = data.role ? data.role.is_employee : false

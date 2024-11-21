@@ -129,7 +129,7 @@ def auth_middleware(get_response):
     def load_logged_in_user(request):
         request.g = {}
         bots = set()
-        admin = False
+        is_admin = False
         has_access = False
 
         username = request.session.get('user.username', None)
@@ -151,16 +151,14 @@ def auth_middleware(get_response):
             has_access = False
             url_name = resolve(request.path_info).url_name
             if (url_name is None):
-                response = get_response(request)
-                return response
+                return get_response(request)
             elif (
                 url_name.split('.')[0] == 'api'
                 and url_name not in ['api.user_bots', 'api.menu_items']
             ):
                 return JsonResponse({'error': 'Not authenticated'}, status=401)
             else:
-                response = get_response(request)
-                return response
+                return get_response(request)
             
         else:   
             request.g['username'] = username    
@@ -171,7 +169,7 @@ def auth_middleware(get_response):
             role = role_obj.role if role_obj else None
             if role == 'admin':
                 request.g['dist_to_groups'] = False
-                admin = True
+                is_admin = True
                 has_access = True
                 personal_bots = models.Bot.objects.filter(owner=username)
                 bots.update((bot.uuid for bot in personal_bots))
@@ -189,7 +187,7 @@ def auth_middleware(get_response):
                     has_access = True
 
             request.g['bots'] = list(bots) if bots else []
-            request.g['admin'] = admin
+            request.g['admin'] = is_admin
             request.g['has_access'] = has_access
             request.g['username'] = username
             request.g['name'] = request.session.get('user.name')
