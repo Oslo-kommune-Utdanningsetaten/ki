@@ -19,7 +19,7 @@ azureClient = AsyncAzureOpenAI(
 )
 
 huggingfaceClient = OpenAI(
-	base_url=os.environ.get('HUGGINGFACE_API_BASE_URL'),
+	base_url=os.environ.get('HUGGINGFACE_API_BASE_URL_7B'),
 	api_key=os.environ.get('HUGGINGFACE_API_KEY')
 )
 
@@ -654,7 +654,7 @@ async def send_message(request):
 
 async def streamFromHuggingface(messages, temperature):
     completion = huggingfaceClient.chat.completions.create(
-        model="nora-normistral-7b-warm-instruct",
+        model="normistral-11b-warm-iyl",
         messages=messages,
         stream=True,
         temperature=float(temperature),
