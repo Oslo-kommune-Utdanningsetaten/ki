@@ -126,6 +126,10 @@ button img {
   border-bottom-left-radius: 0px !important;
 }
 
+.speech-bubble-assistant p:last-child {
+  margin-bottom: 0;
+}
+
 @keyframes typing {
   from {
     width: 0;
