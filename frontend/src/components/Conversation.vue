@@ -92,7 +92,6 @@ const editMessageAtIndex = index => {
             <div v-if="isProcessingInput && !isStreaming && messageIndex === messages.length - 1">
               <span class="spinner-border spinner-border-sm me-2" role="status"></span>
               <span v-if="props.bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
-              <span v-else>Interessant. Jeg tenker...</span>
             </div>
             <div v-else>
               <div

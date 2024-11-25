@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
 
   // Proxy requests with Vite in dev, Nginx in prod
   const proxyConfig = process.env.VITE_API_BASE_URL ? {
-    '/api': {
+    '/api/': {
       target: process.env.VITE_API_BASE_URL,
       changeOrigin: true,
       secure: false
