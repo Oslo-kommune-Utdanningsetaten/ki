@@ -20,7 +20,7 @@ watchEffect(() => {
 
 async function getBots() {
   try {
-    const { data } = await axios.get('/api/user_bots', { withCredentials: true })
+    const { data } = await axios.get('/api/user_bots')
     bots.value = data.bots || []
     status.value = data.status || ''
     view_filter.value = data.view_filter || ''

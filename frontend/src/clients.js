@@ -14,8 +14,7 @@ const errorInterceptor = error => {
       store.resetStore()
       window.location.href = '/auth/feidelogin'
     } else if (axiosError.response?.status === 403) {
-      // Forbidden user
-      window.location.href = '/'
+      store.addMessage('Du har ikke tilgang her', 'danger')
     }
   }
 

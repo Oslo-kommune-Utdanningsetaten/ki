@@ -57,16 +57,17 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   const loginUrl = '/auth/feidelogin'
 
   if (to.meta?.requiresAuth) {
     if (store.isAuthenticated === true) {
       // Proceed if user is authenticated
-      next()
+      return true
     } else if (store.isAuthenticated === false) {
       // Redirect to login page
       window.location.href = loginUrl
+      return false
     } else {
       // Authentication status unknown, check with the server
       try {
@@ -74,18 +75,20 @@ router.beforeEach(async (to, from, next) => {
         const isAuthenticatedHeader = response.headers['x-is-authenticated']
         if (isAuthenticatedHeader === 'true') {
           store.isAuthenticated = true
-          next()
+          return true
         } else {
           store.isAuthenticated = false
           window.location.href = loginUrl
+          next(false)
         }
       } catch (error) {
         // The interceptor handles 401 and 403 errors
         console.error('Error checking authentication:', error)
+        return false
       }
     }
   } else {
-    next()
+    return true
   }
 })
 

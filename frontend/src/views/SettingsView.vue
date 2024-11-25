@@ -30,8 +30,9 @@ const levels = [
 ]
 
 onMounted(() => {
-  getSettings()
-  getSchoolAccess()
+  getSettings(() => {
+    getSchoolAccess()
+  })
 })
 
 const getSettings = async () => {
