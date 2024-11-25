@@ -1,10 +1,33 @@
 import { reactive } from 'vue'
+import { axiosInstance as axios } from './clients'
 
 export const store = reactive({
   isAdmin: false,
   isEmployee: false,
   editGroups: false,
   messages: [],
+  isAuthenticated: null,
+
+  logout() {
+    axios
+      .get('/auth/logout/')
+      .then(() => {
+        this.resetStore()
+        window.location.href = '/'
+      })
+      .catch(error => {
+        console.error('Error logging out:', error)
+      })
+  },
+
+  resetStore() {
+    this.isAdmin = false
+    this.isEmployee = false
+    this.editGroups = false
+    this.messages = []
+    this.isAuthenticated = false
+  },
+
   removeMessage(index) {
     this.messages.splice(index, 1)
   },

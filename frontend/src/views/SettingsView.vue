@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import { axiosInstance as axios } from '../clients'
 import { ref, onMounted, computed } from 'vue'
 
 const route = useRoute()
@@ -30,8 +30,9 @@ const levels = [
 ]
 
 onMounted(() => {
-  getSettings()
-  getSchoolAccess()
+  getSettings(() => {
+    getSchoolAccess()
+  })
 })
 
 const getSettings = async () => {
