@@ -105,9 +105,10 @@ def menu_items(request):
             'class': '',
         })
 
-    # user is allowed to edit groups
-    edit_g = bool(request.g['settings']['allow_groups']
-                  and request.g['dist_to_groups'])
+    # Check if user can edit groups
+    has_access_to_group_edit  = request.g['settings']['allow_groups']
+    dist_to_groups = request.g.get('dist_to_groups', False)
+    can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
 
     return Response({
         'menuItems': menu_items,
@@ -115,7 +116,7 @@ def menu_items(request):
             'is_admin': request.g.get('admin', False),
             'is_employee': request.g.get('employee', False),
             'is_author': request.g.get('author', False),
-            'edit_g': edit_g,
+            'can_user_edit_groups.': can_user_edit_groups,
         }
     })
 

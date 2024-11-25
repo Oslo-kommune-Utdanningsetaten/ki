@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import axios from 'axios'
+import { axiosInstance as axios } from '../clients'
 import { ref, onMounted, watchEffect, computed } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
@@ -21,13 +21,17 @@ watchEffect(() => {
 async function getBots() {
   try {
     const { data } = await axios.get('/api/user_bots')
-    bots.value = data.bots
-    status.value = data.status
-    view_filter.value = data.view_filter
-    tagCategories.value = data.tag_categories
+    bots.value = data.bots || []
+    status.value = data.status || ''
+    view_filter.value = data.view_filter || ''
+    tagCategories.value = data.tag_categories || {}
     filter.value = new Array(Object.keys(tagCategories.value).length).fill([])
   } catch (error) {
-    console.log(error)
+    if (error.response && error.response.status === 401) {
+      window.location.href = '/auth/feidelogin'
+    } else {
+      console.log(error)
+    }
   }
 }
 

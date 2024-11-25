@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
-import axios from 'axios'
+import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect } from 'vue'
 import SpeechToText from '@/components/SpeechToText.vue'
 import Conversation from '@/components/Conversation.vue'

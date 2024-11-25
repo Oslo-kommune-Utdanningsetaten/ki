@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import redirect, resolve_url
 from django.urls import resolve
 import requests
@@ -129,47 +129,12 @@ def auth_middleware(get_response):
     def load_logged_in_user(request):
         request.g = {}
         bots = set()
-        admin = False
+        is_admin = False
         has_access = False
 
         username = request.session.get('user.username', None)
-        if username is None:
-            has_access = False
-            url_name = resolve(request.path_info).url_name
-            if (url_name is None):
-                response = get_response(request)
-                return response
-            elif (url_name.split('.')[0] == 'main' and
-                    request.path != resolve_url('main.index')):
-                return redirect('auth.feidelogin')
-        
-        # get user's bots
-        role_obj = models.Role.objects.filter(user_id=username).first()
-        role = role_obj.role if role_obj else None
-        if role == 'admin':
-            request.g['dist_to_groups'] = False
-            admin = True
-            has_access = True
-            personal_bots = models.Bot.objects.filter(owner=username)
-            bots.update((bot.uuid for bot in personal_bots))
-            library_bots = models.Bot.objects.filter(library = True)
-            bots.update((bot.uuid for bot in library_bots))
-        else:
-            bots, employee, dist_to_groups, schools = get_user_bots(request, username)
-            request.g['employee'] = employee
-            request.g['dist_to_groups'] = dist_to_groups
-            request.g['schools'] = schools
-            if role == 'author':
-                request.g['author'] = True
-                request.g['auth_school'] = role_obj.school
-            if bots is not None:
-                has_access = True
-
-        request.g['bots'] = list(bots) if bots else []
-        request.g['admin'] = admin
-        request.g['has_access'] = has_access
-        request.g['username'] = username
-        request.g['name'] = request.session.get('user.name')
+        is_authenticated = username is not None
+        request.g['isAuthenticated'] = is_authenticated
 
         # load settings
         settings_dict = {}
@@ -178,11 +143,58 @@ def auth_middleware(get_response):
                 settings_dict[item.setting_key] = item.int_val
             elif item.txt_val != None:
                 settings_dict[item.setting_key] = item.txt_val
+
         request.g['settings'] = settings_dict
 
 
+        if not is_authenticated:
+            has_access = False
+            url_name = resolve(request.path_info).url_name
+            if (url_name is None):
+                return get_response(request)
+            elif (
+                url_name.split('.')[0] == 'api'
+                and url_name not in ['api.user_bots', 'api.menu_items']
+            ):
+                return JsonResponse({'error': 'Not authenticated'}, status=401)
+            else:
+                return get_response(request)
+            
+        else:   
+            request.g['username'] = username    
+            request.g['name'] = request.session.get('user.name')
+            
+            # get user's bots
+            role_obj = models.Role.objects.filter(user_id=username).first()
+            role = role_obj.role if role_obj else None
+            if role == 'admin':
+                request.g['dist_to_groups'] = False
+                is_admin = True
+                has_access = True
+                personal_bots = models.Bot.objects.filter(owner=username)
+                bots.update((bot.uuid for bot in personal_bots))
+                library_bots = models.Bot.objects.filter(library = True)
+                bots.update((bot.uuid for bot in library_bots))
+            else:
+                bots, employee, dist_to_groups, schools = get_user_bots(request, username)
+                request.g['employee'] = employee
+                request.g['dist_to_groups'] = dist_to_groups
+                request.g['schools'] = schools
+                if role == 'author':
+                    request.g['author'] = True
+                    request.g['auth_school'] = role_obj.school
+                if bots is not None:
+                    has_access = True
+
+            request.g['bots'] = list(bots) if bots else []
+            request.g['admin'] = is_admin
+            request.g['has_access'] = has_access
+            request.g['username'] = username
+            request.g['name'] = request.session.get('user.name')
+
         response = get_response(request)
-        return response
+        response['X-Is-Authenticated'] = str(is_authenticated).lower()
+        return response   
 
     return load_logged_in_user
 

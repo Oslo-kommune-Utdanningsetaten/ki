@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import { axiosInstance as axios } from '../clients'
 import { ref, onMounted, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
 import router from '@/router/index.js'

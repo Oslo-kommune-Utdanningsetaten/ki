@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import axios from 'axios'
+import { axiosInstance as axios } from '../clients'
 import { onMounted, computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { store } from '../store.js'
@@ -16,7 +16,11 @@ const getMenuItems = async () => {
     store.isAuthor = data.role ? data.role.is_author : false
     store.editGroups = data.role ? data.role.edit_g : false
   } catch (error) {
-    console.log(error)
+    if (error.response && error.response.status === 401) {
+      window.location.href = '/auth/feidelogin'
+    } else {
+      console.log(error)
+    }
   }
 }
 
