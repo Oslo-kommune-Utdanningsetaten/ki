@@ -215,13 +215,18 @@ export const createBotDescriptionFromScheme = (scheme) => {
   return bot
 }
 
+function getPlaceholderAt(placeholderIndex) {
+  const paddedIndex = placeholderIndex.toString().padStart(5, '0')
+  return `MATHPLACEHOLDER${paddedIndex}`
+}
+
 
 export const renderMessage = messageContent => {
-  const placeholder = 'MATH_PLACEHOLDER_'
   const inlineMathRegex = /\\\((.+?)\\\)/g
   const blockMathRegex = /\\\[(.+?)\\\]/gs
-  const renderedMathItems = []
+  const renderedMathItems = {}
   let processedText = messageContent
+  let placeholderIndex = 0
 
   // Process block math first
   processedText = processedText.replace(blockMathRegex, (_, math) => {
@@ -231,8 +236,10 @@ export const renderMessage = messageContent => {
         throwOnError: false,
         displayMode: true,
       })
-      renderedMathItems.push(renderedMath)
-      return `${placeholder}${renderedMathItems.length - 1}`
+      const placeholderKey = getPlaceholderAt(placeholderIndex)
+      renderedMathItems[placeholderKey] = renderedMath
+      placeholderIndex++
+      return placeholderKey
     } catch (err) {
       console.error("Katex block error:", err)
       return _
@@ -247,17 +254,19 @@ export const renderMessage = messageContent => {
         throwOnError: false,
         displayMode: false,
       })
-      renderedMathItems.push(renderedMath)
-      return `${placeholder}${renderedMathItems.length - 1}`
+      const placeholderKey = getPlaceholderAt(placeholderIndex)
+      renderedMathItems[placeholderKey] = renderedMath
+      placeholderIndex++
+      return placeholderKey
     } catch (err) {
       console.error("Katex inline error:", err)
       return _
     }
   })
 
-  renderedMathItems.forEach((renderedMath, index) => {
-    const placeholderAtIndex = `${placeholder}${index}`
-    processedText = processedText.replace(placeholderAtIndex, renderedMath)
+  Object.keys(renderedMathItems).forEach((placeholderKey) => {
+    const renderedMath = renderedMathItems[placeholderKey]
+    processedText = processedText.replace(placeholderKey, renderedMath)
   })
 
   return marked.parse(processedText)
