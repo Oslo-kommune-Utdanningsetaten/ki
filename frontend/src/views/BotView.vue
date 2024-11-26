@@ -5,7 +5,8 @@ import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
-import { renderMessage, getCookie } from '../utils.js'
+import { getCookie } from '../utils/httpTools.js'
+import { renderMessage } from '../utils/markdownTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
 
 const route = useRoute()
