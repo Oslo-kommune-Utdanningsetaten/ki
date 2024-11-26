@@ -268,7 +268,6 @@ onMounted(() => {
         </p>
       </div>
     </div>
-    volumet av en kule
   </div>
 
   <Conversation
