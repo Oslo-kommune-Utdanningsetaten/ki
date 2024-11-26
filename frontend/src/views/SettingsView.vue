@@ -29,10 +29,9 @@ const levels = [
   { id: 'vg3', name: 'Vg3' },
 ]
 
-onMounted(() => {
-  getSettings(() => {
-    getSchoolAccess()
-  })
+onMounted(async () => {
+  await getSettings()
+  await getSchoolAccess()
 })
 
 const getSettings = async () => {
