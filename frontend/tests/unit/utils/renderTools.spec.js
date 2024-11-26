@@ -1,4 +1,4 @@
-import { getPlaceholderAt, renderMessage, renderKatex, fixFaultyKatex } from '../../../src/utils/renderTools.js'
+import { getPlaceholderAt, renderMessage, renderKatex, fixFaultyKatex, fixBraces } from '../../../src/utils/renderTools.js'
 import { sanitizeHtml } from '../../testUtils.js'
 
 test('creates the correct placeholder', () => {
@@ -20,13 +20,30 @@ test('renders katex', () => {
   expect(sanitizeHtml(result)).toBe(sanitizeHtml(expected))
 })
 
-test('fixes katex code with double subscript', () => {
+test('fixes katex code with double subscript and faulty state indication', () => {
   const input = String.raw`Fe_{(s)} + CuSO_4_{(aq)} \rightarrow FeSO_4_{(aq)} + Cu_{(s)}`
   const result = fixFaultyKatex(input)
   const expected = String.raw`Fe (s) + CuSO_4 (aq) \rightarrow FeSO_4 (aq) + Cu (s)`
   expect(result).toBe(expected)
 })
 
+test('fixes katex code with mismatched curly braces', () => {
+  const input = String.raw`\text{CH}_4 + \text{O}_2} \rightarrow \text{CO}_2 + \text{H}_2\text{O}`
+  const result = fixBraces(input)
+  const expected = String.raw`\text{CH}_4 + \text{O}_2 \rightarrow \text{CO}_2 + \text{H}_2\text{O}`
+  expect(result).toBe(expected)
+})
+
+test('renders katex code with mismatched curly braces', () => {
+  const input = String.raw`
+\[ 
+\text{CH}_4 + \text{O}_2} \rightarrow \text{CO}_2 + \text{H}_2\text{O}}
+\]
+`
+  const result = renderKatex(input)
+  const expected = String.raw`<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mtext>CH</mtext><mn>4</mn></msub><mo>+</mo><msub><mtext>O</mtext><mn>2</mn></msub><mo>→</mo><msub><mtext>CO</mtext><mn>2</mn></msub><mo>+</mo><msub><mtext>H</mtext><mn>2</mn></msub><mtext>O</mtext></mrow><annotation encoding="application/x-tex">\text{CH}_4 + \text{O}_2 \rightarrow \text{CO}_2 + \text{H}_2\text{O}</annotation></semantics></math></span>`
+  expect(sanitizeHtml(result)).toBe(sanitizeHtml(expected))
+})
 
 test('renders katex code with double subscript', () => {
   const input = String.raw`

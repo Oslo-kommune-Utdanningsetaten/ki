@@ -1,9 +1,35 @@
 import { marked } from 'marked'
 import katex from 'katex'
 
+export const fixBraces = (input) => {
+  const stack = []
+  let result = ''
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i]
+    if (char === '{') {
+      // Push opening brace to stack and add it to the result
+      stack.push(char)
+      result += char
+    } else if (char === '}') {
+      if (stack.length > 0) {
+        // Matched closing brace, pop from stack and add it to the result
+        stack.pop()
+        result += char
+      }
+      // If no matching opening brace, skip this closing brace
+    } else {
+      // Add non-brace characters to the result
+      result += char
+    }
+  }
+  // TODO: Maybe handle unmatched opening braces?
+  return result
+}
+
 export const fixFaultyKatex = (input) => {
   // Fix state indicators by removing subscript brackets around them
-  let result = input.replace(/_\{(\(s\)|\(aq\)|\(l\)|\(g\))\}/g, " $1")
+  let result = fixBraces(input)
+  result = result.replace(/_\{(\(s\)|\(aq\)|\(l\)|\(g\))\}/g, " $1")
   // Fix double subscripts (e.g., `_4_{...}`) by keeping only the valid chemical subscript
   return result.replace(/_([0-9]+)_\{[^}]+\}/g, "_$1")
 }
