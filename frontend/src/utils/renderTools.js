@@ -1,11 +1,11 @@
 import { marked } from 'marked'
 import katex from 'katex'
 
-export const fixDoubleSubscripts = (input) => {
-  // Match cases where a digit/letter subscript is followed by another subscript in braces
-  return input.replace(/([a-zA-Z0-9])_([a-zA-Z0-9])_\{([^\}]+)\}/g, (_, base, firstSub, secondSub) => {
-    return `${base}_{${firstSub}${secondSub}}`
-  })
+export const fixFaultyKatex = (input) => {
+  // Fix state indicators by removing subscript brackets around them
+  let result = input.replace(/_\{(\(s\)|\(aq\)|\(l\)|\(g\))\}/g, " $1")
+  // Fix double subscripts (e.g., `_4_{...}`) by keeping only the valid chemical subscript
+  return result.replace(/_([0-9]+)_\{[^}]+\}/g, "_$1")
 }
 
 export const getPlaceholderAt = (placeholderIndex) => {
@@ -29,7 +29,7 @@ export const renderKatex = messageContent => {
   let placeholderIndex = 0
 
   // sometimes the chatbot will generate double subscripts, which KaTeX doesn't like
-  let processedText = fixDoubleSubscripts(messageContent)
+  let processedText = fixFaultyKatex(messageContent)
 
   // Render block math items and add to renderedMathItems
   processedText = processedText.replace(blockMathRegex, (_, math) => {

@@ -1,4 +1,4 @@
-import { getPlaceholderAt, renderMessage, renderKatex, fixDoubleSubscripts } from '../../../src/utils/renderTools.js'
+import { getPlaceholderAt, renderMessage, renderKatex, fixFaultyKatex } from '../../../src/utils/renderTools.js'
 import { sanitizeHtml } from '../../testUtils.js'
 
 test('creates the correct placeholder', () => {
@@ -22,8 +22,8 @@ test('renders katex', () => {
 
 test('fixes katex code with double subscript', () => {
   const input = String.raw`Fe_{(s)} + CuSO_4_{(aq)} \rightarrow FeSO_4_{(aq)} + Cu_{(s)}`
-  const result = fixDoubleSubscripts(input)
-  const expected = String.raw`Fe_{(s)} + CuSO_{4(aq)} \rightarrow FeSO_{4(aq)} + Cu_{(s)}`
+  const result = fixFaultyKatex(input)
+  const expected = String.raw`Fe (s) + CuSO_4 (aq) \rightarrow FeSO_4 (aq) + Cu (s)`
   expect(result).toBe(expected)
 })
 
@@ -35,7 +35,8 @@ Fe_{(s)} + CuSO_4_{(aq)} \rightarrow FeSO_4_{(aq)} + Cu_{(s)}
 \]
 `
   const result = renderKatex(input)
-  const expected = String.raw`<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><msub><mi>e</mi><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></msub><mo>+</mo><mi>C</mi><mi>u</mi><mi>S</mi><msub><mi>O</mi><mrow><mn>4</mn><mo stretchy="false">(</mo><mi>a</mi><mi>q</mi><mo stretchy="false">)</mo></mrow></msub><mo>→</mo><mi>F</mi><mi>e</mi><mi>S</mi><msub><mi>O</mi><mrow><mn>4</mn><mo stretchy="false">(</mo><mi>a</mi><mi>q</mi><mo stretchy="false">)</mo></mrow></msub><mo>+</mo><mi>C</mi><msub><mi>u</mi><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></msub></mrow><annotation encoding="application/x-tex">Fe_{(s)} + CuSO_{4(aq)} \rightarrow FeSO_{4(aq)} + Cu_{(s)}
+  const expected = String.raw`<span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>F</mi><mi>e</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo><mo>+</mo><mi>C</mi><mi>u</mi><mi>S</mi><msub><mi>O</mi><mn>4</mn></msub><mo stretchy="false">(</mo><mi>a</mi><mi>q</mi><mo stretchy="false">)</mo><mo>→</mo><mi>F</mi><mi>e</mi><mi>S</mi><msub><mi>O</mi><mn>4</mn></msub><mo stretchy="false">(</mo><mi>a</mi><mi>q</mi><mo stretchy="false">)</mo><mo>+</mo><mi>C</mi><mi>u</mi><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+Fe (s) + CuSO_4 (aq) \rightarrow FeSO_4 (aq) + Cu (s)
 </annotation></semantics></math></span>`
   expect(sanitizeHtml(result)).toBe(sanitizeHtml(expected))
 })
