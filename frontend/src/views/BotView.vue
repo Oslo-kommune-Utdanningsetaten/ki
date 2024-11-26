@@ -6,7 +6,7 @@ import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
 import { getCookie } from '../utils/httpTools.js'
-import { renderMessage } from '../utils/markdownTools.js'
+import { renderMessage } from '../utils/renderTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
 
 const route = useRoute()

@@ -2,14 +2,21 @@ import { marked } from 'marked'
 import katex from 'katex'
 
 
-
-function getPlaceholderAt(placeholderIndex) {
+export const getPlaceholderAt = (placeholderIndex) => {
   const paddedIndex = placeholderIndex.toString().padStart(5, '0')
   return `MATHPLACEHOLDER${paddedIndex}`
 }
 
+export const renderMessage = (messageContent, options = { useKatex: true }) => {
+  const { useKatex } = options
+  let processedText = messageContent
+  if (useKatex) {
+    processedText = renderKatex(processedText)
+  }
+  return marked.parse(messageContent)
+}
 
-export const renderMessage = messageContent => {
+export const renderKatex = messageContent => {
   const inlineMathRegex = /\\\((.+?)\\\)/g
   const blockMathRegex = /\\\[(.+?)\\\]/gs
   const renderedMathItems = {}
@@ -57,5 +64,5 @@ export const renderMessage = messageContent => {
     processedText = processedText.replace(placeholderKey, renderedMath)
   })
 
-  return marked.parse(processedText)
+  return processedText
 }
