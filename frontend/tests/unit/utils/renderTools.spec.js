@@ -1,7 +1,7 @@
 import { getPlaceholderAt, renderMessage, renderKatex, fixDoubleSubscripts } from '../../../src/utils/renderTools.js'
 import { sanitizeHtml } from '../../testUtils.js'
 
-test('creates correct placeholder', () => {
+test('creates the correct placeholder', () => {
   expect(getPlaceholderAt(2)).toBe('MATHPLACEHOLDER00002')
 })
 
@@ -41,7 +41,7 @@ Fe_{(s)} + CuSO_4_{(aq)} \rightarrow FeSO_4_{(aq)} + Cu_{(s)}
 })
 
 
-test('renders a message with a mix of katext and markdown', () => {
+test('renders a message with a mix of katex and markdown', () => {
   const input = String.raw`**Reaksjonsligning:**
 
 \( \text{Cu}^{2+} (aq) + \text{Fe} (s) \rightarrow \text{Cu} (s) + \text{Fe}^{2+} (aq) \)
