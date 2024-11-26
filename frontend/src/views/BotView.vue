@@ -268,7 +268,6 @@ onMounted(() => {
         </p>
       </div>
     </div>
-    forklar reaksjonsligninger
   </div>
 
   <Conversation
