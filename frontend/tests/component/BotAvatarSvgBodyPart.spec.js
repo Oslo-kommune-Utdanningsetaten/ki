@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import BotAvatarSvgBodyPart from '../../src/components/BotAvatarSvgBodyPart.vue'
 import { sanitizeHtml } from '../testUtils.js'
 
-test('ensures eyes are rendered correctly', () => {
+test('renders rect eyes correctly', () => {
   const bodyPartProps = {
     description: "rect",
     shapes: [

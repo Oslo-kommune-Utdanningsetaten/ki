@@ -1,7 +1,7 @@
 import { getPlaceholderAt, renderMessage, renderKatex, fixDoubleSubscripts } from '../../../src/utils/renderTools.js'
 import { sanitizeHtml } from '../../testUtils.js'
 
-test('ensures placeholder logic is working', () => {
+test('creates correct placeholder', () => {
   expect(getPlaceholderAt(2)).toBe('MATHPLACEHOLDER00002')
 })
 
