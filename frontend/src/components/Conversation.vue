@@ -2,7 +2,7 @@
 import { ref, watchEffect, watch } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
-import { renderMessage } from '../utils.js'
+import { renderMessage } from '../utils/renderTools.js'
 
 const props = defineProps({
   messages: Array,

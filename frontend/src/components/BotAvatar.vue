@@ -1,6 +1,6 @@
 <script setup>
 import { watchEffect } from 'vue'
-import { createBotDescriptionFromScheme } from '../utils.js'
+import { createBotDescriptionFromScheme } from '../utils/botAvatar.js'
 import BotAvatarSvgBodyPart from '@/components/BotAvatarSvgBodyPart.vue'
 
 const attr = defineProps(['avatar_scheme'])
