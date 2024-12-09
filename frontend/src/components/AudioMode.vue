@@ -14,7 +14,6 @@ const isRecording = ref(false)
 
 const handleToggleRecording = () => {
   isRecording.value = !isRecording.value
-  console.log('isRecording', isRecording.value)
   if (isRecording.value) {
     startRecording()
   } else {
@@ -26,10 +25,11 @@ const startRecording = async () => {
   // Open WebSocket connection
   websocket = new WebSocket(websocketUrl)
   websocket.onmessage = event => {
-    console.log('Got something back', event)
     const { transcript } = JSON.parse(event.data)
-    console.log('transcript', transcript)
-    props.onTranscriptReceived(transcript)
+    console.info('transcript', transcript)
+    if (transcript) {
+      props.onTranscriptReceived(transcript)
+    }
   }
 
   websocket.onopen = () => {
@@ -38,10 +38,6 @@ const startRecording = async () => {
 
   websocket.onclose = () => {
     console.log('WebSocket connection closed')
-  }
-
-  websocket.onerror = error => {
-    console.error('WebSocket error:', error)
   }
 
   // Get audio stream
