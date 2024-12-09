@@ -54,7 +54,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         if recognized_text:
             asyncio.run(self.send(text_data=json.dumps({
                 "type": "websocket.send",
-                "transcription": recognized_text
+                "transcript": recognized_text
             })))
 
     async def receive(self, text_data=None, bytes_data=None):

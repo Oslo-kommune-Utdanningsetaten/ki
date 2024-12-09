@@ -155,6 +155,11 @@ const handleToggleAudioMode = () => {
   isAudioModeEnabled.value = !isAudioModeEnabled.value
 }
 
+const handleTranscriptReceived = transcript => {
+  message.value = transcript
+  sendMessage()
+}
+
 watchEffect(() => {
   startpromt()
 })
@@ -278,8 +283,8 @@ onMounted(async () => {
     </div>
   </div>
 
-  <AudioMode v-if="isAudioModeEnabled" />
-  <div v-else>
+  <AudioMode :onTranscriptReceived="handleTranscriptReceived" />
+  <div>
     <Conversation
       :messages="messages.slice(1, messages.length)"
       :bot="bot"

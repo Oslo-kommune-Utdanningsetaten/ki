@@ -4,7 +4,7 @@ import AudioWave from '@/components/AudioWave.vue'
 import workletURL from '../utils/pcm-processor.js?url'
 
 const props = defineProps({
-  onTranscriptionReceived: Function,
+  onTranscriptReceived: Function,
 })
 
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
@@ -27,9 +27,9 @@ const startRecording = async () => {
   websocket = new WebSocket(websocketUrl)
   websocket.onmessage = event => {
     console.log('Got something back', event)
-    const { transcription } = JSON.parse(event.data)
-    console.log('transcription', transcription)
-    props.onTranscriptionReceived(transcription)
+    const { transcript } = JSON.parse(event.data)
+    console.log('transcript', transcript)
+    props.onTranscriptReceived(transcript)
   }
 
   websocket.onopen = () => {
@@ -94,6 +94,5 @@ const stopRecording = () => {
       <AudioWave v-if="isRecording" />
       <span v-else>Start Recording</span>
     </button>
-    <p>Transcription: {{ transcription }}</p>
   </div>
 </template>
