@@ -63,6 +63,10 @@ const handleMessageInput = messageContent => {
   message.value = message.value + ' ' + messageContent
 }
 
+const scrollTo = view => {
+  view.value?.scrollIntoView({ behavior: 'smooth' })
+}
+
 const sendMessage = async () => {
   messages.value.push(
     {
@@ -89,6 +93,7 @@ const sendMessage = async () => {
     message.value = ''
     textInput.value.focus()
   })
+  scrollTo(textInput)
 }
 
 const callChatStream = async (data, progressCallback) => {
