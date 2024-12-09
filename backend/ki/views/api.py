@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import requests
 from openai import AsyncAzureOpenAI
 import openai
+import azure.cognitiveservices.speech as speechsdk
 import uuid
 import os
 import json

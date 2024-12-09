@@ -6,8 +6,9 @@ import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
 import { getCookie } from '../utils/httpTools.js'
-import { renderMessage } from '../utils/renderTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
+
+import AudioMode from '@/components/AudioMode.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +18,7 @@ const message = ref('')
 const isProcessingInput = ref(false)
 const isStreaming = ref(false)
 const showSystemPrompt = ref(false)
+const isAudioModeEnabled = ref(false)
 
 const textInput = useTemplateRef('text-input')
 
@@ -139,11 +141,9 @@ const clipboardAll = bot => {
     assistant: 'Bot',
   }
   let copy_text = messages.value
-  // console.log(copy_text)
   if (!bot.prompt_visibility && copy_text.length > 0) {
     copy_text = messages.value.slice(1)
   }
-  // console.log(copy_text)
   try {
     navigator.clipboard.writeText(copy_text.map(x => `${roles[x.role]}: ${x.content}`).join('\n'))
   } catch (error) {
@@ -151,11 +151,15 @@ const clipboardAll = bot => {
   }
 }
 
+const handleToggleAudioMode = () => {
+  isAudioModeEnabled.value = !isAudioModeEnabled.value
+}
+
 watchEffect(() => {
   startpromt()
 })
 
-onMounted(() => {
+onMounted(async () => {
   textInput.value.focus()
 })
 </script>
@@ -256,6 +260,10 @@ onMounted(() => {
       {{ showSystemPrompt ? 'Skjul' : 'Vis' }} ledetekst
     </button>
 
+    <button class="me-auto btn oslo-btn-secondary ms-2" @click="handleToggleAudioMode">
+      {{ isAudioModeEnabled ? 'Pratemodus AV' : 'Pratemodus PÅ' }}
+    </button>
+
     <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-end mt-3">
       <div class="avatar p-2 me-3">
         <BotAvatar :avatar_scheme="bot.avatar_scheme" />
@@ -270,57 +278,66 @@ onMounted(() => {
     </div>
   </div>
 
-  <Conversation
-    :messages="messages.slice(1, messages.length)"
-    :bot="bot"
-    :isProcessingInput="isProcessingInput"
-    :isStreaming="isStreaming"
-    :handleEditMessageAtIndex="editMessageAtIndex"
-  />
+  <AudioMode v-if="isAudioModeEnabled" />
+  <div v-else>
+    <Conversation
+      :messages="messages.slice(1, messages.length)"
+      :bot="bot"
+      :isProcessingInput="isProcessingInput"
+      :isStreaming="isStreaming"
+      :handleEditMessageAtIndex="editMessageAtIndex"
+    />
 
-  <div class="mt-3" :class="{ 'd-none': isProcessingInput }">
-    <textarea
-      ref="text-input"
-      type="text"
-      rows="5"
-      aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
-      v-model="message"
-      class="form-control"
-      placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
-      @keypress.enter.exact="sendMessage()"
-    ></textarea>
-    <div class="card">
-      <div class="card-body bg-body-tertiary">
-        <SpeechToText :onMessageReceived="handleMessageInput" />
+    <div class="mt-3" :class="{ 'd-none': isProcessingInput }">
+      <textarea
+        ref="text-input"
+        type="text"
+        rows="5"
+        aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
+        v-model="message"
+        class="form-control"
+        placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
+        @keypress.enter.exact="sendMessage()"
+      ></textarea>
+      <div class="card">
+        <div class="card-body bg-body-tertiary">
+          <SpeechToText :onMessageReceived="handleMessageInput" />
 
-        <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">
-          Send!
-        </button>
-        <button
-          class="btn oslo-btn-secondary"
-          type="button"
-          id="button-new"
-          @click="resetMessages()"
-        >
-          Ny samtale
-        </button>
-        <button
-          class="btn oslo-btn-secondary"
-          type="button"
-          id="button-clipboard"
-          @click="clipboardAll(bot)"
-        >
-          <img src="@/components/icons/copy.svg" alt="" />
-          Kopier samtalen
-        </button>
-        <div>
-          <small>
-            Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med virkeligheten,
-            og den gir ikke beskjed om når den gjør det.
-          </small>
+          <button
+            class="btn oslo-btn-primary"
+            type="button"
+            id="button-send"
+            @click="sendMessage()"
+          >
+            Send!
+          </button>
+          <button
+            class="btn oslo-btn-secondary"
+            type="button"
+            id="button-new"
+            @click="resetMessages()"
+          >
+            Ny samtale
+          </button>
+          <button
+            class="btn oslo-btn-secondary"
+            type="button"
+            id="button-clipboard"
+            @click="clipboardAll(bot)"
+          >
+            <img src="@/components/icons/copy.svg" alt="" />
+            Kopier samtalen
+          </button>
+          <div>
+            <small>
+              Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med
+              virkeligheten, og den gir ikke beskjed om når den gjør det.
+            </small>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
   <div>&nbsp;</div>
 </template>
