@@ -38,9 +38,8 @@ const editMessageAtIndex = index => {
           <div
             class="position-relative p-3 border oslo-bg-primary"
             :class="`speech-bubble-${aMessage.role}`"
-          >
-            {{ aMessage.content }}
-          </div>
+            v-html="renderMessage(aMessage.content)"
+          ></div>
 
           <div class="widget-container position-absolute d-flex">
             <!-- Edit widget -->
