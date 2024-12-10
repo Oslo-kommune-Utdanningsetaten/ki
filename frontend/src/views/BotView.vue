@@ -15,6 +15,7 @@ const router = useRouter()
 const bot = ref({})
 const messages = ref([])
 const message = ref('')
+const lastBotMessage = ref('')
 const isProcessingInput = ref(false)
 const isStreaming = ref(false)
 const showSystemPrompt = ref(false)
@@ -91,6 +92,7 @@ const sendMessage = async () => {
     isProcessingInput.value = false
     isStreaming.value = false
     message.value = ''
+    lastBotMessage.value = messages.value[messages.value.length - 1].content
     textInput.value.focus()
   })
   scrollTo(textInput)
@@ -288,7 +290,11 @@ onMounted(async () => {
     </div>
   </div>
 
-  <AudioMode :onTranscriptReceived="handleTranscriptReceived" />
+  <AudioMode
+    v-if="isAudioModeEnabled"
+    :readOutLoud="lastBotMessage"
+    :onTranscriptReceived="handleTranscriptReceived"
+  />
   <div>
     <Conversation
       :messages="messages.slice(1, messages.length)"
