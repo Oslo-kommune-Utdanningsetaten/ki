@@ -1,11 +1,9 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
-import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
-import { getCookie } from '../utils/httpTools.js'
+import { getBot, deleteBot, submitTextPrompt } from '../utils/httpTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
 
 import AudioMode from '@/components/AudioMode.vue'
@@ -29,16 +27,6 @@ const choicesSorted = () => {
 
 const optionsSorted = choice => {
   return choice.options.sort((a, b) => a.order - b.order)
-}
-
-const startpromt = async () => {
-  try {
-    const { data } = await axios.get('/api/bot_info/' + route.params.id)
-    bot.value = data.bot
-    resetMessages()
-  } catch (error) {
-    console.log(error)
-  }
 }
 
 const resetMessages = () => {
@@ -80,14 +68,14 @@ const sendMessage = async () => {
     }
   )
   const data = { uuid: bot.value.uuid, messages: messages.value }
-  const handleStreamText = streamedText => {
+  const onProgressCallback = streamedText => {
     isStreaming.value = true
     messages.value[messages.value.length - 1].content = streamedText
   }
 
   isProcessingInput.value = true
 
-  await callChatStream(data, handleStreamText).then(() => {
+  await submitTextPrompt(data, onProgressCallback).then(() => {
     // stream is done, return control to user
     isProcessingInput.value = false
     isStreaming.value = false
@@ -96,25 +84,6 @@ const sendMessage = async () => {
     textInput.value.focus()
   })
   scrollTo(textInput)
-}
-
-const callChatStream = async (data, progressCallback) => {
-  const csrf = getCookie('csrftoken')
-  return await axios
-    .post('/api/send_message', data, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrf,
-      },
-      responseType: 'stream',
-      onDownloadProgress: progressEvent => {
-        // axios doesn't support streaming on post, so we need to update messages manually on download progress
-        progressCallback(progressEvent.event.target.responseText)
-      },
-    })
-    .catch(error => {
-      console.error('Something went wrong while streaming the chat response', error)
-    })
 }
 
 const editMessageAtIndex = index => {
@@ -127,18 +96,6 @@ const editMessageAtIndex = index => {
 
 const toggleStartPrompt = () => {
   showSystemPrompt.value = !showSystemPrompt.value
-}
-
-const deleteBot = () => {
-  axios
-    .delete('/api/bot_info/' + bot.value.uuid)
-    .then(() => {
-      store.addMessage('Boten er nå slettet', 'info')
-      router.push({ name: 'home' })
-    })
-    .catch(error => {
-      console.log(error)
-    })
 }
 
 const clipboardAll = bot => {
@@ -158,6 +115,11 @@ const clipboardAll = bot => {
   }
 }
 
+const handleDeleteBot = async botId => {
+  await deleteBot(botId)
+  router.push({ name: 'home' })
+}
+
 const handleToggleAudioMode = () => {
   isAudioModeEnabled.value = !isAudioModeEnabled.value
 }
@@ -167,8 +129,9 @@ const handleTranscriptReceived = transcript => {
   sendMessage()
 }
 
-watchEffect(() => {
-  startpromt()
+watchEffect(async () => {
+  bot.value = await getBot(route.params.id)
+  resetMessages()
 })
 
 onMounted(async () => {
@@ -205,7 +168,7 @@ onMounted(async () => {
             type="button"
             class="btn oslo-btn-warning"
             data-bs-dismiss="modal"
-            @click="deleteBot"
+            @click="() => handleDeleteBot(bot.uuid)"
           >
             Ja jeg vil slette
           </button>

@@ -1,10 +1,9 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
-import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect } from 'vue'
 import SpeechToText from '@/components/SpeechToText.vue'
 import Conversation from '@/components/Conversation.vue'
-import { getCookie } from '../utils/httpTools.js'
+import { getBot, submitImagePrompt } from '../utils/httpTools.js'
 
 const route = useRoute()
 const bot = ref({})
@@ -12,15 +11,6 @@ const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
 const textInput = ref(null)
-
-const getBot = async () => {
-  try {
-    const { data } = await axios.get('/api/bot_info/' + route.params.id)
-    bot.value = data.bot
-  } catch (error) {
-    console.log(error)
-  }
-}
 
 const resetMessages = () => {
   message.value = ''
@@ -47,33 +37,23 @@ const sendMessage = async () => {
       imageUrl: '',
     }
   )
-  try {
-    isProcessingInput.value = true
-    const { data } = await axios.post(
-      '/api/send_img_message',
-      {
-        uuid: bot.value.uuid,
-        prompt: message.value,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-      }
-    )
-    message.value = data.revised_prompt
-    // patch the last message with the revised prompt and image url
-    messages.value[messages.value.length - 1].content = data.revised_prompt
-    messages.value[messages.value.length - 1].imageUrl = data.url
-    isProcessingInput.value = false
-  } catch (error) {
-    console.log(error)
+  isProcessingInput.value = true
+
+  const data = {
+    uuid: bot.value.uuid,
+    prompt: message.value,
   }
+  const { revisedPrompt, imageUrl } = await submitImagePrompt(data)
+
+  message.value = revisedPrompt
+  // patch the last message with the revised prompt and image url
+  messages.value[messages.value.length - 1].content = revisedPrompt
+  messages.value[messages.value.length - 1].imageUrl = imageUrl
+  isProcessingInput.value = false
 }
 
-watchEffect(() => {
-  getBot()
+watchEffect(async () => {
+  bot.value = await getBot(route.params.id)
 })
 </script>
 
