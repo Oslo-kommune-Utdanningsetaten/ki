@@ -1,49 +1,34 @@
 <script setup>
-import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
+import { ref, useTemplateRef, onMounted } from 'vue'
 import Conversation from '@/components/Conversation.vue'
 import { submitTextPrompt } from '../utils/httpTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
-
-import AudioMode from '@/components/AudioMode.vue'
 
 const messages = ref([])
 const message = ref('')
 const lastBotMessage = ref('')
 const isProcessingInput = ref(false)
 const isStreaming = ref(false)
-const isAudioModeEnabled = ref(false)
+const textInput = useTemplateRef('text-input')
 
 const props = defineProps({
   bot: {
     type: Object,
     required: true,
   },
+  systemPrompt: {
+    type: String,
+  },
 })
 
-const textInput = useTemplateRef('text-input')
-
 const resetMessages = () => {
-  const { bot } = props
-  let fullChoicesText = ''
-  if (bot.choices) {
-    choicesSorted().forEach(choice => {
-      if (choice.selected !== null) {
-        fullChoicesText += choice.selected.text + ' '
-      }
-    })
-  }
   messages.value = [
     {
       role: 'system',
-      content: bot.prompt + ' ' + fullChoicesText,
+      content: props.systemPrompt,
     },
   ]
   message.value = ''
-  textInput.value.focus()
-}
-
-const choicesSorted = () => {
-  return props.bot.choices.sort((a, b) => a.order - b.order)
 }
 
 const handleMessageInput = messageContent => {
@@ -54,6 +39,18 @@ const scrollTo = view => {
   view.value?.scrollIntoView({ behavior: 'smooth' })
 }
 
+const onProgressCallback = streamedText => {
+  isStreaming.value = true
+  if (messages.value[messages.value.length - 1].role === 'user') {
+    messages.value.push({
+      role: 'assistant',
+      content: streamedText,
+    })
+  } else {
+    messages.value[messages.value.length - 1].content = streamedText
+  }
+}
+
 const sendMessage = async () => {
   const { bot } = props
 
@@ -62,23 +59,10 @@ const sendMessage = async () => {
     content: message.value,
   })
 
-  const payload = { uuid: bot.uuid, messages: messages.value }
-
-  const onProgressCallback = streamedText => {
-    isStreaming.value = true
-    if (messages.value[messages.value.length - 1].role === 'user') {
-      messages.value.push({
-        role: 'assistant',
-        content: streamedText,
-      })
-    } else {
-      messages.value[messages.value.length - 1].content = streamedText
-    }
-  }
-
+  const data = { uuid: bot.uuid, messages: messages.value }
   isProcessingInput.value = true
 
-  await submitTextPrompt(payload, onProgressCallback).then(() => {
+  await submitTextPrompt(data, onProgressCallback).then(() => {
     // stream is done, return control to user
     isProcessingInput.value = false
     isStreaming.value = false
@@ -90,10 +74,9 @@ const sendMessage = async () => {
 }
 
 const editMessageAtIndex = index => {
-  const messageContent = messages.value[index + 1].content
-  // Delete all trailing messages
-  messages.value.splice(index + 1)
-  message.value = messageContent
+  const textToEdit = messages.value[index + 1].content
+  messages.value.splice(index + 1) // Delete all trailing messages
+  message.value = textToEdit
   textInput.value.focus()
 }
 
@@ -115,15 +98,6 @@ const clipboardAll = bot => {
   }
 }
 
-const handleToggleAudioMode = () => {
-  isAudioModeEnabled.value = !isAudioModeEnabled.value
-}
-
-const handleTranscriptReceived = transcript => {
-  message.value = transcript
-  sendMessage()
-}
-
 onMounted(async () => {
   resetMessages()
   textInput.value.focus()
@@ -131,12 +105,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <AudioMode
-    v-if="isAudioModeEnabled"
-    :readOutLoud="lastBotMessage"
-    :onTranscriptReceived="handleTranscriptReceived"
-  />
-
   <div>
     <Conversation
       :messages="messages.slice(1, messages.length)"
@@ -196,6 +164,4 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-
-  <div>&nbsp;</div>
 </template>

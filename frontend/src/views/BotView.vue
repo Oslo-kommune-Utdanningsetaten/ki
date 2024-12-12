@@ -1,15 +1,17 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { ref, watchEffect } from 'vue'
+import { ref, onMounted } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotCommunicationText from '@/components/BotCommunicationText.vue'
+import BotCommunicationAudio from '@/components/BotCommunicationAudio.vue'
 import { getBot, deleteBot } from '../utils/httpTools.js'
 
 const route = useRoute()
 const router = useRouter()
 const bot = ref({})
 const showSystemPrompt = ref(false)
-const isAudioModeEnabled = ref(false)
+const communicationMode = ref('text') // audio, video?
+const systemPrompt = ref('')
 
 const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
@@ -17,6 +19,10 @@ const choicesSorted = () => {
 
 const optionsSorted = choice => {
   return choice.options.sort((a, b) => a.order - b.order)
+}
+
+const updateSystemPrompt = () => {
+  systemPrompt.value = getSystemPrompt()
 }
 
 const getSystemPrompt = () => {
@@ -40,12 +46,17 @@ const handleDeleteBot = async botId => {
   router.push({ name: 'home' })
 }
 
-const handleToggleAudioMode = () => {
-  isAudioModeEnabled.value = !isAudioModeEnabled.value
+const handleSwitchCommunicationMode = () => {
+  if (communicationMode.value === 'text') {
+    communicationMode.value = 'audio'
+  } else {
+    communicationMode.value = 'text'
+  }
 }
 
-watchEffect(async () => {
+onMounted(async () => {
   bot.value = await getBot(route.params.id)
+  updateSystemPrompt()
 })
 </script>
 
@@ -127,7 +138,7 @@ watchEffect(async () => {
               :id="`${choice.id}-${option.id}`"
               :value="option"
               v-model="choice.selected"
-              @change="resetMessages()"
+              @change="updateSystemPrompt()"
             />
             <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
               {{ option.label }}
@@ -145,8 +156,8 @@ watchEffect(async () => {
       {{ showSystemPrompt ? 'Skjul' : 'Vis' }} ledetekst
     </button>
 
-    <button class="me-auto btn oslo-btn-secondary ms-2" @click="handleToggleAudioMode">
-      {{ isAudioModeEnabled ? 'Pratemodus AV' : 'Pratemodus PÅ' }}
+    <button class="me-auto btn oslo-btn-secondary ms-2" @click="handleSwitchCommunicationMode">
+      {{ communicationMode === 'text' ? 'Bytt til lyd' : 'Bytt til tekst' }}
     </button>
 
     <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-end mt-3">
@@ -163,5 +174,14 @@ watchEffect(async () => {
     </div>
   </div>
 
-  <BotCommunicationText v-if="bot.uuid" :bot="bot" />
+  <BotCommunicationText
+    v-if="bot.uuid && communicationMode === 'text'"
+    :bot="bot"
+    :systemPrompt="systemPrompt"
+  />
+  <BotCommunicationAudio
+    v-if="bot.uuid && communicationMode === 'audio'"
+    :bot="bot"
+    :systemPrompt="systemPrompt"
+  />
 </template>
