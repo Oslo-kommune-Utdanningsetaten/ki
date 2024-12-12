@@ -577,111 +577,128 @@ watch(
           </div>
         </div>
       </div>
-      <div class="row mb-3">
-        <div class="col-sm-2">Forhåndsvalg</div>
-        <div class="col-sm-10">
-          <div v-for="choice in choicesSorted" class="card mb-3 p-3">
-            <div class="row mb-1">
-              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
-                Spørsmål
-              </label>
-              <div class="col-sm-10">
-                <input
-                  type="text"
-                  class="form-control"
-                  :id="`choice_label${choice.id}`"
-                  v-model="choice.label"
-                />
-              </div>
-            </div>
-            <div class="row mb-1">
-              <div class="col-sm-2">Alternativer</div>
-              <div class="col-sm-10">
-                <div v-for="option in optionsSorted(choice)">
-                  <div class="row mb-1">
-                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
-                      Knapp
-                    </label>
-                    <div class="col-sm-10">
-                      <input
-                        type="text"
-                        class="form-control"
-                        :id="`opt_label${option.id}`"
-                        v-model="option.label"
-                      />
-                    </div>
-                  </div>
-                  <div class="row mb-1">
-                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
-                      Ledetekst
-                    </label>
-                    <div class="col-sm-10">
-                      <textarea
-                        class="form-control"
-                        :id="`opt_text${option.id}`"
-                        rows="1"
-                        v-model="option.text"
-                      ></textarea>
-                    </div>
-                  </div>
+    </div>
+
+    <div class="mb-3">
+      <button
+        class="btn oslo-btn-primary"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#collapseAdvanced"
+        aria-expanded="false"
+        aria-controls="collapseAdvanced"
+      >
+        Avanserte innstillinger
+      </button>
+    </div>
+    <div class="mb-3">
+      <div class="collapse" id="collapseAdvanced">
+        <div class="row mb-3">
+          <div class="col-sm-2">Forhåndsvalg</div>
+          <div class="col-sm-10">
+            <div v-for="choice in choicesSorted" class="card mb-3 p-3">
+              <div class="row mb-1">
+                <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
+                  Spørsmål
+                </label>
+                <div class="col-sm-10">
                   <input
-                    class="btn-check"
-                    type="radio"
-                    :id="`${choice.id}-${option.id}`"
-                    :value="option"
-                    v-model="choice.selected"
+                    type="text"
+                    class="form-control"
+                    :id="`choice_label${choice.id}`"
+                    v-model="choice.label"
                   />
-                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
-                    Valgt
-                  </label>
-                  <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
-                    Slett alternativ
-                  </button>
-                  <button
-                    v-if="notFirstOption(choice, option)"
-                    class="btn oslo-btn-secondary"
-                    @click="optionOrderUp(choice, option)"
-                  >
-                    <img src="@/components/icons/move_up.svg" alt="flytt opp" />
-                  </button>
-                  <button
-                    v-if="notLastOption(choice, option)"
-                    class="btn oslo-btn-secondary"
-                    @click="optionOrderDown(choice, option)"
-                  >
-                    <img src="@/components/icons/move_down.svg" alt="flytt ned" />
-                  </button>
-                  <!-- {{ option.order }} -->
-                  <hr />
                 </div>
-                <button class="btn oslo-btn-primary" @click="addOption(choice)">
-                  Legg til alternativ
+              </div>
+              <div class="row mb-1">
+                <div class="col-sm-2">Alternativer</div>
+                <div class="col-sm-10">
+                  <div v-for="option in optionsSorted(choice)">
+                    <div class="row mb-1">
+                      <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
+                        Knapp
+                      </label>
+                      <div class="col-sm-10">
+                        <input
+                          type="text"
+                          class="form-control"
+                          :id="`opt_label${option.id}`"
+                          v-model="option.label"
+                        />
+                      </div>
+                    </div>
+                    <div class="row mb-1">
+                      <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
+                        Ledetekst
+                      </label>
+                      <div class="col-sm-10">
+                        <textarea
+                          class="form-control"
+                          :id="`opt_text${option.id}`"
+                          rows="1"
+                          v-model="option.text"
+                        ></textarea>
+                      </div>
+                    </div>
+                    <input
+                      class="btn-check"
+                      type="radio"
+                      :id="`${choice.id}-${option.id}`"
+                      :value="option"
+                      v-model="choice.selected"
+                    />
+                    <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+                      Valgt
+                    </label>
+                    <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
+                      Slett alternativ
+                    </button>
+                    <button
+                      v-if="notFirstOption(choice, option)"
+                      class="btn oslo-btn-secondary"
+                      @click="optionOrderUp(choice, option)"
+                    >
+                      <img src="@/components/icons/move_up.svg" alt="flytt opp" />
+                    </button>
+                    <button
+                      v-if="notLastOption(choice, option)"
+                      class="btn oslo-btn-secondary"
+                      @click="optionOrderDown(choice, option)"
+                    >
+                      <img src="@/components/icons/move_down.svg" alt="flytt ned" />
+                    </button>
+                    <!-- {{ option.order }} -->
+                    <hr />
+                  </div>
+                  <button class="btn oslo-btn-primary" @click="addOption(choice)">
+                    Legg til alternativ
+                  </button>
+                </div>
+              </div>
+              <div class="mb-1">
+                <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
+                  Slett spørsmål
                 </button>
+                <button
+                  v-if="notFirstChoice(choice)"
+                  class="btn oslo-btn-secondary"
+                  @click="choiceOrderUp(choice)"
+                >
+                  <img src="@/components/icons/move_up.svg" alt="flytt opp" />
+                </button>
+                <button
+                  v-if="notLastChoice(choice)"
+                  class="btn oslo-btn-secondary"
+                  @click="choiceOrderDown(choice)"
+                >
+                  <img src="@/components/icons/move_down.svg" alt="flytt ned" />
+                </button>
+                <!-- {{ choice.order }} -->
               </div>
             </div>
             <div class="mb-1">
-              <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
-                Slett spørsmål
-              </button>
-              <button
-                v-if="notFirstChoice(choice)"
-                class="btn oslo-btn-secondary"
-                @click="choiceOrderUp(choice)"
-              >
-                <img src="@/components/icons/move_up.svg" alt="flytt opp" />
-              </button>
-              <button
-                v-if="notLastChoice(choice)"
-                class="btn oslo-btn-secondary"
-                @click="choiceOrderDown(choice)"
-              >
-                <img src="@/components/icons/move_down.svg" alt="flytt ned" />
-              </button>
-              <!-- {{ choice.order }} -->
+              <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
             </div>
-          </div>
-          <div class="mb-1">
-            <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
           </div>
         </div>
       </div>
