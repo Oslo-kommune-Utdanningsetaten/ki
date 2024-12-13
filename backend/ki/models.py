@@ -20,9 +20,10 @@ class Bot(models.Model):
     uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
     title = models.CharField(max_length=40, null=True) 
     ingress = models.TextField(null=True)  
-    prompt = models.TextField(null=True) 
-    model = models.CharField(max_length=20, null=True) 
-    temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0) 
+    prompt = models.TextField(null=True)
+    model = models.CharField(max_length=20, null=True)
+    model_id = models.ForeignKey('BotModel', on_delete=models.RESTRICT, db_column='model_id', related_name="bots_id", null=True)
+    temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
     avatar_scheme = models.CharField(max_length=50, null=True)
     prompt_visibility = models.BooleanField(default=True)
     library = models.BooleanField(default=False)
@@ -32,8 +33,30 @@ class Bot(models.Model):
     img_bot = models.BooleanField(default=False)
     bot_info = models.TextField(null=True)
 
+    def __str__(self):
+        return f"{self.uuid}-{self.title}"
+    
     class Meta:
         db_table = 'bot'
+
+
+class BotModel(models.Model):
+    model_id = models.AutoField(primary_key=True)
+    deployment_id = models.CharField(max_length=36, null=True)
+    provider = models.CharField(max_length=50)
+    model_url = models.CharField(max_length=500, null=True)
+    display_name = models.CharField(max_length=500, null=True)
+    model_description = models.TextField(null=True)
+    training_cutoff = models.CharField(max_length=200, null=True)
+    retirement = models.CharField(max_length=200, null=True)
+    filter = models.CharField(max_length=50, null=True)
+    version = models.CharField(max_length=50, null=True)
+
+    def __str__(self):
+        return f"{self.deployment_id}-{self.display_name}"
+
+    class Meta:
+        db_table = 'bot_model'
 
 
 class Favorite(models.Model):

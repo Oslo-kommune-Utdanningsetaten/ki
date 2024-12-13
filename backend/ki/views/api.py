@@ -340,7 +340,7 @@ def bot_info(request, bot_uuid=None):
         default_model = models.Setting.objects.get(
             setting_key='default_model').txt_val
         if not bool(bot.model):
-            bot.model = default_model
+            bot.model = None
         if is_admin or (is_author and is_owner):
             bot.model = body.get('model', bot.model)
         bot.save()
@@ -516,6 +516,12 @@ def bot_info(request, bot_uuid=None):
             'tags': tag_items,
         })
 
+    if bot.model_id:
+        bot_model = bot.model_id
+    else:
+        default_model_id = models.Setting.objects.get(setting_key='default_model').int_val
+        bot_model = models.BotModel.objects.get(model_id=default_model_id)
+
     return Response({
         'bot': {
             'uuid': bot.uuid,
@@ -530,7 +536,12 @@ def bot_info(request, bot_uuid=None):
             'library': bot.library,
             'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
-            'model': bot.model,
+            'model': {
+                'deployment_id': bot_model.deployment_id,
+                'display_name': bot_model.display_name,
+                'model_description': bot_model.model_description,
+                'training_cutoff': bot_model.training_cutoff,
+            },
             'edit': edit,
             'distribute': distribute,
             'owner': bot.owner if is_admin else None,
@@ -635,9 +646,13 @@ async def send_message(request):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
-        bot_model = bot.model
-        if not bool(bot_model):
-            bot_model = await models.Setting.objects.aget(setting_key='default_model').txt_val
+        try:
+            bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
+        except models.BotModel.DoesNotExist:
+            default_model = await models.Setting.objects.aget(setting_key='default_model')
+            default_model_id = default_model.int_val
+            bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
+        bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
 
@@ -685,7 +700,7 @@ async def send_img_message(request):
 
     try:
         response = await azureClient.images.generate(
-            model=bot.model,
+            model=bot.model.deployment_id,
             # model='dall-e-3',
             size='1024x1024',
             quality='standard',
