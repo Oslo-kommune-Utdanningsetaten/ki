@@ -1,6 +1,3 @@
-import { marked } from 'marked'
-import katex from 'katex'
-
 // Each entry in the colors array is a pair of colors used in the bot avatar
 const colors = [
   ['oslo-fill-blue', 'oslo-fill-dark-blue'],
@@ -213,67 +210,4 @@ export const createBotDescriptionFromScheme = (scheme) => {
   }
 
   return bot
-}
-
-
-export const renderMessage = messageContent => {
-  const placeholder = 'MATH_PLACEHOLDER_'
-  const inlineMathRegex = /\\\((.+?)\\\)/g
-  const blockMathRegex = /\\\[(.+?)\\\]/gs
-  const renderedMathItems = []
-  let processedText = messageContent
-
-  // Process block math first
-  processedText = processedText.replace(blockMathRegex, (_, math) => {
-    try {
-      const renderedMath = katex.renderToString(math, {
-        output: 'mathml',
-        throwOnError: false,
-        displayMode: true,
-      })
-      renderedMathItems.push(renderedMath)
-      return `${placeholder}${renderedMathItems.length - 1}`
-    } catch (err) {
-      console.error("Katex block error:", err)
-      return _
-    }
-  })
-
-  // Process inline math
-  processedText = processedText.replace(inlineMathRegex, (_, math) => {
-    try {
-      const renderedMath = katex.renderToString(math, {
-        output: 'mathml',
-        throwOnError: false,
-        displayMode: false,
-      })
-      renderedMathItems.push(renderedMath)
-      return `${placeholder}${renderedMathItems.length - 1}`
-    } catch (err) {
-      console.error("Katex inline error:", err)
-      return _
-    }
-  })
-
-  renderedMathItems.forEach((renderedMath, index) => {
-    const placeholderAtIndex = `${placeholder}${index}`
-    processedText = processedText.replace(placeholderAtIndex, renderedMath)
-  })
-
-  return marked.parse(processedText)
-}
-
-export const getCookie = name => {
-  let cookieValue = null
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';')
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim()
-      if (cookie.substring(0, name.length + 1) === name + '=') {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
-        break
-      }
-    }
-  }
-  return cookieValue
 }

@@ -2,7 +2,7 @@
 import { ref, watchEffect, watch } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
-import { renderMessage } from '../utils.js'
+import { renderMessage } from '../utils/renderTools.js'
 
 const props = defineProps({
   messages: Array,
@@ -38,9 +38,8 @@ const editMessageAtIndex = index => {
           <div
             class="position-relative p-3 border oslo-bg-primary"
             :class="`speech-bubble-${aMessage.role}`"
-          >
-            {{ aMessage.content }}
-          </div>
+            v-html="renderMessage(aMessage.content)"
+          ></div>
 
           <div class="widget-container position-absolute d-flex">
             <!-- Edit widget -->

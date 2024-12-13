@@ -5,7 +5,8 @@ import { ref, watchEffect, useTemplateRef, onMounted } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
-import { renderMessage, getCookie } from '../utils.js'
+import { getCookie } from '../utils/httpTools.js'
+import { renderMessage } from '../utils/renderTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
 
 const route = useRoute()
@@ -261,7 +262,7 @@ onMounted(() => {
       </div>
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått:</strong>
-        <p>{{ renderMessage(messages[0].content) }}</p>
+        <p>{{ messages[0].content }}</p>
         <p class="mb-0">
           <strong>Jeg bruker modellen {{ bot.model.display_name }}.</strong>
         </p>

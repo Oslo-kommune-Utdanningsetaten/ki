@@ -119,6 +119,10 @@ button img {
   border-bottom-left-radius: 12px !important;
 }
 
+.speech-bubble-user p:last-child {
+  margin-bottom: 0;
+}
+
 .speech-bubble-assistant {
   border-top-left-radius: 12px !important;
   border-top-right-radius: 12px !important;
@@ -187,8 +191,8 @@ button img {
   border-radius: 50%;
 }
 .message-widget img {
-  height: 25px;
-  width: 25px;
+  height: 20px;
+  width: 20x;
 }
 
 .message {

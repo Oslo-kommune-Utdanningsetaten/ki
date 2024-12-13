@@ -4,7 +4,7 @@ import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect } from 'vue'
 import SpeechToText from '@/components/SpeechToText.vue'
 import Conversation from '@/components/Conversation.vue'
-import { getCookie } from '../utils.js'
+import { getCookie } from '../utils/httpTools.js'
 
 const route = useRoute()
 const bot = ref({})
