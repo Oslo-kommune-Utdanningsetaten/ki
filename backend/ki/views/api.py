@@ -2,23 +2,11 @@ from .. import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from asgiref.sync import async_to_sync
-from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseNotFound, HttpResponseForbidden, JsonResponse
 from datetime import datetime, timedelta
 import requests
-from openai import AsyncAzureOpenAI
-import openai
-import azure.cognitiveservices.speech as speechsdk
-import uuid
-import os
 import json
-# from ..mock import mock_acreate
-
-
-azureClient = AsyncAzureOpenAI(
-    azure_endpoint=os.environ.get('OPENAI_API_BASE'),
-    api_key=os.environ.get('OPENAI_API_KEY'),
-    api_version=os.environ.get('OPENAI_API_VERSION'),
-)
+from ki.views.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
 
 
 async def use_log(bot, request, message_length):
@@ -641,36 +629,13 @@ async def send_message(request):
             bot_model = await models.Setting.objects.aget(setting_key='default_model').txt_val
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-
-    async def stream():
-        try:
-            completion = await azureClient.chat.completions.create(
-                model=bot_model,
-                messages=messages,
-                temperature=float(bot.temperature),
-                stream=True,
-            )
-        except openai.BadRequestError as e:
-            if e.code == "content_filter":
-                yield "Dette er ikke et passende emne. Start samtalen på nytt."
-            else:
-                yield "Noe gikk galt. Prøv igjen senere."
-            return
-        async for line in completion:
-            if line.choices:
-                chunk = line.choices[0].delta.content or ""
-                if line.choices[0].finish_reason == "content_filter":
-                    yield "Beklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
-                    break
-                if line.choices[0].finish_reason == "length":
-                    print(line.choices[0].content_filter_results)
-                    yield "Grensen for antall tegn i samtalen er nådd."
-                    break
-                if chunk:
-                    yield chunk
-
     await use_log(bot, request, len(messages))
-    return StreamingHttpResponse(stream(), content_type='text/event-stream')
+    options = {
+        'bot_model': bot_model,
+        'temperature': float(bot.temperature)
+    }
+    return await chat_completion_azure_streamed(messages, options)
+
 
 # @api_view(["POST"])
 async def send_img_message(request):
@@ -683,24 +648,9 @@ async def send_img_message(request):
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-
-    try:
-        response = await azureClient.images.generate(
-            model=bot.model,
-            # model='dall-e-3',
-            size='1024x1024',
-            quality='standard',
-            prompt=prompt,
-            response_format='url',
-            n=1,
-        )
-        json_response = json.loads(response.model_dump_json())
-        data = json_response['data'][0]
-    except openai.BadRequestError as e:
-        if e.code == "content_policy_violation":
-            data ={'msg': "Dette er ikke et passende emne. Velg noe annet å lage bilde av."}
-        else:
-            data ={'msg': "Noe gikk galt. Prøv igjen senere."}
-
     await use_log(bot, request, 1)
-    return JsonResponse(data)
+    options = {
+        'bot_model': bot.model
+    }
+    return await generate_image_azure(prompt, options)
+

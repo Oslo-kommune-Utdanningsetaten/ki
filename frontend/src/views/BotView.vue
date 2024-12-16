@@ -10,7 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const bot = ref({})
 const showSystemPrompt = ref(false)
-const communicationMode = ref('text') // audio, video?
+const communicationMode = ref('audio') // text, audio, maybe video?
 const systemPrompt = ref('')
 
 const choicesSorted = () => {
@@ -121,9 +121,16 @@ onMounted(async () => {
 
   <div class="p-1">
     <h1 class="h2 mb-3">
-      {{ bot.title }}
+      {{ bot.title || 'Navnløs chatbot :/' }}
+      <button
+        v-if="bot.prompt_visibility"
+        class="btn oslo-btn-secondary ms-0 me-auto ps-1 pe-1 pt-0 pb-0"
+        @click="toggleStartPrompt"
+      >
+        {{ showSystemPrompt ? 'Skjul' : 'Vis' }} info
+      </button>
     </h1>
-    <p>
+    <p v-if="bot.ingress">
       {{ bot.ingress }}
     </p>
 
@@ -148,27 +155,48 @@ onMounted(async () => {
       </div>
     </div>
 
-    <button
-      v-if="bot.prompt_visibility"
-      class="me-auto btn oslo-btn-secondary ms-0"
-      @click="toggleStartPrompt"
-    >
-      {{ showSystemPrompt ? 'Skjul' : 'Vis' }} ledetekst
-    </button>
-
-    <button class="me-auto btn oslo-btn-secondary ms-2" @click="handleSwitchCommunicationMode">
-      {{ communicationMode === 'text' ? 'Bytt til lyd' : 'Bytt til tekst' }}
-    </button>
-
-    <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-end mt-3">
+    <!-- Show bot info-->
+    <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-end mt-3 mb-2">
       <div class="avatar p-2 me-3">
         <BotAvatar :avatar_scheme="bot.avatar_scheme" />
       </div>
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
-        <strong>Dette er instruksene jeg har fått:</strong>
+        <strong>Dette er instruksene jeg har fått</strong>
         <p>{{ getSystemPrompt() }}</p>
         <p class="mb-0">
           <strong>Jeg bruker modellen {{ bot.model }}.</strong>
+        </p>
+        <p class="mt-2 mb-0">
+          <strong>Velg hvordan vi kommuniserer</strong>
+          <input
+            type="radio"
+            class="btn-check"
+            value="text"
+            v-model="communicationMode"
+            id="communicationModeText"
+            autocomplete="off"
+          />
+          <label
+            class="ms-2 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
+            for="communicationModeText"
+          >
+            Skrive
+          </label>
+
+          <input
+            type="radio"
+            class="btn-check"
+            value="audio"
+            v-model="communicationMode"
+            id="communicationModeAudio"
+            autocomplete="off"
+          />
+          <label
+            class="ms-0 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
+            for="communicationModeAudio"
+          >
+            Snakke
+          </label>
         </p>
       </div>
     </div>

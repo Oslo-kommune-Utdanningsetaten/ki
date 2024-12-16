@@ -6,7 +6,6 @@ import SpeechToText from '@/components/SpeechToText.vue'
 
 const messages = ref([])
 const message = ref('')
-const lastBotMessage = ref('')
 const isProcessingInput = ref(false)
 const isStreaming = ref(false)
 const textInput = useTemplateRef('text-input')
@@ -67,7 +66,6 @@ const sendMessage = async () => {
     isProcessingInput.value = false
     isStreaming.value = false
     message.value = ''
-    lastBotMessage.value = messages.value[messages.value.length - 1].content
     textInput.value.focus()
   })
   scrollTo(textInput)

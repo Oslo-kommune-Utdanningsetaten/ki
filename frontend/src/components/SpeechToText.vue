@@ -52,14 +52,12 @@ const initializeSpeechRecognition = () => {
     }
   } else {
     isBrowserSpeechEnabled.value = false
-    console.info('Speech recognition not supported in this browser.')
   }
 }
 
 const checkMicrophonePermissionStatus = async () => {
   const permission = await navigator.permissions.query({ name: 'microphone' })
   microphonePermissionStatus.value = permission.state
-  console.info('Microphone permission:', microphonePermissionStatus.value)
 }
 
 const toggleSpeechInput = () => {
