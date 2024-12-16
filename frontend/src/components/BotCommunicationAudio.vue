@@ -1,10 +1,11 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUpdated } from 'vue'
 import AudioWave from '@/components/AudioWave.vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 
 import workletURL from '../utils/pcm-processor.js?url'
 import { renderMessage } from '../utils/renderTools.js'
+import { audioSettings } from '../utils/audioSettings.js'
 
 const props = defineProps({
   bot: {
@@ -16,14 +17,14 @@ const props = defineProps({
   },
 })
 
-// states
-// user.isSendingAudio
-// assistant.isSpeaking
-
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
 const isRecording = ref(false)
 const isBotSpeaking = ref(false)
 const messages = ref([])
+const selectedLanguage = ref(audioSettings.languages[0].code)
+const availableVoices = ref(audioSettings.languages[0].voices)
+const selectedVoice = ref(audioSettings.languages[0].voices[1].code)
+let isComponentMounted = false
 let audioContext
 let websocket
 
@@ -59,12 +60,19 @@ const startRecording = async () => {
   websocket = new WebSocket(websocketUrl)
   websocket.onopen = () => {
     console.time('WebSocket', props.bot.uuid, messages.value)
-    const textFrame = JSON.stringify({
-      type: 'websocket.text',
-      bot_uuid: props.bot.uuid,
-      messages: messages.value,
-    })
-    websocket.send(textFrame)
+
+    // send audio settings
+    sendUpdatedSettings()
+
+    // send initial messages
+    websocket.send(
+      JSON.stringify({
+        type: 'websocket.text',
+        bot_uuid: props.bot.uuid,
+        bot_model: props.bot.model,
+        messages: messages.value,
+      })
+    )
   }
 
   const audioChunks = []
@@ -155,6 +163,20 @@ const startRecording = async () => {
   audioSourceNode.connect(workletNode)
 }
 
+const sendUpdatedSettings = () => {
+  if (websocket && websocket.readyState === WebSocket.OPEN) {
+    websocket.send(
+      JSON.stringify({
+        type: 'websocket.text',
+        selected_language: selectedLanguage.value,
+        selected_voice: selectedVoice.value,
+        bot_uuid: props.bot.uuid,
+        bot_model: props.bot.model,
+      })
+    )
+  }
+}
+
 const stopRecording = () => {
   if (websocket) {
     websocket.close()
@@ -166,19 +188,58 @@ const stopRecording = () => {
 
 onMounted(() => {
   resetMessages()
+  isComponentMounted = true
+})
+
+onUpdated(() => {
+  availableVoices.value = audioSettings.languages.find(
+    lang => lang.code === selectedLanguage.value
+  ).voices
+  if (!availableVoices.value.find(voice => voice.code === selectedVoice.value)) {
+    selectedVoice.value = availableVoices.value[0].code
+  }
+})
+
+// watch for chanes in selectedLanguage or selectedVoice
+watch([selectedLanguage, selectedVoice], () => {
+  sendUpdatedSettings()
 })
 </script>
 
 <template>
   <div class="border p-3 mb-3">
-    <button @click="() => handleToggleRecording()">
-      <AudioWave v-if="isRecording" />
-      <span v-else>Start Recording</span>
-    </button>
+    <span class="me-3">
+      <button @click="() => handleToggleRecording()">
+        <AudioWave v-if="isRecording" />
+        <span v-else>Start Recording</span>
+      </button>
+    </span>
+    <span class="me-3">
+      <label for="language">Velg språk:</label>
+      <select v-model="selectedLanguage">
+        <option
+          v-for="language in audioSettings.languages"
+          :key="language.code"
+          :value="language.code"
+        >
+          {{ language.name }}
+        </option>
+      </select>
+    </span>
+    <span>
+      <label for="voice">Velg stemme:</label>
+      <select v-model="selectedVoice">
+        <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
+          {{ voice.name }}
+        </option>
+      </select>
+    </span>
     <pre>
 
 isRecording: {{ isRecording }}
-isBotSpeaking: {{ isBotSpeaking }}</pre
+isBotSpeaking: {{ isBotSpeaking }}
+selectedLanguage: {{ selectedLanguage }}
+selectedVoice: {{ selectedVoice }}</pre
     >
   </div>
 
