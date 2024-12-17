@@ -12,6 +12,8 @@ from asgiref.sync import sync_to_async
 # consider using a websocket connection to Azure
 # https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py
 
+# serverStatus is one of: 'initializing', 'streamingAudioToAzure', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'ready'
+
 class AudioConsumer(AsyncWebsocketConsumer):
 
     # Called when the WebSocket connection is opened
@@ -29,19 +31,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
         # Create an audio configuration using the push stream
         self.audio_input_config = AudioConfig(stream=self.push_stream_audio)
 
-        # Initialize speech recognizer with retries
-        retries = 3
-        while retries > 0:
-            try:
-                self.initialize("nb-NO", 'nb-NO-FinnNeural')
-                break
-
-            except Exception as e:
-                print(f"Error initializing speech recognizer: {e}")
-                retries -= 1
-                if retries == 0:
-                    await self.close()
-
+        # Define speech config
+        self.speech_config = SpeechConfig(subscription=os.environ.get('AZURE_SPEECH_KEY'), region=os.environ.get('AZURE_SPEECH_REGION'))
 
     # Called when the WebSocket connection is closed
     async def disconnect(self, close_code):
@@ -54,8 +45,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
     # Called when the WebSocket receives a message
     async def receive(self, text_data=None, bytes_data=None):
         if text_data:
-            print(f"00 - Received text data: {text_data}")
-            # client is sending text data
+            # Client is sending text data. This only happens at initialization and later when language or voice is changed
             data = json.loads(text_data)
             if data.get('bot_uuid'):
                 self.bot_uuid = data.get('bot_uuid')
@@ -63,8 +53,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.messages = data.get('messages')
             if data.get('bot_model'):
                 self.bot_model = data.get('bot_model')
-            if data.get('selected_language') and data.get('selected_voice'):
-                self.initialize(data.get('selected_language'), data.get('selected_voice'))
+    
+            language = data.get('selected_language')
+            voice = data.get('selected_voice')
+            if language and voice and (language != self.speech_config.speech_recognition_language or voice != self.speech_config.speech_synthesis_voice_name):
+                await self.initialize(language, voice)
 
             print(f"01 - Received messages from {self.bot_uuid} // {self.bot_model} : {self.messages}")
 
@@ -163,9 +156,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
         print(f"11 - Stop signal sent!")
 
 
-    def initialize(self, language_code, voice_code):
+    async def initialize(self, language_code, voice_code):
         print(f"-----> Initializing with {language_code} and {voice_code}")
-        self.speech_config = SpeechConfig(subscription=os.environ.get('AZURE_SPEECH_KEY'), region=os.environ.get('AZURE_SPEECH_REGION'), speech_recognition_language=language_code)
+
+        await self.send_server_status("initializing")
+        self.speech_config.speech_recognition_language=language_code
         #self.speech_config.speech_recognition_language=language_code
         self.speech_recognizer = SpeechRecognizer(speech_config=self.speech_config, audio_config=self.audio_input_config)
         # Register callbacks
@@ -181,7 +176,14 @@ class AudioConsumer(AsyncWebsocketConsumer):
             SpeechSynthesisOutputFormat.Audio16Khz128KBitRateMonoMp3
         )
         self.speech_synthesizer = SpeechSynthesizer(speech_config=self.speech_config, audio_config=None)
+        await self.send_server_status("ready")
 
+
+    async def send_server_status(self, status):
+        await self.send(text_data=json.dumps({
+            "type": "websocket.text",
+            "serverStatus": status
+        }))
 
     def stop_callback(self, evt):
         print("Recognition stopped.")

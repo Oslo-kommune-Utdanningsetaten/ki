@@ -44,7 +44,8 @@ const props = defineProps({
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
 const isRecording = ref(false)
 const isBotSpeaking = ref(false)
-const serverStatus = ref([])
+const serverStatusHistory = ref([])
+const currentServerStatus = ref('')
 const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
@@ -102,18 +103,22 @@ const startRecording = async () => {
 
   websocket.onmessage = event => {
     if (typeof event.data === 'string') {
-      const { type, command, messages: updatedMessages } = JSON.parse(event.data)
+      const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         console.info('Received updatedMessages', updatedMessages)
         onMessagesReceived(updatedMessages)
       }
+      if (serverStatus) {
+        console.info('Received serverStatus', serverStatus)
+        serverStatusHistory.value.push(serverStatus)
+        currentServerStatus.value = serverStatus
+      }
       if (type === 'websocket.audio') {
+        console.info('command', command)
         if (command === 'audio-stream-begin') {
-          console.info('Received START')
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
         } else if (command === 'audio-stream-end') {
-          console.info('Received STOP')
           playAudioResponse(audioChunks)
         }
       }
@@ -261,7 +266,9 @@ watch([selectedLanguage, selectedVoice], () => {
 isRecording: {{ isRecording }}
 isBotSpeaking: {{ isBotSpeaking }}
 selectedLanguage: {{ selectedLanguage }}
-selectedVoice: {{ selectedVoice }}</pre
+selectedVoice: {{ selectedVoice }}
+serverStatusHistory: {{ serverStatusHistory }}
+currentServerStatus: {{ currentServerStatus }}</pre
     >
   </div>
 
@@ -314,7 +321,7 @@ selectedVoice: {{ selectedVoice }}</pre
 }
 
 .bubble-assistant {
-  background-image: linear-gradient(to right, rgb(248, 249, 250), white);
+  background-image: linear-gradient(to right, rgb(227, 227, 227), white);
 }
 
 .bubble p:last-child {
