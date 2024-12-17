@@ -141,7 +141,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         # send start signal to client
         await self.send(text_data=json.dumps({
             "type": "websocket.audio",
-            "status": "start"
+            "command": "audio-stream-begin"
         }))
         print(f"09 - Sent! Now beginning stream...")
         # Stream until no more data
@@ -158,7 +158,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         # send stop signal to client
         await self.send(text_data=json.dumps({
             "type": "websocket.audio",
-            "status": "stop"
+            "command": "audio-stream-end"
         }))
         print(f"11 - Stop signal sent!")
 

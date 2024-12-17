@@ -5,7 +5,31 @@ import BotAvatar from '@/components/BotAvatar.vue'
 
 import workletURL from '../utils/pcm-processor.js?url'
 import { renderMessage } from '../utils/renderTools.js'
-import { audioSettings } from '../utils/audioSettings.js'
+import {
+  languageOptions,
+  getSelectedLanguage,
+  getSelectedVoice,
+  getVoicesForLanguage,
+  updateLanguagePreferences,
+} from '../utils/audioOptions.js'
+
+// serverStatus is one of: 'initializing', 'streamingAudioToAzure', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'ready'
+
+// const typicalOutgoingSocketMessage = {
+//   type: 'websocket.text',
+//   selected_language: 'nb-NO',
+//   selected_voice: 'nb-NO-IselinNeural',
+//   bot_uuid: 'some-uuid',
+//   bot_model: 'gpt-4o-mini',
+//   messages: [{role: 'system', content: 'Du er en snill bot'}],
+// }
+
+// const typicalIncomingSocketMessage = {
+//   type: 'websocket.text',
+//   serverStatus: 'initializing',
+//   command: 'audio-stream-begin',
+//   messages: [],
+// }
 
 const props = defineProps({
   bot: {
@@ -20,10 +44,12 @@ const props = defineProps({
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
 const isRecording = ref(false)
 const isBotSpeaking = ref(false)
+const serverStatus = ref([])
 const messages = ref([])
-const selectedLanguage = ref(audioSettings.languages[0].code)
-const availableVoices = ref(audioSettings.languages[0].voices)
-const selectedVoice = ref(audioSettings.languages[0].voices[1].code)
+const selectedLanguage = ref(getSelectedLanguage())
+const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
+const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
+
 let isComponentMounted = false
 let audioContext
 let websocket
@@ -57,38 +83,36 @@ const onAudioPlaybackFinished = () => {
 
 const startRecording = async () => {
   // Open WebSocket connection
+  const audioChunks = []
   websocket = new WebSocket(websocketUrl)
   websocket.onopen = () => {
-    console.time('WebSocket', props.bot.uuid, messages.value)
+    console.log('WebSocket opened')
 
-    // send audio settings
-    sendUpdatedSettings()
+    // send configuration
+    sendConfiguration()
 
     // send initial messages
     websocket.send(
       JSON.stringify({
         type: 'websocket.text',
-        bot_uuid: props.bot.uuid,
-        bot_model: props.bot.model,
         messages: messages.value,
       })
     )
   }
 
-  const audioChunks = []
   websocket.onmessage = event => {
     if (typeof event.data === 'string') {
-      const { type, status, messages: updatedMessages } = JSON.parse(event.data)
+      const { type, command, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         console.info('Received updatedMessages', updatedMessages)
         onMessagesReceived(updatedMessages)
       }
       if (type === 'websocket.audio') {
-        if (status === 'start') {
+        if (command === 'audio-stream-begin') {
           console.info('Received START')
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
-        } else if (status === 'stop') {
+        } else if (command === 'audio-stream-end') {
           console.info('Received STOP')
           playAudioResponse(audioChunks)
         }
@@ -131,7 +155,6 @@ const startRecording = async () => {
 
   websocket.onclose = () => {
     isRecording.value = false
-    console.timeEnd('WebSocket')
   }
 
   // Get audio stream
@@ -163,7 +186,7 @@ const startRecording = async () => {
   audioSourceNode.connect(workletNode)
 }
 
-const sendUpdatedSettings = () => {
+const sendConfiguration = () => {
   if (websocket && websocket.readyState === WebSocket.OPEN) {
     websocket.send(
       JSON.stringify({
@@ -191,18 +214,15 @@ onMounted(() => {
   isComponentMounted = true
 })
 
-onUpdated(() => {
-  availableVoices.value = audioSettings.languages.find(
-    lang => lang.code === selectedLanguage.value
-  ).voices
-  if (!availableVoices.value.find(voice => voice.code === selectedVoice.value)) {
-    selectedVoice.value = availableVoices.value[0].code
-  }
-})
-
-// watch for chanes in selectedLanguage or selectedVoice
+// watch for changes in selectedLanguage or selectedVoice
 watch([selectedLanguage, selectedVoice], () => {
-  sendUpdatedSettings()
+  updateLanguagePreferences({
+    selectedLanguage: selectedLanguage.value,
+    selectedVoice: selectedVoice.value,
+  })
+  selectedVoice.value = getSelectedVoice(selectedLanguage.value)
+  availableVoices.value = getVoicesForLanguage(selectedLanguage.value)
+  sendConfiguration()
 })
 </script>
 
@@ -214,11 +234,12 @@ watch([selectedLanguage, selectedVoice], () => {
         <span v-else>Start Recording</span>
       </button>
     </span>
+
     <span class="me-3">
       <label for="language">Velg språk:</label>
       <select v-model="selectedLanguage">
         <option
-          v-for="language in audioSettings.languages"
+          v-for="language in languageOptions.languages"
           :key="language.code"
           :value="language.code"
         >
@@ -226,6 +247,7 @@ watch([selectedLanguage, selectedVoice], () => {
         </option>
       </select>
     </span>
+
     <span>
       <label for="voice">Velg stemme:</label>
       <select v-model="selectedVoice">

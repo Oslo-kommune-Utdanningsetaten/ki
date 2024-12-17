@@ -1,4 +1,40 @@
-export const audioSettings = {
+import { getPreferences, setPreferences } from './localstorageTools.js'
+
+const defaultLanguage = 'nb-NO'
+
+export const getSelectedLanguage = () => {
+  const { selectedLanguage } = getPreferences()
+  return selectedLanguage || defaultLanguage
+}
+
+export const getSelectedVoice = (language) => {
+  const { selectedVoices } = getPreferences()
+  const voice = selectedVoices ? selectedVoices[language] : null
+  return voice || getVoicesForLanguage(language)[0].code
+}
+
+export const getVoicesForLanguage = (language) => {
+  return languageOptions.languages.find((lang) => lang.code === language).voices
+}
+
+
+export const updateLanguagePreferences = (options = {}) => {
+  let { selectedLanguage, selectedVoice } = options
+  selectedLanguage = selectedLanguage || getSelectedLanguage()
+  // Update language
+  setPreferences('selectedLanguage', selectedLanguage)
+
+  if (!getVoicesForLanguage(selectedLanguage).find((voice) => voice.code === selectedVoice)) {
+    selectedVoice = getSelectedVoice(selectedLanguage)
+  }
+  // Voice is valid, now merge with existing preferences
+  const { selectedVoices } = getPreferences()
+  const updatedSelection = Object.assign({}, selectedVoices, { [selectedLanguage]: selectedVoice })
+  setPreferences('selectedVoices', updatedSelection)
+}
+
+
+export const languageOptions = {
   languages: [
     {
       name: 'Norsk',
