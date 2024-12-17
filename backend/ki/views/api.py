@@ -12,6 +12,22 @@ import os
 import json
 # from ..mock import mock_acreate
 
+aarstrinn_codes = {
+    'aarstrinn1': 1,
+    'aarstrinn2': 2,
+    'aarstrinn3': 3,
+    'aarstrinn4': 4,
+    'aarstrinn5': 5,
+    'aarstrinn6': 6,
+    'aarstrinn7': 7,
+    'aarstrinn8': 8,
+    'aarstrinn9': 9,
+    'aarstrinn10': 10,
+    'vg1': 11,
+    'vg2': 12,
+    'vg3': 13,
+}
+
 
 azureClient = AsyncAzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
@@ -26,6 +42,10 @@ async def use_log(bot, request, message_length):
     role = 'admin' if request.g.get('admin', False) else role
     log_line = models.UseLog()
     log_line.role = role
+    if levels := request.g.get('levels', 'none'):
+        log_line.level =min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+    else:
+        log_line.level = None
     log_line.bot_id = bot.uuid
     log_line.message_length = message_length
     await log_line.asave()
