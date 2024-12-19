@@ -1,29 +1,56 @@
-# ki
+# ki - backend
 
-This template should help get you started developing with Vue 3 in Vite.
+Some notes/documentation on the communication going on across the websocket in audio mode\_
 
-## Recommended IDE Setup
+On start, the client sends a config message to the server, it typically looks like this:
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
+```json
+{
+  "type": "websocket.text",
+  "selected_language": "nb-NO",
+  "selected_voice": "nb-NO-IselinNeural",
+  "bot_uuid": "some-uuid",
+  "bot_model": "gpt-4o-mini"
+}
 ```
 
-### Compile and Hot-Reload for Development
+It then follows up with a message containing the initial dialog (between user and chatbot)
 
-```sh
-npm run dev
+```json
+{
+  "type": "websocket.text",
+  "messages": [{ "role": "system", "content": "You are a nice bot" }]
+}
 ```
 
-### Compile and Minify for Production
+The data stream from the server to the client is also either text or audio binary. An example of the former:
 
-```sh
-npm run build
+```json
+{
+  "type": "websocket.text",
+  "serverStatus": "ready",
+  "messages": [
+    { "role": "system", "content": "You are a nice bot" },
+    { "role": "user", "content": "What is sugar" },
+    { "role": "assistant", "content": "Sugar is sweet" }
+  ]
+}
 ```
+
+The `serverStatus` field reports what the server is currently up to. This can be one of
+
+```json
+[
+  "websocketOpened",
+  "websocketClosed",
+  "initializing",
+  "streamingAudioToAzure",
+  "streamingTextToClient",
+  "generatingChatResponse",
+  "generatingAudioResponse",
+  "streamingAudioToClient",
+  "ready"
+]
+```
+
+The `command` field flags the beginning or end of an audio stream

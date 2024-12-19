@@ -13,23 +13,7 @@ import {
   updateLanguagePreferences,
 } from '../utils/audioOptions.js'
 
-// serverStatus is one of: 'initializing', 'streamingAudioToAzure', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'ready'
-
-// const typicalOutgoingSocketMessage = {
-//   type: 'websocket.text',
-//   selected_language: 'nb-NO',
-//   selected_voice: 'nb-NO-IselinNeural',
-//   bot_uuid: 'some-uuid',
-//   bot_model: 'gpt-4o-mini',
-//   messages: [{role: 'system', content: 'Du er en snill bot'}],
-// }
-
-// const typicalIncomingSocketMessage = {
-//   type: 'websocket.text',
-//   serverStatus: 'initializing',
-//   command: 'audio-stream-begin',
-//   messages: [],
-// }
+// serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'streamingAudioToAzure', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'ready'
 
 const props = defineProps({
   bot: {
@@ -42,7 +26,7 @@ const props = defineProps({
 })
 
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
-const isRecording = ref(false)
+const isSpeechRecognitionActive = ref(false)
 const isBotSpeaking = ref(false)
 const serverStatusHistory = ref([])
 const currentServerStatus = ref('')
@@ -50,14 +34,15 @@ const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
+const statusChanged = ref(false)
+let microphonePermissionStatus = ref('denied')
 
-let isComponentMounted = false
 let audioContext
 let websocket
 
 const handleToggleRecording = () => {
-  isRecording.value = !isRecording.value
-  if (isRecording.value) {
+  isSpeechRecognitionActive.value = !isSpeechRecognitionActive.value
+  if (isSpeechRecognitionActive.value) {
     startRecording()
   } else {
     stopRecording()
@@ -77,20 +62,43 @@ const resetMessages = () => {
   ]
 }
 
-const onAudioPlaybackFinished = () => {
-  console.info('Audio playback finished')
-  isBotSpeaking.value = false
+const startRecording = async () => {
+  // Get audio stream
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+  // Create a temp audio context to get the sample rate
+  const audioContextTemp = new AudioContext()
+  const sampleRate = audioContextTemp.sampleRate
+  audioContextTemp.close()
+
+  audioContext = new AudioContext({ sampleRate })
+
+  // Load the AudioWorkletProcessor
+  await audioContext.audioWorklet.addModule(workletURL)
+
+  // Create MediaStreamSource and AudioWorkletNode
+  const audioSourceNode = audioContext.createMediaStreamSource(stream)
+  const workletNode = new AudioWorkletNode(audioContext, 'pcm-processor')
+  // Connect the audioSourceNode to the worklet for processing
+  audioSourceNode.connect(workletNode)
+
+  // When workletNode is done processing a data chunk from the input stream, pipe data to websocket
+  workletNode.port.onmessage = event => {
+    const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
+    if (websocket.readyState === WebSocket.OPEN) {
+      websocket.send(pcmData)
+    }
+  }
 }
 
-const startRecording = async () => {
-  // Open WebSocket connection
+const initializeWebsocket = async () => {
   const audioChunks = []
   websocket = new WebSocket(websocketUrl)
   websocket.onopen = () => {
-    console.log('WebSocket opened')
+    console.info('WebSocket opened')
 
-    // send configuration
-    sendConfiguration()
+    // send server configuration
+    sendServerConfig()
 
     // send initial messages
     websocket.send(
@@ -105,16 +113,18 @@ const startRecording = async () => {
     if (typeof event.data === 'string') {
       const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
-        console.info('Received updatedMessages', updatedMessages)
         onMessagesReceived(updatedMessages)
       }
       if (serverStatus) {
-        console.info('Received serverStatus', serverStatus)
+        console.info('Server status:', serverStatus)
         serverStatusHistory.value.push(serverStatus)
         currentServerStatus.value = serverStatus
+        statusChanged.value = true
+        setTimeout(() => {
+          statusChanged.value = false
+        }, 1000) // duration of the flash
       }
       if (type === 'websocket.audio') {
-        console.info('command', command)
         if (command === 'audio-stream-begin') {
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
@@ -130,7 +140,6 @@ const startRecording = async () => {
 
   const playAudioResponse = async audioChunks => {
     if (audioChunks.length === 0) {
-      console.warn('audioChunks is empty')
       return
     }
 
@@ -159,39 +168,27 @@ const startRecording = async () => {
   }
 
   websocket.onclose = () => {
-    isRecording.value = false
+    isSpeechRecognitionActive.value = false
   }
-
-  // Get audio stream
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-
-  // Create a temp audio context to get the sample rate
-  const audioContextTemp = new AudioContext()
-  const sampleRate = audioContextTemp.sampleRate
-  audioContextTemp.close()
-
-  audioContext = new AudioContext({ sampleRate })
-
-  // Load the AudioWorkletProcessor
-  await audioContext.audioWorklet.addModule(workletURL)
-
-  // Create MediaStreamSource and AudioWorkletNode
-  const audioSourceNode = audioContext.createMediaStreamSource(stream)
-  const workletNode = new AudioWorkletNode(audioContext, 'pcm-processor')
-
-  // When workletNode is done processing a data chunk from the input stream, pipe data to websocket
-  workletNode.port.onmessage = event => {
-    const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
-    if (websocket.readyState === WebSocket.OPEN) {
-      websocket.send(pcmData)
-    }
-  }
-
-  // Connect the audioSourceNode to the worklet for processing
-  audioSourceNode.connect(workletNode)
 }
 
-const sendConfiguration = () => {
+const stopRecording = () => {
+  console.info('stopRecording')
+  // what should happen when recording is stopped?
+  if (websocket) {
+    websocket.close()
+  }
+  if (audioContext) {
+    audioContext.close()
+  }
+}
+
+const onAudioPlaybackFinished = () => {
+  console.info('Audio playback finished')
+  isBotSpeaking.value = false
+}
+
+const sendServerConfig = () => {
   if (websocket && websocket.readyState === WebSocket.OPEN) {
     websocket.send(
       JSON.stringify({
@@ -205,18 +202,15 @@ const sendConfiguration = () => {
   }
 }
 
-const stopRecording = () => {
-  if (websocket) {
-    websocket.close()
-  }
-  if (audioContext) {
-    audioContext.close()
-  }
+const checkMicrophonePermissionStatus = async () => {
+  const permission = await navigator.permissions.query({ name: 'microphone' })
+  microphonePermissionStatus.value = permission.state
 }
 
 onMounted(() => {
   resetMessages()
-  isComponentMounted = true
+  checkMicrophonePermissionStatus()
+  initializeWebsocket()
 })
 
 // watch for changes in selectedLanguage or selectedVoice
@@ -227,19 +221,12 @@ watch([selectedLanguage, selectedVoice], () => {
   })
   selectedVoice.value = getSelectedVoice(selectedLanguage.value)
   availableVoices.value = getVoicesForLanguage(selectedLanguage.value)
-  sendConfiguration()
+  sendServerConfig()
 })
 </script>
 
 <template>
   <div class="border p-3 mb-3">
-    <span class="me-3">
-      <button @click="() => handleToggleRecording()">
-        <AudioWave v-if="isRecording" />
-        <span v-else>Start Recording</span>
-      </button>
-    </span>
-
     <span class="me-3">
       <label for="language">Velg språk:</label>
       <select v-model="selectedLanguage">
@@ -261,14 +248,34 @@ watch([selectedLanguage, selectedVoice], () => {
         </option>
       </select>
     </span>
-    <pre>
 
-isRecording: {{ isRecording }}
+    <div class="border p-2 mx-1 my-4" :class="{ glow: statusChanged }">
+      <h4>{{ currentServerStatus }}</h4>
+      <button
+        @click="handleToggleRecording"
+        class="btn oslo-btn-secondary mic-button ms-0"
+        :title="
+          microphonePermissionStatus === 'denied'
+            ? 'Nettleseren har ikke tilgang til mikrofonen'
+            : 'Trykk for å snakke'
+        "
+        :disabled="microphonePermissionStatus === 'denied'"
+      >
+        <AudioWave v-if="isBotSpeaking" />
+        <img
+          v-else
+          src="@/components/icons/microphone.svg"
+          class="mic-icon"
+          :class="{ 'hot-mic': isSpeechRecognitionActive }"
+          alt="mikrofon"
+        />
+      </button>
+    </div>
+
+    <pre>
+isSpeechRecognitionActive: {{ isSpeechRecognitionActive }}
 isBotSpeaking: {{ isBotSpeaking }}
-selectedLanguage: {{ selectedLanguage }}
-selectedVoice: {{ selectedVoice }}
-serverStatusHistory: {{ serverStatusHistory }}
-currentServerStatus: {{ currentServerStatus }}</pre
+serverStatusHistory: {{ serverStatusHistory }}</pre
     >
   </div>
 
@@ -316,6 +323,25 @@ currentServerStatus: {{ currentServerStatus }}</pre
 </template>
 
 <style>
+.mic-button {
+  pointer-events: auto;
+}
+
+.mic-icon {
+  transform: scale(1.2);
+  display: inline-block;
+  transition: transform 0.2s ease-out;
+
+  width: 24px;
+  height: 24px;
+  transition: color 0.3s ease;
+  color: #000000; /* Default color */
+}
+
+.mic-button:hover .mic-icon {
+  transform: scale(1.5);
+}
+
 .bubble-user {
   background-image: linear-gradient(to right, white, #b3f5ff);
 }
@@ -326,5 +352,25 @@ currentServerStatus: {{ currentServerStatus }}</pre
 
 .bubble p:last-child {
   margin-bottom: 0;
+}
+
+.glow {
+  animation: glowEffect 1s ease-out;
+}
+
+.hot-mic {
+  color: #ff0000;
+  border: red;
+}
+
+@keyframes glowEffect {
+  from {
+    text-shadow:
+      1px 1px 5px #e4aa2e,
+      1px 1px 5px #c22323;
+  }
+  to {
+    text-shadow: transparent;
+  }
 }
 </style>

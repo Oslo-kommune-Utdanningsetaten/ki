@@ -109,4 +109,3 @@ onMounted(() => {
   transform: scale(1.5);
 }
 </style>
-s
