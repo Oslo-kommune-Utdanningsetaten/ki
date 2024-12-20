@@ -1,10 +1,8 @@
 <script setup>
-import { ref, watch, onMounted, onUpdated } from 'vue'
-import AudioWave from '@/components/AudioWave.vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
-
+import ConversationSimple from '@/components/ConversationSimple.vue'
 import workletURL from '../utils/pcm-processor.js?url'
-import { renderMessage } from '../utils/renderTools.js'
 import {
   languageOptions,
   getSelectedLanguage,
@@ -38,6 +36,7 @@ const statusChanged = ref(false)
 let microphonePermissionStatus = ref('denied')
 
 let audioContext
+let audioSource
 let websocket
 
 const handleToggleRecording = () => {
@@ -49,11 +48,16 @@ const handleToggleRecording = () => {
   }
 }
 
-const onMessagesReceived = updatedMessages => {
-  messages.value = [...updatedMessages]
+const handleTogglePlayback = () => {
+  console.info('handleTogglePlayback')
+  if (isBotSpeaking.value) {
+    audioSource.stop()
+  } else {
+    isSpeechRecognitionActive.value = true
+  }
 }
 
-const resetMessages = () => {
+const resetConversation = () => {
   messages.value = [
     {
       role: 'system',
@@ -85,7 +89,8 @@ const startRecording = async () => {
   // When workletNode is done processing a data chunk from the input stream, pipe data to websocket
   workletNode.port.onmessage = event => {
     const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
-    if (websocket.readyState === WebSocket.OPEN) {
+    if (websocket.readyState === WebSocket.OPEN && isSpeechRecognitionActive.value) {
+      console.info('Send audio data to server', pcmData.byteLength)
       websocket.send(pcmData)
     }
   }
@@ -113,7 +118,7 @@ const initializeWebsocket = async () => {
     if (typeof event.data === 'string') {
       const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
-        onMessagesReceived(updatedMessages)
+        messages.value = [...updatedMessages]
       }
       if (serverStatus) {
         console.info('Server status:', serverStatus)
@@ -126,6 +131,7 @@ const initializeWebsocket = async () => {
       }
       if (type === 'websocket.audio') {
         if (command === 'audio-stream-begin') {
+          //isSpeechRecognitionActive.value = false
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
         } else if (command === 'audio-stream-end') {
@@ -138,54 +144,51 @@ const initializeWebsocket = async () => {
     }
   }
 
-  const playAudioResponse = async audioChunks => {
-    if (audioChunks.length === 0) {
-      return
-    }
-
-    // Create a Blob with the correct MIME type
-    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' })
-    const arrayBuffer = await audioBlob.arrayBuffer()
-
-    if (audioContext.state === 'suspended') {
-      await audioContext.resume()
-    }
-
-    audioContext.decodeAudioData(
-      arrayBuffer,
-      audioBuffer => {
-        const source = audioContext.createBufferSource()
-        source.buffer = audioBuffer
-        source.connect(audioContext.destination)
-        isBotSpeaking.value = true
-        source.start(0)
-        source.onended = onAudioPlaybackFinished
-      },
-      error => {
-        console.error('Error while decoding audio data', error)
-      }
-    )
-  }
-
   websocket.onclose = () => {
+    console.info('webcocket closed')
+    isBotSpeaking.value = false
     isSpeechRecognitionActive.value = false
   }
 }
 
 const stopRecording = () => {
   console.info('stopRecording')
-  // what should happen when recording is stopped?
-  if (websocket) {
-    websocket.close()
+  isSpeechRecognitionActive.value = false
+}
+
+const playAudioResponse = async audioChunks => {
+  if (audioChunks.length === 0) {
+    return
   }
-  if (audioContext) {
-    audioContext.close()
+
+  // Create a Blob with the correct MIME type
+  const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' })
+  const arrayBuffer = await audioBlob.arrayBuffer()
+
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume()
   }
+
+  audioContext.decodeAudioData(
+    arrayBuffer,
+    audioBuffer => {
+      audioSource = audioContext.createBufferSource()
+      audioSource.buffer = audioBuffer
+      audioSource.connect(audioContext.destination)
+      isBotSpeaking.value = true
+      audioSource.start(0)
+      audioSource.onended = onAudioPlaybackFinished
+    },
+    error => {
+      console.error('Error while decoding audio data', error)
+    }
+  )
 }
 
 const onAudioPlaybackFinished = () => {
   console.info('Audio playback finished')
   isBotSpeaking.value = false
+  isSpeechRecognitionActive.value = true
 }
 
 const sendServerConfig = () => {
@@ -208,7 +211,7 @@ const checkMicrophonePermissionStatus = async () => {
 }
 
 onMounted(() => {
-  resetMessages()
+  resetConversation()
   checkMicrophonePermissionStatus()
   initializeWebsocket()
 })
@@ -222,6 +225,10 @@ watch([selectedLanguage, selectedVoice], () => {
   selectedVoice.value = getSelectedVoice(selectedLanguage.value)
   availableVoices.value = getVoicesForLanguage(selectedLanguage.value)
   sendServerConfig()
+})
+
+onBeforeUnmount(() => {
+  websocket.close()
 })
 </script>
 
@@ -249,29 +256,46 @@ watch([selectedLanguage, selectedVoice], () => {
       </select>
     </span>
 
-    <div class="border p-2 mx-1 my-4" :class="{ glow: statusChanged }">
-      <h4>{{ currentServerStatus }}</h4>
+    <h4 class="border p-3 mt-3">
+      Server status:
+      <span :class="{ glow: statusChanged }">{{ currentServerStatus }}</span>
+    </h4>
+    <div class="border p-3 mt-3">
+      <!-- Avatar playback state and control -->
+      <button
+        @click="handleTogglePlayback"
+        class="audio-control-button me-4"
+        :class="isBotSpeaking ? 'speakingAvatar' : 'silentAvatar'"
+        :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
+        :disabled="microphonePermissionStatus === 'denied'"
+      >
+        <div class="svatar">
+          <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+        </div>
+      </button>
+
+      <!-- User record state and control -->
       <button
         @click="handleToggleRecording"
-        class="btn oslo-btn-secondary mic-button ms-0"
+        class="audio-control-button"
+        :class="isSpeechRecognitionActive ? 'speakingUser' : 'silentUser'"
         :title="
           microphonePermissionStatus === 'denied'
             ? 'Nettleseren har ikke tilgang til mikrofonen'
-            : 'Trykk for å snakke'
+            : isSpeechRecognitionActive
+              ? 'Trykk for å stoppe innspilling'
+              : 'Trykk for å snakke'
         "
         :disabled="microphonePermissionStatus === 'denied'"
       >
-        <AudioWave v-if="isBotSpeaking" />
-        <img
-          v-else
-          src="@/components/icons/microphone.svg"
-          class="mic-icon"
-          :class="{ 'hot-mic': isSpeechRecognitionActive }"
-          alt="mikrofon"
-        />
+        <img src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
       </button>
     </div>
+  </div>
 
+  <ConversationSimple :messages="messages" :bot="props.bot" />
+
+  <div class="border p-3 mt-3">
     <pre>
 isSpeechRecognitionActive: {{ isSpeechRecognitionActive }}
 isBotSpeaking: {{ isBotSpeaking }}
@@ -279,88 +303,64 @@ serverStatusHistory: {{ serverStatusHistory }}</pre
     >
   </div>
 
-  <div class="container border px-0 py-3">
-    <div class="row g-0">
-      <div class="col-md-1 d-flex align-items-center justify-content-center">
-        <div class="avatar">
-          <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
-        </div>
-      </div>
-      <div class="col-md-10">
-        <div
-          v-for="(aMessage, messageIndex) in messages.slice(1, messages.length)"
-          :key="messageIndex"
-          class="mb-4 mt-0"
-        >
-          <div
-            v-if="aMessage.role === 'user'"
-            class="d-flex justify-content-end align-items-end text-end"
-          >
-            <div
-              class="w-60 position-relative p-2 bubble bubble-user"
-              v-html="renderMessage(aMessage.content)"
-            ></div>
-          </div>
-          <div v-else class="d-flex justify-content-start align-items-start">
-            <div
-              class="w-60 position-relative bg-light p-2 bubble bubble-assistant"
-              v-html="renderMessage(aMessage.content)"
-            ></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 d-flex align-items-center justify-content-center">
-        <div class="avatar">
-          <img alt="User Avatar" class="ms-2" src="@/components/icons/user.svg" />
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="border p-3 mt-3">
     <pre>{{ messages }}</pre>
   </div>
+
+  <svg height="0" width="0" style="position: absolute; overflow: hidden">
+    <defs>
+      <filter id="shadow" color-interpolation-filters="sRGB">
+        <feDropShadow dx="0" dy="0" flood-color="#eb0000" flood-opacity="0" stdDeviation="10">
+          <animate
+            attributeName="flood-opacity"
+            values="0;1;0"
+            dur="0.8s"
+            repeatCount="indefinite"
+          />
+        </feDropShadow>
+      </filter>
+    </defs>
+  </svg>
 </template>
 
 <style>
-.mic-button {
+.audio-control-button {
   pointer-events: auto;
+  height: 100px;
+  width: 100px;
+  background-color: transparent;
+  box-sizing: border-box;
+  border: none;
+
+  svg {
+    height: 82px;
+  }
+
+  img {
+    width: 90%;
+    transition: transform 0.2s ease-out;
+  }
+  img:hover {
+    transform: scale(1.2);
+  }
 }
 
-.mic-icon {
-  transform: scale(1.2);
-  display: inline-block;
-  transition: transform 0.2s ease-out;
-
-  width: 24px;
-  height: 24px;
-  transition: color 0.3s ease;
-  color: #000000; /* Default color */
+.silentAvatar {
 }
 
-.mic-button:hover .mic-icon {
-  transform: scale(1.5);
+.speakingAvatar {
+  filter: url(#shadow);
 }
 
-.bubble-user {
-  background-image: linear-gradient(to right, white, #b3f5ff);
+.silentUser {
 }
 
-.bubble-assistant {
-  background-image: linear-gradient(to right, rgb(227, 227, 227), white);
-}
-
-.bubble p:last-child {
-  margin-bottom: 0;
+.speakingUser {
+  filter: url(#shadow);
 }
 
 .glow {
   animation: glowEffect 1s ease-out;
-}
-
-.hot-mic {
-  color: #ff0000;
-  border: red;
 }
 
 @keyframes glowEffect {
