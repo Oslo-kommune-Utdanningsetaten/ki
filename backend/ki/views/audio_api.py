@@ -7,9 +7,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from ki.views.ai_providers.azure import chat_completion_azure
 from asgiref.sync import sync_to_async
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
 
 # consider using a websocket connection to Azure
 # https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py

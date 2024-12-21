@@ -53,7 +53,7 @@ const handleTogglePlayback = () => {
   if (isBotSpeaking.value) {
     audioSource.stop()
   } else {
-    isSpeechRecognitionActive.value = true
+    //isSpeechRecognitionActive.value = true
   }
 }
 
