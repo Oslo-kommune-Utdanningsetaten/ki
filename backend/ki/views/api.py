@@ -42,7 +42,7 @@ async def use_log(bot, request, message_length):
     role = 'admin' if request.g.get('admin', False) else role
     log_line = models.UseLog()
     log_line.role = role
-    if levels := request.g.get('levels', 'none'):
+    if (levels := request.g.get('levels', None)) and role == 'student':
         log_line.level =min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
     else:
         log_line.level = None
