@@ -178,8 +178,9 @@ class Role(models.Model):
 class UseLog(models.Model):
     id = models.AutoField(primary_key=True)
     role = models.CharField(max_length=20)
+    level = models.IntegerField(null=True)
     bot_id = models.CharField(max_length=36)
-    message_length = models.IntegerField()
+    message_length = models.IntegerField(null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
