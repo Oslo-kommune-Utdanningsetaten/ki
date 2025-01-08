@@ -264,7 +264,7 @@ onMounted(() => {
         <strong>Dette er instruksene jeg har fått:</strong>
         <p>{{ messages[0].content }}</p>
         <p class="mb-0">
-          <strong>Jeg bruker modellen {{ bot.model }}.</strong>
+          <strong>Jeg bruker modellen {{ bot.model.display_name }}.</strong>
         </p>
       </div>
     </div>
