@@ -27,13 +27,13 @@ const props = defineProps({
             class="d-flex justify-content-end align-items-end text-end"
           >
             <div
-              class="w-60 position-relative p-2 bubble bubble-user"
+              class="w-60 position-relative p-2 bubble bubble-user speech-bubble-user"
               v-html="renderMessage(aMessage.content)"
             ></div>
           </div>
           <div v-else class="d-flex justify-content-start align-items-start">
             <div
-              class="w-60 position-relative bg-light p-2 bubble bubble-assistant"
+              class="w-60 position-relative bg-light p-2 bubble bubble-assistant speech-bubble-assistant"
               v-html="renderMessage(aMessage.content)"
             ></div>
           </div>

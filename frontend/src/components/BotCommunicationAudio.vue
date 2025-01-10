@@ -11,7 +11,7 @@ import {
   updateLanguagePreferences,
 } from '../utils/audioOptions.js'
 
-// serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'streamingAudioToAzure', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'ready'
+// currentServerStatus is one of: 'websocketOpened', 'websocketClosed', 'initializing', 'receivingAudioFromClient', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
 
 const props = defineProps({
   bot: {
@@ -24,7 +24,7 @@ const props = defineProps({
 })
 
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
-const isSpeechRecognitionActive = ref(false)
+const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
 const serverStatusHistory = ref([])
 const currentServerStatus = ref('')
@@ -32,7 +32,6 @@ const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
-const statusChanged = ref(false)
 let microphonePermissionStatus = ref('denied')
 
 let audioContext
@@ -40,8 +39,8 @@ let audioSource
 let websocket
 
 const handleToggleRecording = () => {
-  isSpeechRecognitionActive.value = !isSpeechRecognitionActive.value
-  if (isSpeechRecognitionActive.value) {
+  isMicRecording.value = !isMicRecording.value
+  if (isMicRecording.value) {
     startRecording()
   } else {
     stopRecording()
@@ -53,7 +52,7 @@ const handleTogglePlayback = () => {
   if (isBotSpeaking.value) {
     audioSource.stop()
   } else {
-    //isSpeechRecognitionActive.value = true
+    //isMicRecording.value = true
   }
 }
 
@@ -89,8 +88,7 @@ const startRecording = async () => {
   // When workletNode is done processing a data chunk from the input stream, pipe data to websocket
   workletNode.port.onmessage = event => {
     const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
-    if (websocket.readyState === WebSocket.OPEN && isSpeechRecognitionActive.value) {
-      console.info('Send audio data to server', pcmData.byteLength)
+    if (websocket.readyState === WebSocket.OPEN && isMicRecording.value) {
       websocket.send(pcmData)
     }
   }
@@ -124,14 +122,14 @@ const initializeWebsocket = async () => {
         console.info('Server status:', serverStatus)
         serverStatusHistory.value.push(serverStatus)
         currentServerStatus.value = serverStatus
-        statusChanged.value = true
-        setTimeout(() => {
-          statusChanged.value = false
-        }, 1000) // duration of the flash
+        if (!['idle', 'receivingAudioFromClient'].includes(serverStatus)) {
+          isMicRecording.value = false
+        }
       }
       if (type === 'websocket.audio') {
         if (command === 'audio-stream-begin') {
-          //isSpeechRecognitionActive.value = false
+          // turn off mic while bot is speaking
+          isMicRecording.value = false
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
         } else if (command === 'audio-stream-end') {
@@ -147,13 +145,18 @@ const initializeWebsocket = async () => {
   websocket.onclose = () => {
     console.info('webcocket closed')
     isBotSpeaking.value = false
-    isSpeechRecognitionActive.value = false
+    isMicRecording.value = false
+    // socket closed unexpectedly during streaming from client, try to reconnect
+    if (currentServerStatus.value === 'receivingAudioFromClient') {
+      console.info('Unexpected closing of websocket, try to reconnect')
+      initializeWebsocket()
+    }
   }
 }
 
 const stopRecording = () => {
   console.info('stopRecording')
-  isSpeechRecognitionActive.value = false
+  isMicRecording.value = false
 }
 
 const playAudioResponse = async audioChunks => {
@@ -188,7 +191,9 @@ const playAudioResponse = async audioChunks => {
 const onAudioPlaybackFinished = () => {
   console.info('Audio playback finished')
   isBotSpeaking.value = false
-  isSpeechRecognitionActive.value = true
+  if (websocket && websocket.readyState === WebSocket.OPEN) {
+    isMicRecording.value = true
+  }
 }
 
 const sendServerConfig = () => {
@@ -233,80 +238,74 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="border p-3 mb-3">
-    <span class="me-3">
-      <label for="language">Velg språk:</label>
-      <select v-model="selectedLanguage">
-        <option
-          v-for="language in languageOptions.languages"
-          :key="language.code"
-          :value="language.code"
+  <div class="border p-3 mb-3 container">
+    <div class="row g-6">
+      <div class="col-4 border">
+        <!-- Avatar playback state and control -->
+        <button
+          @click="handleTogglePlayback"
+          class="audio-control-button me-4"
+          :class="isBotSpeaking ? 'speakingAvatar' : 'silentAvatar'"
+          :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
+          :disabled="microphonePermissionStatus === 'denied'"
         >
-          {{ language.name }}
-        </option>
-      </select>
-    </span>
+          <div class="avatar">
+            <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+          </div>
+        </button>
 
-    <span>
-      <label for="voice">Velg stemme:</label>
-      <select v-model="selectedVoice">
-        <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
-          {{ voice.name }}
-        </option>
-      </select>
-    </span>
-
-    <h4 class="border p-3 mt-3">
-      Server status:
-      <span :class="{ glow: statusChanged }">{{ currentServerStatus }}</span>
-    </h4>
-    <div class="border p-3 mt-3">
-      <!-- Avatar playback state and control -->
-      <button
-        @click="handleTogglePlayback"
-        class="audio-control-button me-4"
-        :class="isBotSpeaking ? 'speakingAvatar' : 'silentAvatar'"
-        :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
-        :disabled="microphonePermissionStatus === 'denied'"
-      >
-        <div class="svatar">
-          <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+        <div class="container">
+          <div class="row">
+            <div class="col-4"><label for="language">Språk</label></div>
+            <div class="col-4">
+              <select v-model="selectedLanguage">
+                <option
+                  v-for="language in languageOptions.languages"
+                  :key="language.code"
+                  :value="language.code"
+                >
+                  {{ language.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-4"><label for="voice">Stemme</label></div>
+            <div class="col-4">
+              <select v-model="selectedVoice">
+                <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
+                  {{ voice.name }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
-      </button>
+      </div>
 
       <!-- User record state and control -->
-      <button
-        @click="handleToggleRecording"
-        class="audio-control-button"
-        :class="isSpeechRecognitionActive ? 'speakingUser' : 'silentUser'"
-        :title="
-          microphonePermissionStatus === 'denied'
-            ? 'Nettleseren har ikke tilgang til mikrofonen'
-            : isSpeechRecognitionActive
-              ? 'Trykk for å stoppe innspilling'
-              : 'Trykk for å snakke'
-        "
-        :disabled="microphonePermissionStatus === 'denied'"
-      >
-        <img src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
-      </button>
+      <div class="col-4 border">
+        <button
+          @click="handleToggleRecording"
+          class="audio-control-button"
+          :class="isMicRecording ? 'speakingUser' : 'silentUser'"
+          :title="
+            microphonePermissionStatus === 'denied'
+              ? 'Nettleseren har ikke tilgang til mikrofonen'
+              : isMicRecording
+                ? 'Trykk for å stoppe innspilling'
+                : 'Trykk for å snakke'
+          "
+          :disabled="microphonePermissionStatus === 'denied'"
+        >
+          <img src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
+        </button>
+      </div>
     </div>
   </div>
 
   <ConversationSimple :messages="messages" :bot="props.bot" />
 
-  <div class="border p-3 mt-3">
-    <pre>
-isSpeechRecognitionActive: {{ isSpeechRecognitionActive }}
-isBotSpeaking: {{ isBotSpeaking }}
-serverStatusHistory: {{ serverStatusHistory }}</pre
-    >
-  </div>
-
-  <div class="border p-3 mt-3">
-    <pre>{{ messages }}</pre>
-  </div>
-
+  <!-- Filter for creating the glowing microphone effect -->
   <svg height="0" width="0" style="position: absolute; overflow: hidden">
     <defs>
       <filter id="shadow" color-interpolation-filters="sRGB">
@@ -326,8 +325,8 @@ serverStatusHistory: {{ serverStatusHistory }}</pre
 <style>
 .audio-control-button {
   pointer-events: auto;
-  height: 100px;
-  width: 100px;
+  height: 200px;
+  width: 200px;
   background-color: transparent;
   box-sizing: border-box;
   border: none;
@@ -357,20 +356,5 @@ serverStatusHistory: {{ serverStatusHistory }}</pre
 
 .speakingUser {
   filter: url(#shadow);
-}
-
-.glow {
-  animation: glowEffect 1s ease-out;
-}
-
-@keyframes glowEffect {
-  from {
-    text-shadow:
-      1px 1px 5px #e4aa2e,
-      1px 1px 5px #c22323;
-  }
-  to {
-    text-shadow: transparent;
-  }
 }
 </style>

@@ -126,6 +126,7 @@ button img {
   border-bottom-left-radius: 0px !important;
 }
 
+.speech-bubble-user p:last-child,
 .speech-bubble-assistant p:last-child {
   margin-bottom: 0;
 }
