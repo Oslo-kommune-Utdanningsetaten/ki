@@ -65,6 +65,10 @@ const resetConversation = () => {
       role: 'system',
       content: props.systemPrompt,
     },
+    { role: 'user', content: 'What is sugar' },
+    { role: 'assistant', content: 'Sugar is sweet' },
+    { role: 'user', content: 'Are you sure?' },
+    { role: 'assistant', content: 'Sorry for the confusion, no' },
   ]
 }
 
@@ -98,12 +102,11 @@ const initializeWebsocket = async options => {
     console.warn('WebSocket closed - server is', currentServerStatus.value)
     isBotSpeaking.value = false
     isMicRecording.value = false
-    // socket closed unexpectedly while streaming audio, try to reconnect
     if (
       ['streamingAudioToClient', 'receivingAudioFromClient'].includes(currentServerStatus.value)
     ) {
-      console.info('Unexpected closing of websocket, try to reconnect')
-      // only auto-restart if the websocket was closed unexpectedly
+      // socket closed unexpectedly while streaming, try to reconnect
+      console.info('Unexpected closing of websocket, will attempt to reconnect')
       initializeWebsocket({ shouldAutostartRecording: !intentionalShutdown })
       intentionalShutdown = false
     }
@@ -281,7 +284,7 @@ onBeforeUnmount(() => {
           :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
           :disabled="microphonePermissionStatus === 'denied'"
         >
-          <div class="avatar">
+          <div class="bot-button-avatar">
             <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
           </div>
         </button>
@@ -290,7 +293,7 @@ onBeforeUnmount(() => {
           <div class="row">
             <div class="col-4"><label for="language">Språk</label></div>
             <div class="col-4">
-              <select v-model="selectedLanguage">
+              <select v-model="selectedLanguage" class="form-select" @input="handleFormEdited">
                 <option
                   v-for="language in languageOptions.languages"
                   :key="language.code"
@@ -304,7 +307,7 @@ onBeforeUnmount(() => {
           <div class="row">
             <div class="col-4"><label for="voice">Stemme</label></div>
             <div class="col-4">
-              <select v-model="selectedVoice">
+              <select v-model="selectedVoice" class="form-select">
                 <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
                   {{ voice.name }}
                 </option>
@@ -319,7 +322,7 @@ onBeforeUnmount(() => {
         <button
           @click="handleToggleRecording"
           class="audio-control-button"
-          :class="isMicRecording ? 'speakingUser' : 'silentUser'"
+          :class="isMicRecording ? 'speakingUserZ' : 'silentUserZ'"
           :title="
             microphonePermissionStatus === 'denied'
               ? 'Nettleseren har ikke tilgang til mikrofonen'
@@ -353,25 +356,37 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
+.bot-button-avatar {
+  text-align: center !important;
+  padding: 0 !important;
+  width: 100%;
+}
+
 .audio-control-button {
   pointer-events: auto;
-  height: 200px;
-  width: 200px;
-  background-color: transparent;
-  box-sizing: border-box;
+  height: 120px;
+  width: 120px;
+  border-radius: 50%;
   border: none;
+  background-color: rgba(220, 220, 220, 0.5);
+  transition: box-shadow 0.1s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   svg {
-    height: 82px;
+    width: 55px;
+    padding: auto;
   }
 
   img {
     width: 90%;
-    transition: transform 0.2s ease-out;
   }
-  img:hover {
-    transform: scale(1.2);
-  }
+}
+
+.audio-control-button:hover {
+  box-shadow: 0px 0px 3px 3px rgba(45, 45, 45, 0.2);
+  border-radius: 50%;
 }
 
 .silentAvatar {

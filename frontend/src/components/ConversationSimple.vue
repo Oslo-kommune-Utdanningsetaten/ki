@@ -11,8 +11,8 @@ const props = defineProps({
 <template>
   <div class="container border px-0 py-3">
     <div class="row g-0">
-      <div class="col-md-1 d-flex align-items-center justify-content-center">
-        <div class="avatar">
+      <div class="col-md-1 d-flex align-items-end justify-content-center">
+        <div class="simple-conversation-avatar">
           <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
         </div>
       </div>
@@ -39,8 +39,8 @@ const props = defineProps({
           </div>
         </div>
       </div>
-      <div class="col-md-1 d-flex align-items-center justify-content-center">
-        <div class="avatar">
+      <div class="col-md-1 d-flex align-items-end justify-content-center">
+        <div class="simple-conversation-avatar">
           <img alt="User Avatar" class="ms-2" src="@/components/icons/user.svg" />
         </div>
       </div>
@@ -49,6 +49,12 @@ const props = defineProps({
 </template>
 
 <style scoped>
+.simple-conversation-avatar {
+  text-align: center !important;
+  padding: 0 !important;
+  width: 2em;
+}
+
 .bubble-user {
   background-image: linear-gradient(to right, white, #b3f5ff);
 }

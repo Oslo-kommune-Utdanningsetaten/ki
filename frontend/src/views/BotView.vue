@@ -124,11 +124,11 @@ onMounted(async () => {
       {{ bot.title || 'Navnløs chatbot :/' }}
       <button
         v-if="bot.prompt_visibility"
-        class="btn oslo-btn-secondary ms-0 me-auto ps-1 pe-1 pt-0 pb-0"
+        class="btn oslo-btn-secondary ms-3 me-auto ps-1 pe-1 pt-0 pb-0"
         @click="toggleStartPrompt"
         :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
       >
-        {{ showSystemPrompt ? 'Skjul' : 'Vis' }} info
+        {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
       </button>
 
       <span class="ms-3">
