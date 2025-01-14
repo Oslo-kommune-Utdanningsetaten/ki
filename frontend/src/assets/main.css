@@ -220,6 +220,12 @@ button img {
   border-color: #f8f0dd;
 }
 
+.oslo-btn-secondary-checked {
+  color: #000;
+  background-color: #f9c66b;
+  border-color: #f9c66b;
+}
+
 .oslo-btn-secondary:hover {
   color: #000;
   background-color: #d0bfae;

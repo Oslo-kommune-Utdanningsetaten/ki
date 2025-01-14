@@ -126,9 +126,42 @@ onMounted(async () => {
         v-if="bot.prompt_visibility"
         class="btn oslo-btn-secondary ms-0 me-auto ps-1 pe-1 pt-0 pb-0"
         @click="toggleStartPrompt"
+        :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
       >
         {{ showSystemPrompt ? 'Skjul' : 'Vis' }} info
       </button>
+
+      <span class="ms-3">
+        <input
+          type="radio"
+          class="btn-check"
+          value="text"
+          v-model="communicationMode"
+          id="communicationModeText"
+          autocomplete="off"
+        />
+        <label
+          class="ms-2 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
+          for="communicationModeText"
+        >
+          Skrive
+        </label>
+
+        <input
+          type="radio"
+          class="btn-check"
+          value="audio"
+          v-model="communicationMode"
+          id="communicationModeAudio"
+          autocomplete="off"
+        />
+        <label
+          class="ms-0 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
+          for="communicationModeAudio"
+        >
+          Snakke
+        </label>
+      </span>
     </h1>
     <p v-if="bot.ingress">
       {{ bot.ingress }}
@@ -165,38 +198,6 @@ onMounted(async () => {
         <p>{{ getSystemPrompt() }}</p>
         <p class="mb-0">
           <strong>Jeg bruker modellen {{ bot.model }}.</strong>
-        </p>
-        <p class="mt-2 mb-0">
-          <strong>Velg hvordan vi kommuniserer</strong>
-          <input
-            type="radio"
-            class="btn-check"
-            value="text"
-            v-model="communicationMode"
-            id="communicationModeText"
-            autocomplete="off"
-          />
-          <label
-            class="ms-2 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
-            for="communicationModeText"
-          >
-            Skrive
-          </label>
-
-          <input
-            type="radio"
-            class="btn-check"
-            value="audio"
-            v-model="communicationMode"
-            id="communicationModeAudio"
-            autocomplete="off"
-          />
-          <label
-            class="ms-0 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
-            for="communicationModeAudio"
-          >
-            Snakke
-          </label>
         </p>
       </div>
     </div>
