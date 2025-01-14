@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, useTemplateRef, watch, onMounted, onBeforeUnmount } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import ConversationSimple from '@/components/ConversationSimple.vue'
 import workletURL from '../utils/pcm-processor.js?url'
@@ -32,15 +32,18 @@ const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
-let microphonePermissionStatus = ref('denied')
+const conversationWidgets = useTemplateRef('conversation-widgets')
 
+let intentionalShutdown = false
+
+let microphonePermissionStatus = ref('denied')
 let audioContext
 let audioSource
 let websocket
 
 const handleToggleRecording = () => {
-  isMicRecording.value = !isMicRecording.value
-  if (isMicRecording.value) {
+  // start and stop functions handle toggling of isMicRecording.value
+  if (!isMicRecording.value) {
     startRecording()
   } else {
     stopRecording()
@@ -65,38 +68,17 @@ const resetConversation = () => {
   ]
 }
 
-const startRecording = async () => {
-  // Get audio stream
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+const initializeWebsocket = async options => {
+  const { shouldAutostartRecording } = options
 
-  // Create a temp audio context to get the sample rate
-  const audioContextTemp = new AudioContext()
-  const sampleRate = audioContextTemp.sampleRate
-  audioContextTemp.close()
-
-  audioContext = new AudioContext({ sampleRate })
-
-  // Load the AudioWorkletProcessor
-  await audioContext.audioWorklet.addModule(workletURL)
-
-  // Create MediaStreamSource and AudioWorkletNode
-  const audioSourceNode = audioContext.createMediaStreamSource(stream)
-  const workletNode = new AudioWorkletNode(audioContext, 'pcm-processor')
-  // Connect the audioSourceNode to the worklet for processing
-  audioSourceNode.connect(workletNode)
-
-  // When workletNode is done processing a data chunk from the input stream, pipe data to websocket
-  workletNode.port.onmessage = event => {
-    const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
-    if (websocket.readyState === WebSocket.OPEN && isMicRecording.value) {
-      websocket.send(pcmData)
-    }
+  if (audioContext) {
+    await audioContext.close()
   }
-}
+  audioContext = null
 
-const initializeWebsocket = async () => {
   const audioChunks = []
   websocket = new WebSocket(websocketUrl)
+
   websocket.onopen = () => {
     console.info('WebSocket opened')
 
@@ -112,11 +94,28 @@ const initializeWebsocket = async () => {
     )
   }
 
+  websocket.onclose = () => {
+    console.warn('WebSocket closed - server is', currentServerStatus.value)
+    isBotSpeaking.value = false
+    isMicRecording.value = false
+    // socket closed unexpectedly while streaming audio, try to reconnect
+    if (
+      ['streamingAudioToClient', 'receivingAudioFromClient'].includes(currentServerStatus.value)
+    ) {
+      console.info('Unexpected closing of websocket, try to reconnect')
+      // only auto-restart if the websocket was closed unexpectedly
+      initializeWebsocket({ shouldAutostartRecording: !intentionalShutdown })
+      intentionalShutdown = false
+    }
+  }
+
   websocket.onmessage = event => {
     if (typeof event.data === 'string') {
+      // server is updating messages or reporting on its status
       const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         messages.value = [...updatedMessages]
+        scrollTo(conversationWidgets)
       }
       if (serverStatus) {
         console.info('Server status:', serverStatus)
@@ -142,21 +141,48 @@ const initializeWebsocket = async () => {
     }
   }
 
-  websocket.onclose = () => {
-    console.info('webcocket closed')
-    isBotSpeaking.value = false
-    isMicRecording.value = false
-    // socket closed unexpectedly during streaming from client, try to reconnect
-    if (currentServerStatus.value === 'receivingAudioFromClient') {
-      console.info('Unexpected closing of websocket, try to reconnect')
-      initializeWebsocket()
+  if (shouldAutostartRecording) {
+    console.warn('initializeWebsocket with AUTOSTART')
+    await startRecording()
+  }
+}
+
+const startRecording = async () => {
+  isMicRecording.value = true
+  // Get audio stream
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+  // Create a temp audio context to get the sample rate
+  const audioContextTemp = new AudioContext()
+  const sampleRate = audioContextTemp.sampleRate
+  audioContextTemp.close()
+
+  audioContext = new AudioContext({ sampleRate })
+
+  // Load the AudioWorkletProcessor
+  await audioContext.audioWorklet.addModule(workletURL)
+
+  // Create MediaStreamSource and AudioWorkletNode
+  const audioSourceNode = audioContext.createMediaStreamSource(stream)
+  const workletNode = new AudioWorkletNode(audioContext, 'pcm-processor')
+  // Connect the audioSourceNode to the worklet for processing
+  audioSourceNode.connect(workletNode)
+
+  // When workletNode is done processing an audio data chunk from the input stream, send to websocket
+  workletNode.port.onmessage = event => {
+    const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
+    if (websocket.readyState === WebSocket.OPEN && isMicRecording.value) {
+      websocket.send(pcmData)
     }
   }
 }
 
-const stopRecording = () => {
+const stopRecording = async () => {
   console.info('stopRecording')
   isMicRecording.value = false
+  isBotSpeaking.value = false
+  intentionalShutdown = true
+  await websocket.close()
 }
 
 const playAudioResponse = async audioChunks => {
@@ -164,7 +190,7 @@ const playAudioResponse = async audioChunks => {
     return
   }
 
-  // Create a Blob with the correct MIME type
+  // Create a blob with the correct MIME type
   const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' })
   const arrayBuffer = await audioBlob.arrayBuffer()
 
@@ -215,11 +241,9 @@ const checkMicrophonePermissionStatus = async () => {
   microphonePermissionStatus.value = permission.state
 }
 
-onMounted(() => {
-  resetConversation()
-  checkMicrophonePermissionStatus()
-  initializeWebsocket()
-})
+const scrollTo = view => {
+  view.value?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+}
 
 // watch for changes in selectedLanguage or selectedVoice
 watch([selectedLanguage, selectedVoice], () => {
@@ -232,13 +256,21 @@ watch([selectedLanguage, selectedVoice], () => {
   sendServerConfig()
 })
 
+onMounted(() => {
+  resetConversation()
+  checkMicrophonePermissionStatus()
+  initializeWebsocket({ shouldAutostartRecording: false })
+})
+
 onBeforeUnmount(() => {
   websocket.close()
 })
 </script>
 
 <template>
-  <div class="border p-3 mb-3 container">
+  <ConversationSimple :messages="messages" :bot="props.bot" />
+
+  <div ref="conversation-widgets" class="border p-3 mb-3 container">
     <div class="row g-6">
       <div class="col-4 border">
         <!-- Avatar playback state and control -->
@@ -302,8 +334,6 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
-
-  <ConversationSimple :messages="messages" :bot="props.bot" />
 
   <!-- Filter for creating the glowing microphone effect -->
   <svg height="0" width="0" style="position: absolute; overflow: hidden">
