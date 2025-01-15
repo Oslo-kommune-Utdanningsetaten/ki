@@ -12,6 +12,7 @@ import SpeechToText from '@/components/SpeechToText.vue'
 const route = useRoute()
 const router = useRouter()
 const bot = ref({})
+const models = ref([])
 const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
@@ -263,8 +264,11 @@ onMounted(() => {
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått:</strong>
         <p>{{ messages[0].content }}</p>
-        <p class="mb-0">
+        <p v-if="bot.model" class="mb-0">
           <strong>Jeg bruker modellen {{ bot.model.display_name }}.</strong>
+        </p>
+        <p v-else class="mb-0">
+          <strong>Jeg bruker modellen {{ store.defaultModel.display_name }}</strong>
         </p>
       </div>
     </div>

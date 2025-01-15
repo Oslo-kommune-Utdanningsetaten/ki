@@ -16,7 +16,7 @@ const bot = ref({
   bot_img: 'bot1.svg',
   avatar_scheme: [0, 0, 0, 0, 0, 0, 0],
   temperature: 1,
-  model: 'gpt-35-turbo',
+  model: null,
   mandatory: false,
   allow_distribution: false,
   bot_info: '',
@@ -26,6 +26,7 @@ const bot = ref({
   groups: [],
   library: false,
 })
+const models = ref([])
 const edit = ref(false)
 const distribute = ref(false)
 const newBot = ref(false)
@@ -54,10 +55,6 @@ const levels = [
   { id: 'vg1', name: 'Vg1' },
   { id: 'vg2', name: 'Vg2' },
   { id: 'vg3', name: 'Vg3' },
-]
-const models = [
-  { id: '4o', value: 'gpt-4o', label: 'gpt-4o' },
-  { id: '4om', value: 'gpt-4o-mini', label: 'gpt-4o mini' },
 ]
 
 const botAttrs = [
@@ -138,6 +135,10 @@ const getBotInfo = async () => {
   try {
     const { data } = await axios.get(url)
     bot.value = data.bot
+    if (!bot.value.model) {
+      bot.value.model = 'none'
+    }
+    models.value = data.models
     lifeSpan.value = data.lifespan
   } catch (error) {
     console.log(error)
@@ -516,18 +517,48 @@ watch(
     </div>
     <div v-if="superuser">
       <div class="row mb-3">
+        <div class="col-sm-2">Kan bruke tale</div>
+        <div class="col-sm-10">
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="is_audio_enabled"
+              v-model="bot.is_audio_enabled"
+            />
+            <label class="form-check-label" for="is_audio_enabled">Ja</label>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-3">
         <div class="col-sm-2">Modell</div>
         <div class="col-sm-10">
-          <div v-for="model in models" :key="model.id" class="form-check form-check-inline">
+          <div v-for="model_item in models" :key="model_item.model_id" class="form-check form-check-inline">
             <input
               class="form-check-input"
               type="radio"
-              :id="model.id"
-              :value="model.value"
+              :id="'m'+model_item.model_id"
+              :value="model_item"
               v-model="bot.model"
             />
-            <label class="form-check-label" :for="model.id">{{ model.label }}</label>
+            <label class="form-check-label" :for="'m'+model_item.model_id">{{ model_item.display_name }}</label>
           </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              id="no_model"
+              value="none"
+              v-model="bot.model"
+            />
+            <label class="form-check-label" for="no_model">Sentralt satt</label>
+          </div>
+        </div>
+      </div>
+      <div v-if="bot.model" class="row mb-3">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          {{ bot.model.model_description }}
         </div>
       </div>
       <div class="row mb-3">
