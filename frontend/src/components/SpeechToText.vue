@@ -96,7 +96,10 @@ onMounted(() => {
 
 <style scoped>
 .mic-button {
+  padding: 0;
   pointer-events: auto;
+  width: 42px;
+  height: 38px;
 }
 
 .mic-icon {

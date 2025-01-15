@@ -1,7 +1,8 @@
 <script setup>
-import { ref, useTemplateRef, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, useTemplateRef, watch, onMounted, onBeforeUnmount, onUpdated } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import ConversationSimple from '@/components/ConversationSimple.vue'
+import AudioWave from '@/components/AudioWave.vue'
 import workletURL from '../utils/pcm-processor.js?url'
 import {
   languageOptions,
@@ -26,13 +27,13 @@ const props = defineProps({
 const websocketUrl = 'ws://localhost:5000/ws/audio/'
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
-const serverStatusHistory = ref([])
+const isLanguageOptionsVisible = ref(false)
 const currentServerStatus = ref('')
 const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
-const conversationWidgets = useTemplateRef('conversation-widgets')
+const pageBottom = useTemplateRef('page-bottom-ref')
 
 let intentionalShutdown = false
 
@@ -59,16 +60,16 @@ const handleTogglePlayback = () => {
   }
 }
 
+const handleToggleLanguageOptions = () => {
+  isLanguageOptionsVisible.value = !isLanguageOptionsVisible.value
+}
+
 const resetConversation = () => {
   messages.value = [
     {
       role: 'system',
       content: props.systemPrompt,
     },
-    { role: 'user', content: 'What is sugar' },
-    { role: 'assistant', content: 'Sugar is sweet' },
-    { role: 'user', content: 'Are you sure?' },
-    { role: 'assistant', content: 'Sorry for the confusion, no' },
   ]
 }
 
@@ -99,14 +100,14 @@ const initializeWebsocket = async options => {
   }
 
   websocket.onclose = () => {
-    console.warn('WebSocket closed - server is', currentServerStatus.value)
+    console.warn('WebSocket closed while', currentServerStatus.value)
     isBotSpeaking.value = false
     isMicRecording.value = false
     if (
       ['streamingAudioToClient', 'receivingAudioFromClient'].includes(currentServerStatus.value)
     ) {
       // socket closed unexpectedly while streaming, try to reconnect
-      console.info('Unexpected closing of websocket, will attempt to reconnect')
+      console.info('Will attempt to reconnect')
       initializeWebsocket({ shouldAutostartRecording: !intentionalShutdown })
       intentionalShutdown = false
     }
@@ -118,11 +119,10 @@ const initializeWebsocket = async options => {
       const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         messages.value = [...updatedMessages]
-        scrollTo(conversationWidgets)
+        scrollTo(pageBottom)
       }
       if (serverStatus) {
         console.info('Server status:', serverStatus)
-        serverStatusHistory.value.push(serverStatus)
         currentServerStatus.value = serverStatus
         if (!['idle', 'receivingAudioFromClient'].includes(serverStatus)) {
           isMicRecording.value = false
@@ -204,12 +204,12 @@ const playAudioResponse = async audioChunks => {
   audioContext.decodeAudioData(
     arrayBuffer,
     audioBuffer => {
+      isBotSpeaking.value = true
       audioSource = audioContext.createBufferSource()
       audioSource.buffer = audioBuffer
-      audioSource.connect(audioContext.destination)
-      isBotSpeaking.value = true
-      audioSource.start(0)
       audioSource.onended = onAudioPlaybackFinished
+      audioSource.connect(audioContext.destination)
+      audioSource.start(0)
     },
     error => {
       console.error('Error while decoding audio data', error)
@@ -271,58 +271,63 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <ConversationSimple :messages="messages" :bot="props.bot" />
+  <div class="border">
+    <ConversationSimple
+      v-if="messages.length > 1"
+      :messages="messages"
+      :bot="props.bot"
+      class="border-bottom"
+    />
 
-  <div ref="conversation-widgets" class="border p-3 mb-3 container">
-    <div class="row g-6">
-      <div class="col-4 border">
+    <div class="px-5 pt-4 pb-2 d-flex justify-content-between">
+      <div>
         <!-- Avatar playback state and control -->
         <button
           @click="handleTogglePlayback"
           class="audio-control-button me-4"
-          :class="isBotSpeaking ? 'speakingAvatar' : 'silentAvatar'"
+          :class="{ 'audio-control-button-stop': isBotSpeaking }"
           :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
           :disabled="microphonePermissionStatus === 'denied'"
         >
-          <div class="bot-button-avatar">
-            <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
-          </div>
+          <AudioWave v-if="isBotSpeaking" />
+          <BotAvatar v-else :avatar_scheme="props.bot.avatar_scheme" />
         </button>
 
-        <div class="container">
-          <div class="row">
-            <div class="col-4"><label for="language">Språk</label></div>
-            <div class="col-4">
-              <select v-model="selectedLanguage" class="form-select" @input="handleFormEdited">
-                <option
-                  v-for="language in languageOptions.languages"
-                  :key="language.code"
-                  :value="language.code"
-                >
-                  {{ language.name }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-4"><label for="voice">Stemme</label></div>
-            <div class="col-4">
-              <select v-model="selectedVoice" class="form-select">
-                <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
-                  {{ voice.name }}
-                </option>
-              </select>
-            </div>
-          </div>
+        <button
+          class="btn oslo-btn-secondary mt-2 me-auto ps-1 pe-1 pt-0 pb-0"
+          @click="handleToggleLanguageOptions"
+          :class="{ 'oslo-btn-secondary-checked': isLanguageOptionsVisible }"
+        >
+          {{ isLanguageOptionsVisible ? 'Skjul' : 'Vis' }} språkvalg
+        </button>
+
+        <div class="container border" v-if="isLanguageOptionsVisible">
+          <label for="language">Språk</label>
+          <select v-model="selectedLanguage" class="form-select" @input="handleFormEdited">
+            <option
+              v-for="language in languageOptions.languages"
+              :key="language.code"
+              :value="language.code"
+            >
+              {{ language.name }}
+            </option>
+          </select>
+
+          <label for="voice">Stemme</label>
+          <select v-model="selectedVoice" class="form-select">
+            <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
+              {{ voice.name }}
+            </option>
+          </select>
         </div>
       </div>
 
       <!-- User record state and control -->
-      <div class="col-4 border">
+      <div>
         <button
           @click="handleToggleRecording"
           class="audio-control-button"
-          :class="isMicRecording ? 'speakingUserZ' : 'silentUserZ'"
+          :class="{ 'audio-control-button-stop': isMicRecording }"
           :title="
             microphonePermissionStatus === 'denied'
               ? 'Nettleseren har ikke tilgang til mikrofonen'
@@ -332,37 +337,18 @@ onBeforeUnmount(() => {
           "
           :disabled="microphonePermissionStatus === 'denied'"
         >
-          <img src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
+          <AudioWave v-if="isMicRecording" />
+          <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
         </button>
       </div>
     </div>
   </div>
-
-  <!-- Filter for creating the glowing microphone effect -->
-  <svg height="0" width="0" style="position: absolute; overflow: hidden">
-    <defs>
-      <filter id="shadow" color-interpolation-filters="sRGB">
-        <feDropShadow dx="0" dy="0" flood-color="#eb0000" flood-opacity="0" stdDeviation="10">
-          <animate
-            attributeName="flood-opacity"
-            values="0;1;0"
-            dur="0.8s"
-            repeatCount="indefinite"
-          />
-        </feDropShadow>
-      </filter>
-    </defs>
-  </svg>
+  <div ref="page-bottom-ref">&nbsp;</div>
 </template>
 
 <style>
-.bot-button-avatar {
-  text-align: center !important;
-  padding: 0 !important;
-  width: 100%;
-}
-
 .audio-control-button {
+  position: relative;
   pointer-events: auto;
   height: 120px;
   width: 120px;
@@ -373,33 +359,37 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 10px;
 
   svg {
     width: 55px;
     padding: auto;
   }
 
-  img {
-    width: 90%;
+  .mic-icon {
+    width: 80%;
   }
 }
 
 .audio-control-button:hover {
-  box-shadow: 0px 0px 3px 3px rgba(45, 45, 45, 0.2);
+  box-shadow: 0px 0px 6px 4px rgba(45, 45, 45, 0.25);
   border-radius: 50%;
 }
 
-.silentAvatar {
+.audio-control-button-stop:hover::after {
+  content: '×';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18rem;
+  opacity: 0.4;
+  transition: opacity 0.25s ease;
+  z-index: 10;
 }
 
-.speakingAvatar {
-  filter: url(#shadow);
-}
-
-.silentUser {
-}
-
-.speakingUser {
-  filter: url(#shadow);
+/* Optional: fade in animation */
+.audio-control-button::after {
+  opacity: 0;
 }
 </style>

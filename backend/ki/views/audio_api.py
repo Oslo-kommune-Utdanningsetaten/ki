@@ -5,7 +5,6 @@ from azure.cognitiveservices.speech import SpeechConfig, AudioConfig, SpeechReco
 from azure.cognitiveservices.speech.audio import PushAudioInputStream
 from channels.generic.websocket import AsyncWebsocketConsumer
 from ki.views.ai_providers.azure import chat_completion_azure
-from asgiref.sync import sync_to_async
 import logging
 import random
 

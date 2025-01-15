@@ -9,7 +9,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="container border px-0 py-3">
+  <div class="container px-0 py-3">
     <div class="row g-0">
       <div class="col-md-1 d-flex align-items-end justify-content-center">
         <div class="simple-conversation-avatar">
