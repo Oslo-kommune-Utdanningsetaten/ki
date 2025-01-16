@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 # consider using a websocket connection to Azure
 # https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py
 
-# serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
+# serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
 
 # Wrapper around the PushAudioInputStream class (Azure SDK) to enable logging
 class LoggingPushAudioInputStream(PushAudioInputStream):
@@ -93,7 +93,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
         if text_data:
             # Client is sending text data. This only happens at initialization and later when language or voice is changed
             data = json.loads(text_data)
-            self.log(f"-->\n{data}\n<--")
 
             if data.get('bot_uuid'):
                 self.bot_uuid = data.get('bot_uuid')
@@ -112,7 +111,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
             if self.selected_language != self.speech_config.speech_recognition_language or self.selected_voice != self.speech_config.speech_synthesis_voice_name:
                 await self.initialize_speech_synthesizer()
 
-        if bytes_data:
+        elif bytes_data:
             # We're receiving audio from the client and passing it on to Azure
             await self.send_server_status("receivingAudioFromClient")
             try:
@@ -120,7 +119,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.push_stream_audio.write(bytes_data)
             except RuntimeError as e:
                 self.log(f"Error while processing audio data: {e}")
-                # TODO: recover from dead stream
                 # Create a push stream
                 self.push_stream_audio = LoggingPushAudioInputStream()
                 # Create an audio configuration using the push stream
@@ -144,7 +142,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 "content": recognized_text
             })
 
-            self.send_server_status("streamingTextToClient")
+            asyncio.run(self.send_server_status("sendingTextToClient"))
 
             # Send updated messages to client
             asyncio.run(self.send(text_data=json.dumps({
@@ -152,8 +150,9 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 "messages": self.messages
             })))
 
+            asyncio.run(self.send_server_status("generatingChatResponse"))
+
             # Request completion based on messages
-            self.send_server_status("generatingChatResponse")
             completion = asyncio.run(chat_completion_azure(self.messages, {"bot_model": self.bot_model}))
             self.log(f"Generated completion: {completion}")
 

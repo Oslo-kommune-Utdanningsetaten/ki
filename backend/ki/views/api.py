@@ -126,6 +126,7 @@ def menu_items(request):
         'model_id': default_model_obj.model_id,
         'display_name': default_model_obj.display_name,
         'model_description': default_model_obj.model_description,
+        'deployment_id': default_model_obj.deployment_id,
         'training_cutoff': default_model_obj.training_cutoff,
     }
 
@@ -280,6 +281,7 @@ def empty_bot(request, bot_type):
                 'model_id': model.model_id,
                 'display_name': model.display_name,
                 'model_description': model.model_description,
+                'deployment_id': model.deployment_id,
                 'training_cutoff': model.training_cutoff,
             })
 
@@ -559,6 +561,7 @@ def bot_info(request, bot_uuid=None):
         'model_id': bot.model_id.model_id,
         'display_name': bot.model_id.display_name,
         'model_description': bot.model_id.model_description,
+        'deployment_id': bot.model_id.deployment_id,
         'training_cutoff': bot.model_id.training_cutoff,
     } if bot.model_id else None
 
@@ -569,6 +572,7 @@ def bot_info(request, bot_uuid=None):
                 'model_id': model.model_id,
                 'display_name': model.display_name,
                 'model_description': model.model_description,
+                'deployment_id': model.deployment_id,
                 'training_cutoff': model.training_cutoff,
             })
 

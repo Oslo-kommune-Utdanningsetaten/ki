@@ -1,5 +1,5 @@
 <script setup>
-import { ref, useTemplateRef, watch, onMounted, onBeforeUnmount, onUpdated } from 'vue'
+import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import ConversationSimple from '@/components/ConversationSimple.vue'
 import AudioWave from '@/components/AudioWave.vue'
@@ -12,7 +12,7 @@ import {
   updateLanguagePreferences,
 } from '../utils/audioOptions.js'
 
-// currentServerStatus is one of: 'websocketOpened', 'websocketClosed', 'initializing', 'receivingAudioFromClient', 'streamingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
+// currentServerStatus is one of: 'websocketOpened', 'websocketClosed', 'initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
 
 const props = defineProps({
   bot: {
@@ -33,7 +33,6 @@ const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
-const pageBottom = useTemplateRef('page-bottom-ref')
 
 let intentionalShutdown = false
 
@@ -119,7 +118,7 @@ const initializeWebsocket = async options => {
       const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         messages.value = [...updatedMessages]
-        scrollTo(pageBottom)
+        scrollToPageBottom()
       }
       if (serverStatus) {
         console.info('Server status:', serverStatus)
@@ -227,13 +226,14 @@ const onAudioPlaybackFinished = () => {
 
 const sendServerConfig = () => {
   if (websocket && websocket.readyState === WebSocket.OPEN) {
+    console.log('Sending server config', props.bot)
     websocket.send(
       JSON.stringify({
         type: 'websocket.text',
         selected_language: selectedLanguage.value,
         selected_voice: selectedVoice.value,
         bot_uuid: props.bot.uuid,
-        bot_model: props.bot.model,
+        bot_model: props.bot.model?.deployment_id,
       })
     )
   }
@@ -244,8 +244,15 @@ const checkMicrophonePermissionStatus = async () => {
   microphonePermissionStatus.value = permission.state
 }
 
-const scrollTo = view => {
-  view.value?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+const scrollToPageBottom = () => {
+  //window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight)
+  nextTick(() => {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      left: 0,
+      behavior: 'smooth',
+    })
+  })
 }
 
 // watch for changes in selectedLanguage or selectedVoice
@@ -343,7 +350,6 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
-  <div ref="page-bottom-ref">&nbsp;</div>
 </template>
 
 <style>

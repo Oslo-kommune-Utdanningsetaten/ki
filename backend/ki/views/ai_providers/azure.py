@@ -12,10 +12,7 @@ azureClient = AsyncAzureOpenAI(
     api_version=os.environ.get('OPENAI_API_VERSION'),
 )
 
-async def chat_completion_azure(messages, options=None):
-    if options is None:
-        options = {}
-
+async def chat_completion_azure(messages, options={}):
     bot_model = options.get('bot_model', 'gpt-4o-mini')
     temperature = options.get('temperature', 0.7)
 

@@ -123,7 +123,7 @@ onMounted(async () => {
         {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
       </button>
 
-      <span class="ms-3">
+      <span class="ms-3" v-if="bot.is_audio_enabled">
         <input
           type="radio"
           class="btn-check"
@@ -189,7 +189,7 @@ onMounted(async () => {
         <strong>Dette er instruksene jeg har fått</strong>
         <p>{{ getSystemPrompt() }}</p>
         <strong>Jeg bruker modellen</strong>
-        <p>{{ bot.model }}</p>
+        <p>{{ bot.model.display_name }}</p>
       </div>
     </div>
   </div>
