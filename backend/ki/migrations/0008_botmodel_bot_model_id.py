@@ -54,6 +54,22 @@ class Migration(migrations.Migration):
                 bot.model_id = None
             bot.save()
 
+    def update_settings(apps):
+        Setting = apps.get_model('ki', 'Setting')
+        setting = Setting.objects.get(setting_key='default_bot_model')
+        setting.int_val = 1
+        setting.is_txt = 0
+        setting.text_val = None
+        setting.save()
+
+    def downgrade_settings(apps):
+        Setting = apps.get_model('ki', 'Setting')
+        setting = Setting.objects.get(setting_key='default_bot_model')
+        setting.int_val = None
+        setting.is_txt = 1
+        setting.text_val = 'gpt-4o-mini'
+        setting.save()
+
     operations = [
         migrations.CreateModel(
             name='BotModel',
@@ -80,4 +96,5 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(db_column='model_id', null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='bots_id', to='ki.botmodel'),
         ),
         migrations.RunPython(code=update_bots, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(code=update_settings, reverse_code=downgrade_settings),
     ]
