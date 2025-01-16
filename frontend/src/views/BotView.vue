@@ -10,7 +10,7 @@ const route = useRoute()
 const router = useRouter()
 const bot = ref({})
 const showSystemPrompt = ref(false)
-const communicationMode = ref('audio') // text, audio, maybe video?
+const communicationMode = ref('text') // text, audio, maybe video?
 const systemPrompt = ref('')
 
 const choicesSorted = () => {
