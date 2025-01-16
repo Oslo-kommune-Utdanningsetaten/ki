@@ -1,8 +1,6 @@
 from django.http import StreamingHttpResponse, JsonResponse
 from openai import AsyncAzureOpenAI
-from openai import AsyncAzureOpenAI
 import openai
-import azure.cognitiveservices.speech as speechsdk
 import os
 import json
 
