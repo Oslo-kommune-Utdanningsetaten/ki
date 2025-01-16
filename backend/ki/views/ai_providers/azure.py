@@ -43,10 +43,7 @@ async def chat_completion_azure(messages, options={}):
         return "Noe gikk galt. Prøv igjen senere."
 
 
-async def chat_completion_azure_streamed(messages, options=None):
-    if options is None:
-        options = {}
-
+async def chat_completion_azure_streamed(messages, options={}):
     bot_model = options.get('bot_model', 'gpt-4o-mini')
     temperature = options.get('temperature', 0.7)
 
@@ -80,10 +77,7 @@ async def chat_completion_azure_streamed(messages, options=None):
     return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
 
-async def generate_image_azure(prompt, options=None):
-    if options is None:
-        options = {}
-
+async def generate_image_azure(prompt, options={}):
     bot_model = options.get('bot_model', 'dall-e-3')
     size = options.get('size', '1024x1024')
     quality = options.get('quality', 'standard')

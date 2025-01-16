@@ -727,7 +727,7 @@ async def send_img_message(request):
         return HttpResponseNotFound()
     await use_log(bot, request, 1)
     options = {
-        'bot_model': bot.model
+        'bot_model': bot.model.deployment_id
     }
     return await generate_image_azure(prompt, options)
 
