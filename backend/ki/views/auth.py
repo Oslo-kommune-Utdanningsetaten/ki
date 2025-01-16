@@ -32,7 +32,7 @@ def get_user_bots(request, username):
     lifespan = models.Setting.objects.get(
         setting_key='lifespan').int_val
     if not (tokens := request.session.get('user.auth', False)):
-        return [], False, False, []
+        return [], False, False, [], []
     # get user's grups from dataporten
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
@@ -42,10 +42,11 @@ def get_user_bots(request, username):
         )
     if groupinfo_response.status_code == 401:
         request.session.clear()
-        return [], False, False, []
+        return [], False, False, [], []
+    groupinfo_response = groupinfo_response.json()
 
-    # get user's schools and levels
-    for group in groupinfo_response.json():
+    # get user's schools and levels and groups
+    for group in groupinfo_response:
         # role empoyee from parent org
         if (group.get('id') == "fc:org:feide.osloskolen.no" and
                 group['membership']['primaryAffiliation'] == "employee"):
@@ -81,7 +82,7 @@ def get_user_bots(request, username):
                     if line.level in levels:
                         access = True
     if not access:
-        return None, False, False, []
+        return None, False, False, [], []
     
     # bots from subject
     if allow_groups and not employee:
@@ -121,7 +122,7 @@ def get_user_bots(request, username):
         for line in personal_bots:
             bots.add(line.uuid)
 
-    return bots, employee, dist_to_groups, schools
+    return bots, employee, dist_to_groups, schools, levels
 
 
 def auth_middleware(get_response):
@@ -176,10 +177,11 @@ def auth_middleware(get_response):
                 library_bots = models.Bot.objects.filter(library = True)
                 bots.update((bot.uuid for bot in library_bots))
             else:
-                bots, employee, dist_to_groups, schools = get_user_bots(request, username)
+                bots, employee, dist_to_groups, schools, levels = get_user_bots(request, username)
                 request.g['employee'] = employee
                 request.g['dist_to_groups'] = dist_to_groups
                 request.g['schools'] = schools
+                request.g['levels'] = levels
                 if role == 'author':
                     request.g['author'] = True
                     request.g['auth_school'] = role_obj.school

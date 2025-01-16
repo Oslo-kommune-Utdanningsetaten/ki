@@ -46,14 +46,6 @@ const handleDeleteBot = async botId => {
   router.push({ name: 'home' })
 }
 
-const handleSwitchCommunicationMode = () => {
-  if (communicationMode.value === 'text') {
-    communicationMode.value = 'audio'
-  } else {
-    communicationMode.value = 'text'
-  }
-}
-
 onMounted(async () => {
   bot.value = await getBot(route.params.id)
   updateSystemPrompt()
@@ -196,9 +188,8 @@ onMounted(async () => {
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått</strong>
         <p>{{ getSystemPrompt() }}</p>
-        <p class="mb-0">
-          <strong>Jeg bruker modellen {{ bot.model }}.</strong>
-        </p>
+        <strong>Jeg bruker modellen</strong>
+        <p>{{ bot.model }}</p>
       </div>
     </div>
   </div>

@@ -16,7 +16,7 @@ const bot = ref({
   bot_img: 'bot1.svg',
   avatar_scheme: [0, 0, 0, 0, 0, 0, 0],
   temperature: 1,
-  model: 'gpt-35-turbo',
+  model: null,
   mandatory: false,
   allow_distribution: false,
   bot_info: '',
@@ -26,6 +26,7 @@ const bot = ref({
   groups: [],
   library: false,
 })
+const models = ref([])
 const edit = ref(false)
 const distribute = ref(false)
 const newBot = ref(false)
@@ -54,10 +55,6 @@ const levels = [
   { id: 'vg1', name: 'Vg1' },
   { id: 'vg2', name: 'Vg2' },
   { id: 'vg3', name: 'Vg3' },
-]
-const models = [
-  { id: '4o', value: 'gpt-4o', label: 'gpt-4o' },
-  { id: '4om', value: 'gpt-4o-mini', label: 'gpt-4o mini' },
 ]
 
 const botAttrs = [
@@ -138,6 +135,10 @@ const getBotInfo = async () => {
   try {
     const { data } = await axios.get(url)
     bot.value = data.bot
+    if (!bot.value.model) {
+      bot.value.model = 'none'
+    }
+    models.value = data.models
     lifeSpan.value = data.lifespan
   } catch (error) {
     console.log(error)
@@ -516,18 +517,48 @@ watch(
     </div>
     <div v-if="superuser">
       <div class="row mb-3">
+        <div class="col-sm-2">Kan bruke tale</div>
+        <div class="col-sm-10">
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="is_audio_enabled"
+              v-model="bot.is_audio_enabled"
+            />
+            <label class="form-check-label" for="is_audio_enabled">Ja</label>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-3">
         <div class="col-sm-2">Modell</div>
         <div class="col-sm-10">
-          <div v-for="model in models" :key="model.id" class="form-check form-check-inline">
+          <div v-for="model_item in models" :key="model_item.model_id" class="form-check form-check-inline">
             <input
               class="form-check-input"
               type="radio"
-              :id="model.id"
-              :value="model.value"
+              :id="'m'+model_item.model_id"
+              :value="model_item"
               v-model="bot.model"
             />
-            <label class="form-check-label" :for="model.id">{{ model.label }}</label>
+            <label class="form-check-label" :for="'m'+model_item.model_id">{{ model_item.display_name }}</label>
           </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              id="no_model"
+              value="none"
+              v-model="bot.model"
+            />
+            <label class="form-check-label" for="no_model">Sentralt satt</label>
+          </div>
+        </div>
+      </div>
+      <div v-if="bot.model" class="row mb-3">
+        <div class="col-sm-2"></div>
+        <div class="col-sm-10">
+          {{ bot.model.model_description }}
         </div>
       </div>
       <div class="row mb-3">
@@ -577,111 +608,128 @@ watch(
           </div>
         </div>
       </div>
-      <div class="row mb-3">
-        <div class="col-sm-2">Forhåndsvalg</div>
-        <div class="col-sm-10">
-          <div v-for="choice in choicesSorted" class="card mb-3 p-3">
-            <div class="row mb-1">
-              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
-                Spørsmål
-              </label>
-              <div class="col-sm-10">
-                <input
-                  type="text"
-                  class="form-control"
-                  :id="`choice_label${choice.id}`"
-                  v-model="choice.label"
-                />
-              </div>
-            </div>
-            <div class="row mb-1">
-              <div class="col-sm-2">Alternativer</div>
-              <div class="col-sm-10">
-                <div v-for="option in optionsSorted(choice)">
-                  <div class="row mb-1">
-                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
-                      Knapp
-                    </label>
-                    <div class="col-sm-10">
-                      <input
-                        type="text"
-                        class="form-control"
-                        :id="`opt_label${option.id}`"
-                        v-model="option.label"
-                      />
-                    </div>
-                  </div>
-                  <div class="row mb-1">
-                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
-                      Ledetekst
-                    </label>
-                    <div class="col-sm-10">
-                      <textarea
-                        class="form-control"
-                        :id="`opt_text${option.id}`"
-                        rows="1"
-                        v-model="option.text"
-                      ></textarea>
-                    </div>
-                  </div>
+    </div>
+
+    <div class="mb-3">
+      <button
+        class="btn oslo-btn-primary"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#collapseAdvanced"
+        aria-expanded="false"
+        aria-controls="collapseAdvanced"
+      >
+        Avanserte innstillinger
+      </button>
+    </div>
+    <div class="mb-3">
+      <div class="collapse" id="collapseAdvanced">
+        <div class="row mb-3">
+          <div class="col-sm-2">Forhåndsvalg</div>
+          <div class="col-sm-10">
+            <div v-for="choice in choicesSorted" class="card mb-3 p-3">
+              <div class="row mb-1">
+                <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
+                  Spørsmål
+                </label>
+                <div class="col-sm-10">
                   <input
-                    class="btn-check"
-                    type="radio"
-                    :id="`${choice.id}-${option.id}`"
-                    :value="option"
-                    v-model="choice.selected"
+                    type="text"
+                    class="form-control"
+                    :id="`choice_label${choice.id}`"
+                    v-model="choice.label"
                   />
-                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
-                    Valgt
-                  </label>
-                  <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
-                    Slett alternativ
-                  </button>
-                  <button
-                    v-if="notFirstOption(choice, option)"
-                    class="btn oslo-btn-secondary"
-                    @click="optionOrderUp(choice, option)"
-                  >
-                    <img src="@/components/icons/move_up.svg" alt="flytt opp" />
-                  </button>
-                  <button
-                    v-if="notLastOption(choice, option)"
-                    class="btn oslo-btn-secondary"
-                    @click="optionOrderDown(choice, option)"
-                  >
-                    <img src="@/components/icons/move_down.svg" alt="flytt ned" />
-                  </button>
-                  <!-- {{ option.order }} -->
-                  <hr />
                 </div>
-                <button class="btn oslo-btn-primary" @click="addOption(choice)">
-                  Legg til alternativ
+              </div>
+              <div class="row mb-1">
+                <div class="col-sm-2">Alternativer</div>
+                <div class="col-sm-10">
+                  <div v-for="option in optionsSorted(choice)">
+                    <div class="row mb-1">
+                      <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
+                        Knapp
+                      </label>
+                      <div class="col-sm-10">
+                        <input
+                          type="text"
+                          class="form-control"
+                          :id="`opt_label${option.id}`"
+                          v-model="option.label"
+                        />
+                      </div>
+                    </div>
+                    <div class="row mb-1">
+                      <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
+                        Ledetekst
+                      </label>
+                      <div class="col-sm-10">
+                        <textarea
+                          class="form-control"
+                          :id="`opt_text${option.id}`"
+                          rows="1"
+                          v-model="option.text"
+                        ></textarea>
+                      </div>
+                    </div>
+                    <input
+                      class="btn-check"
+                      type="radio"
+                      :id="`${choice.id}-${option.id}`"
+                      :value="option"
+                      v-model="choice.selected"
+                    />
+                    <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+                      Valgt
+                    </label>
+                    <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
+                      Slett alternativ
+                    </button>
+                    <button
+                      v-if="notFirstOption(choice, option)"
+                      class="btn oslo-btn-secondary"
+                      @click="optionOrderUp(choice, option)"
+                    >
+                      <img src="@/components/icons/move_up.svg" alt="flytt opp" />
+                    </button>
+                    <button
+                      v-if="notLastOption(choice, option)"
+                      class="btn oslo-btn-secondary"
+                      @click="optionOrderDown(choice, option)"
+                    >
+                      <img src="@/components/icons/move_down.svg" alt="flytt ned" />
+                    </button>
+                    <!-- {{ option.order }} -->
+                    <hr />
+                  </div>
+                  <button class="btn oslo-btn-primary" @click="addOption(choice)">
+                    Legg til alternativ
+                  </button>
+                </div>
+              </div>
+              <div class="mb-1">
+                <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
+                  Slett spørsmål
                 </button>
+                <button
+                  v-if="notFirstChoice(choice)"
+                  class="btn oslo-btn-secondary"
+                  @click="choiceOrderUp(choice)"
+                >
+                  <img src="@/components/icons/move_up.svg" alt="flytt opp" />
+                </button>
+                <button
+                  v-if="notLastChoice(choice)"
+                  class="btn oslo-btn-secondary"
+                  @click="choiceOrderDown(choice)"
+                >
+                  <img src="@/components/icons/move_down.svg" alt="flytt ned" />
+                </button>
+                <!-- {{ choice.order }} -->
               </div>
             </div>
             <div class="mb-1">
-              <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
-                Slett spørsmål
-              </button>
-              <button
-                v-if="notFirstChoice(choice)"
-                class="btn oslo-btn-secondary"
-                @click="choiceOrderUp(choice)"
-              >
-                <img src="@/components/icons/move_up.svg" alt="flytt opp" />
-              </button>
-              <button
-                v-if="notLastChoice(choice)"
-                class="btn oslo-btn-secondary"
-                @click="choiceOrderDown(choice)"
-              >
-                <img src="@/components/icons/move_down.svg" alt="flytt ned" />
-              </button>
-              <!-- {{ choice.order }} -->
+              <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
             </div>
-          </div>
-          <div class="mb-1">
-            <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
           </div>
         </div>
       </div>

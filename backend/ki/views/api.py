@@ -8,6 +8,22 @@ import requests
 import json
 from ki.views.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
 
+aarstrinn_codes = {
+    'aarstrinn1': 1,
+    'aarstrinn2': 2,
+    'aarstrinn3': 3,
+    'aarstrinn4': 4,
+    'aarstrinn5': 5,
+    'aarstrinn6': 6,
+    'aarstrinn7': 7,
+    'aarstrinn8': 8,
+    'aarstrinn9': 9,
+    'aarstrinn10': 10,
+    'vg1': 11,
+    'vg2': 12,
+    'vg3': 13,
+}
+
 
 async def use_log(bot, request, message_length):
     role = 'student'
@@ -15,6 +31,10 @@ async def use_log(bot, request, message_length):
     role = 'admin' if request.g.get('admin', False) else role
     log_line = models.UseLog()
     log_line.role = role
+    if (levels := request.g.get('levels', None)) and role == 'student':
+        log_line.level =min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+    else:
+        log_line.level = None
     log_line.bot_id = bot.uuid
     log_line.message_length = message_length
     await log_line.asave()
@@ -99,6 +119,16 @@ def menu_items(request):
     dist_to_groups = request.g.get('dist_to_groups', False)
     can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
 
+    # Get default model
+    default_model_id = models.Setting.objects.get(setting_key='default_model').int_val
+    default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
+    default_model = {
+        'model_id': default_model_obj.model_id,
+        'display_name': default_model_obj.display_name,
+        'model_description': default_model_obj.model_description,
+        'training_cutoff': default_model_obj.training_cutoff,
+    }
+
     return Response({
         'menuItems': menu_items,
         'role': {
@@ -106,8 +136,10 @@ def menu_items(request):
             'is_employee': request.g.get('employee', False),
             'is_author': request.g.get('author', False),
             'can_user_edit_groups.': can_user_edit_groups,
-        }
+        },
+        'default_model': default_model,
     })
+
 
 @api_view(["PUT"])
 def favorite(request, bot_uuid):
@@ -195,16 +227,14 @@ def user_bots(request):
 
 
 @api_view(["GET"])
-def empty_bot(request, lib):
+def empty_bot(request, bot_type):
 
-    library = lib == 'library'
+    library = bot_type == 'library'
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
     edit_groups = (request.g['settings']['allow_groups']
                   and request.g['dist_to_groups'])
-    default_model = models.Setting.objects.get(
-        setting_key='default_model').txt_val
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -243,6 +273,16 @@ def empty_bot(request, lib):
             'tags': tag_items,
         })
 
+    bot_models = []
+    if is_admin or is_author:
+        for model in models.BotModel.objects.all():
+            bot_models.append({
+                'model_id': model.model_id,
+                'display_name': model.display_name,
+                'model_description': model.model_description,
+                'training_cutoff': model.training_cutoff,
+            })
+
     return Response({
         'bot': {
             'title': '',
@@ -252,10 +292,11 @@ def empty_bot(request, lib):
             'prompt_visibility': True,
             'allow_distribution': True,
             'mandatory': False,
+            'is_audio_enabled': False,
             'bot_img': "bot5.svg",
             'avatar_scheme': [0, 0, 0, 0, 0, 0, 0],
             'temperature': '1',
-            'model': default_model,
+            'model': None,
             'edit': True,
             'distribute': edit_groups,
             'choices': [],
@@ -265,6 +306,7 @@ def empty_bot(request, lib):
             'tag_categories': tag_categories,
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        'models': bot_models,
     })
 
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -321,17 +363,25 @@ def bot_info(request, bot_uuid=None):
             'allow_distribution', bot.allow_distribution)
         bot.mandatory = body.get(
             'mandatory', bot.mandatory)
+        bot.is_audio_enabled = body.get(
+            'is_audio_enabled', bot.is_audio_enabled)
         bot.avatar_scheme = ','.join([str(a) for a in body.get('avatar_scheme', bot.avatar_scheme)]) if body.get('avatar_scheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
         bot.owner = None if bot.owner == '' else bot.owner
-        default_model = models.Setting.objects.get(
-            setting_key='default_model').txt_val
-        if not bool(bot.model):
-            bot.model = default_model
-        if is_admin or (is_author and is_owner):
-            bot.model = body.get('model', bot.model)
+        
+        model = body.get('model', False)
+        if(        
+            (is_admin or (is_author and is_owner)) and
+            model and
+            model != "none" and
+            (model_id := model.get('model_id', False))
+        ):
+            bot.model_id = models.BotModel.objects.get(model_id=model_id)
+        else:
+            bot.model_id = None
+    
         bot.save()
 
         # save tags
@@ -505,6 +555,23 @@ def bot_info(request, bot_uuid=None):
             'tags': tag_items,
         })
 
+    bot_model = {
+        'model_id': bot.model_id.model_id,
+        'display_name': bot.model_id.display_name,
+        'model_description': bot.model_id.model_description,
+        'training_cutoff': bot.model_id.training_cutoff,
+    } if bot.model_id else None
+
+    bot_models = []
+    if is_admin or is_author:
+        for model in models.BotModel.objects.all():
+            bot_models.append({
+                'model_id': model.model_id,
+                'display_name': model.display_name,
+                'model_description': model.model_description,
+                'training_cutoff': model.training_cutoff,
+            })
+
     return Response({
         'bot': {
             'uuid': bot.uuid,
@@ -517,9 +584,10 @@ def bot_info(request, bot_uuid=None):
             'allow_distribution': bot.allow_distribution,
             'mandatory': bot.mandatory,
             'library': bot.library,
+            'is_audio_enabled': bot.is_audio_enabled,
             'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
-            'model': bot.model,
+            'model': bot_model,
             'edit': edit,
             'distribute': distribute,
             'owner': bot.owner if is_admin else None,
@@ -529,6 +597,7 @@ def bot_info(request, bot_uuid=None):
             'tag_categories': tag_categories,
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        'models': bot_models,
     })
 
 
@@ -624,9 +693,13 @@ async def send_message(request):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
-        bot_model = bot.model
-        if not bool(bot_model):
-            bot_model = await models.Setting.objects.aget(setting_key='default_model').txt_val
+        try:
+            bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
+        except models.BotModel.DoesNotExist:
+            default_model = await models.Setting.objects.aget(setting_key='default_model')
+            default_model_id = default_model.int_val
+            bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
+        bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
     await use_log(bot, request, len(messages))
