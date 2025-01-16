@@ -24,7 +24,9 @@ const props = defineProps({
   },
 })
 
-const websocketUrl = 'ws://localhost:5000/ws/audio/'
+const websocketUrl = import.meta.env.DEV
+  ? 'ws://localhost:5000/ws/audio/'
+  : `wss://${window.location.host}/ws/audio/`
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
 const isLanguageOptionsVisible = ref(false)
@@ -278,7 +280,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="border">
+  <div class="border mb-3">
     <ConversationSimple
       v-if="messages.length > 1"
       :messages="messages"
@@ -383,7 +385,7 @@ onBeforeUnmount(() => {
 }
 
 .audio-control-button-stop:hover::after {
-  content: '×';
+  content: '×'; /* asdf */
   position: absolute;
   top: 50%;
   left: 50%;
