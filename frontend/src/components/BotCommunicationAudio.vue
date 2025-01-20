@@ -4,6 +4,8 @@ import BotAvatar from '@/components/BotAvatar.vue'
 import ConversationSimple from '@/components/ConversationSimple.vue'
 import AudioWave from '@/components/AudioWave.vue'
 import workletURL from '../utils/pcm-processor.js?url'
+const usableWorkletURL = import.meta.env.DEV ? workletURL : '/static/pcm-processor.js'
+
 import {
   languageOptions,
   getSelectedLanguage,
@@ -11,8 +13,6 @@ import {
   getVoicesForLanguage,
   updateLanguagePreferences,
 } from '../utils/audioOptions.js'
-
-// currentServerStatus is one of: 'websocketOpened', 'websocketClosed', 'initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
 
 const props = defineProps({
   bot: {
@@ -152,12 +152,14 @@ const initializeWebsocket = async () => {
     // 1000 is the normal close code, anything above that is an error
     if (event.code > 1000) {
       if (connectionRetries < maxConnectionRetries) {
-        connectionRetries++
-        recordEvent(
-          `WebSocket closed unexpectedly, attempting reconnect ${connectionRetries} of ${maxConnectionRetries}`
-        )
-        await initializeWebsocket()
-        await startRecording()
+        setTimeout(async () => {
+          connectionRetries++
+          recordEvent(
+            `WebSocket closed unexpectedly, attempting reconnect ${connectionRetries} of ${maxConnectionRetries}`
+          )
+          await initializeWebsocket()
+          await startRecording()
+        }, 1000 * connectionRetries)
       } else {
         recordEvent('WebSocket closed unexpectedly, max retries reached')
         return
@@ -217,7 +219,7 @@ const startRecording = async () => {
   audioContext = new AudioContext({ sampleRate })
 
   // Load the AudioWorkletProcessor
-  await audioContext.audioWorklet.addModule(workletURL)
+  await audioContext.audioWorklet.addModule(usableWorkletURL)
 
   // Create MediaStreamSource and AudioWorkletNode
   const audioSourceNode = audioContext.createMediaStreamSource(stream)
