@@ -27,10 +27,14 @@ const props = defineProps({
 const websocketUrl = import.meta.env.DEV
   ? 'ws://localhost:5000/ws/audio/'
   : `wss://${window.location.host}/ws/audio/`
+
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
 const isLanguageOptionsVisible = ref(false)
+const isDebugHistoryVisible = ref(false)
 const currentServerStatus = ref('')
+const statusHistory = ref([])
+const startTime = ref(null)
 const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
@@ -43,17 +47,43 @@ let audioContext
 let audioSource
 let websocket
 
-const handleToggleRecording = () => {
+const elapsedSeconds = () => {
+  if (!startTime.value) return 0
+  return Math.floor((Date.now() - startTime.value) / 1000)
+}
+
+const handleToggleDebug = () => {
+  isDebugHistoryVisible.value = !isDebugHistoryVisible.value
+}
+
+const setMic = position => {
+  if (position === 'on') isMicRecording.value = true
+  else if (position === 'off') isMicRecording.value = false
+  recordEvent(`Mic: ${position}`)
+}
+
+const setBotSpeaking = position => {
+  if (position === 'on') isBotSpeaking.value = true
+  else if (position === 'off') isBotSpeaking.value = false
+  recordEvent(`Bot speak: ${position}`)
+}
+
+const handleToggleRecording = async () => {
   // start and stop functions handle toggling of isMicRecording.value
   if (!isMicRecording.value) {
-    startRecording()
+    await initializeWebsocket()
+    await startRecording()
   } else {
-    stopRecording()
+    await stopRecording()
   }
 }
 
+const recordEvent = description => {
+  statusHistory.value.push({ time: elapsedSeconds(), event: description })
+}
+
 const handleTogglePlayback = () => {
-  console.info('handleTogglePlayback')
+  recordEvent('handleTogglePlayback')
   if (isBotSpeaking.value) {
     audioSource.stop()
   } else {
@@ -74,21 +104,34 @@ const resetConversation = () => {
   ]
 }
 
-const initializeWebsocket = async options => {
-  const { shouldAutostartRecording } = options
-
+const initializeWebsocket = async () => {
+  startTime.value = Date.now()
   if (audioContext) {
     await audioContext.close()
   }
   audioContext = null
 
   const audioChunks = []
-  websocket = new WebSocket(websocketUrl)
+
+  try {
+    websocket = new WebSocket(websocketUrl)
+  } catch (error) {
+    console.error('Error while creating WebSocket', error)
+    return
+  }
+
+  websocket.onerror = error => {
+    console.error('WebSocket error details:', {
+      url: websocket.url,
+      readyState: websocket.readyState,
+      protocol: websocket.protocol,
+      error: error,
+    })
+  }
 
   websocket.onopen = () => {
-    console.info('WebSocket opened')
+    recordEvent('WebSocket opened')
 
-    // send server configuration
     sendServerConfig()
 
     // send initial messages
@@ -100,18 +143,26 @@ const initializeWebsocket = async options => {
     )
   }
 
-  websocket.onclose = () => {
-    console.warn('WebSocket closed while', currentServerStatus.value)
-    isBotSpeaking.value = false
-    isMicRecording.value = false
-    if (
-      ['streamingAudioToClient', 'receivingAudioFromClient'].includes(currentServerStatus.value)
-    ) {
-      // socket closed unexpectedly while streaming, try to reconnect
-      console.info('Will attempt to reconnect')
-      initializeWebsocket({ shouldAutostartRecording: !intentionalShutdown })
-      intentionalShutdown = false
+  websocket.onclose = async event => {
+    if (event.code > 1000) {
+      // 1000 is the normal close code, anything above that is an error
+      console.error('WebSocket closed with code:', event.code, 'reason:', event.reason)
     }
+
+    setMic('off')
+    setBotSpeaking('off')
+    recordEvent(`WebSocket closed with code: ${event.code}. Reason: ${event.reason}`)
+
+    if (intentionalShutdown) {
+      // WebSocket was closed intentionally, do nothing
+      // If the user wants to continue the conversation, initializeWebsocket() and startRecording() will be called again
+    } else {
+      // socket closed unexpectedly while streaming, try to reconnect
+      recordEvent('WebSocket closed unexpectedly, attempting reconnect')
+      await initializeWebsocket()
+      await startRecording()
+    }
+    intentionalShutdown = false
   }
 
   websocket.onmessage = event => {
@@ -123,16 +174,23 @@ const initializeWebsocket = async options => {
         scrollToPageBottom()
       }
       if (serverStatus) {
-        console.info('Server status:', serverStatus)
         currentServerStatus.value = serverStatus
-        if (!['idle', 'receivingAudioFromClient'].includes(serverStatus)) {
-          isMicRecording.value = false
+        recordEvent(`Server status: ${serverStatus}`)
+        if (
+          [
+            'sendingTextToClient',
+            'generatingChatResponse',
+            'generatingAudioResponse',
+            'streamingAudioToClient',
+          ].includes(serverStatus)
+        ) {
+          setMic('off')
         }
       }
       if (type === 'websocket.audio') {
         if (command === 'audio-stream-begin') {
           // turn off mic while bot is speaking
-          isMicRecording.value = false
+          setMic('off')
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
         } else if (command === 'audio-stream-end') {
@@ -144,15 +202,10 @@ const initializeWebsocket = async options => {
       audioChunks.push(event.data)
     }
   }
-
-  if (shouldAutostartRecording) {
-    console.warn('initializeWebsocket with AUTOSTART')
-    await startRecording()
-  }
 }
 
 const startRecording = async () => {
-  isMicRecording.value = true
+  setMic('on')
   // Get audio stream
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
 
@@ -182,9 +235,9 @@ const startRecording = async () => {
 }
 
 const stopRecording = async () => {
-  console.info('stopRecording')
-  isMicRecording.value = false
-  isBotSpeaking.value = false
+  recordEvent('stopRecording')
+  setMic('off')
+  setBotSpeaking('off')
   intentionalShutdown = true
   await websocket.close()
 }
@@ -205,7 +258,7 @@ const playAudioResponse = async audioChunks => {
   audioContext.decodeAudioData(
     arrayBuffer,
     audioBuffer => {
-      isBotSpeaking.value = true
+      setBotSpeaking('on')
       audioSource = audioContext.createBufferSource()
       audioSource.buffer = audioBuffer
       audioSource.onended = onAudioPlaybackFinished
@@ -219,16 +272,15 @@ const playAudioResponse = async audioChunks => {
 }
 
 const onAudioPlaybackFinished = () => {
-  console.info('Audio playback finished')
-  isBotSpeaking.value = false
+  recordEvent('Audio playback finished')
+  setBotSpeaking('off')
   if (websocket && websocket.readyState === WebSocket.OPEN) {
-    isMicRecording.value = true
+    setMic('on')
   }
 }
 
 const sendServerConfig = () => {
   if (websocket && websocket.readyState === WebSocket.OPEN) {
-    console.log('Sending server config', props.bot)
     websocket.send(
       JSON.stringify({
         type: 'websocket.text',
@@ -271,7 +323,6 @@ watch([selectedLanguage, selectedVoice], () => {
 onMounted(() => {
   resetConversation()
   checkMicrophonePermissionStatus()
-  initializeWebsocket({ shouldAutostartRecording: false })
 })
 
 onBeforeUnmount(() => {
@@ -293,10 +344,13 @@ onBeforeUnmount(() => {
         <!-- Avatar playback state and control -->
         <button
           @click="handleTogglePlayback"
-          class="audio-control-button me-4"
-          :class="{ 'audio-control-button-stop': isBotSpeaking }"
+          class="audio-control me-4"
+          :class="{
+            'audio-control-button-stop': isBotSpeaking,
+            'audio-control-button ': isBotSpeaking,
+          }"
           :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
-          :disabled="microphonePermissionStatus === 'denied'"
+          :disabled="microphonePermissionStatus === 'denied' || !isBotSpeaking"
         >
           <AudioWave v-if="isBotSpeaking" />
           <BotAvatar v-else :avatar_scheme="props.bot.avatar_scheme" />
@@ -312,7 +366,7 @@ onBeforeUnmount(() => {
 
         <div class="container border" v-if="isLanguageOptionsVisible">
           <label for="language">Språk</label>
-          <select v-model="selectedLanguage" class="form-select" @input="handleFormEdited">
+          <select v-model="selectedLanguage" class="form-select mb-3" @input="handleFormEdited">
             <option
               v-for="language in languageOptions.languages"
               :key="language.code"
@@ -323,7 +377,7 @@ onBeforeUnmount(() => {
           </select>
 
           <label for="voice">Stemme</label>
-          <select v-model="selectedVoice" class="form-select">
+          <select v-model="selectedVoice" class="form-select mb-3">
             <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
               {{ voice.name }}
             </option>
@@ -335,7 +389,7 @@ onBeforeUnmount(() => {
       <div>
         <button
           @click="handleToggleRecording"
-          class="audio-control-button"
+          class="audio-control audio-control-button"
           :class="{ 'audio-control-button-stop': isMicRecording }"
           :title="
             microphonePermissionStatus === 'denied'
@@ -352,18 +406,43 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </div>
+
+  <div>
+    <a @click="handleToggleDebug" class="invisible-button">
+      {{ isDebugHistoryVisible ? 'Skjul' : 'Vis' }} debughistorikk
+    </a>
+    <table v-if="isDebugHistoryVisible" class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Event</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="status in statusHistory">
+          <td>{{ status.time }}</td>
+          <td>{{ status.event }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
 <style>
-.audio-control-button {
+.invisible-button {
+  color: transparent;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.audio-control {
   position: relative;
   pointer-events: auto;
-  height: 120px;
-  width: 120px;
   border-radius: 50%;
   border: none;
-  background-color: rgba(220, 220, 220, 0.5);
-  transition: box-shadow 0.1s ease-in-out;
+  height: 120px;
+  width: 120px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -379,9 +458,13 @@ onBeforeUnmount(() => {
   }
 }
 
+.audio-control-button {
+  background-color: rgba(220, 220, 220, 0.5);
+  transition: box-shadow 0.1s ease-in-out;
+}
+
 .audio-control-button:hover {
   box-shadow: 0px 0px 6px 4px rgba(45, 45, 45, 0.25);
-  border-radius: 50%;
 }
 
 .audio-control-button-stop:hover::after {
