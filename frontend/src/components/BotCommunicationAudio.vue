@@ -230,7 +230,7 @@ const startRecording = async () => {
   // When workletNode is done processing an audio data chunk from the input stream, send to websocket
   workletNode.port.onmessage = event => {
     const pcmData = event.data // This should now be PCM data, 16kHz, 16bit, mono
-    if (websocket.readyState === WebSocket.OPEN && isMicRecording.value) {
+    if (websocket && websocket.readyState === WebSocket.OPEN && isMicRecording.value) {
       websocket.send(pcmData)
     }
   }
