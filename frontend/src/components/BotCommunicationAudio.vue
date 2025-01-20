@@ -26,7 +26,7 @@ const props = defineProps({
 
 const websocketUrl = import.meta.env.DEV
   ? 'ws://localhost:5000/ws/audio/'
-  : `ws://${window.location.host}/ws/audio/`
+  : `wss://${window.location.host}/ws/audio/`
 
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
