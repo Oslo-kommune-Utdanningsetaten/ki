@@ -40,7 +40,8 @@ const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
 
-let intentionalShutdown = false
+let connectionRetries = 0
+const maxConnectionRetries = 5
 
 let microphonePermissionStatus = ref('denied')
 let audioContext
@@ -144,25 +145,24 @@ const initializeWebsocket = async () => {
   }
 
   websocket.onclose = async event => {
-    if (event.code > 1000) {
-      // 1000 is the normal close code, anything above that is an error
-      console.error('WebSocket closed with code:', event.code, 'reason:', event.reason)
-    }
-
+    recordEvent(`WebSocket closed with code: ${event.code}. Reason: ${event.reason}`)
     setMic('off')
     setBotSpeaking('off')
-    recordEvent(`WebSocket closed with code: ${event.code}. Reason: ${event.reason}`)
 
-    if (intentionalShutdown) {
-      // WebSocket was closed intentionally, do nothing
-      // If the user wants to continue the conversation, initializeWebsocket() and startRecording() will be called again
-    } else {
-      // socket closed unexpectedly while streaming, try to reconnect
-      recordEvent('WebSocket closed unexpectedly, attempting reconnect')
-      await initializeWebsocket()
-      await startRecording()
+    // 1000 is the normal close code, anything above that is an error
+    if (event.code > 1000) {
+      if (connectionRetries < maxConnectionRetries) {
+        connectionRetries++
+        recordEvent(
+          `WebSocket closed unexpectedly, attempting reconnect ${connectionRetries} of ${maxConnectionRetries}`
+        )
+        await initializeWebsocket()
+        await startRecording()
+      } else {
+        recordEvent('WebSocket closed unexpectedly, max retries reached')
+        return
+      }
     }
-    intentionalShutdown = false
   }
 
   websocket.onmessage = event => {
@@ -238,7 +238,6 @@ const stopRecording = async () => {
   recordEvent('stopRecording')
   setMic('off')
   setBotSpeaking('off')
-  intentionalShutdown = true
   await websocket.close()
 }
 
