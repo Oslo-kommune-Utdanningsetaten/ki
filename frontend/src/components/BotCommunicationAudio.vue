@@ -4,7 +4,7 @@ import BotAvatar from '@/components/BotAvatar.vue'
 import ConversationSimple from '@/components/ConversationSimple.vue'
 import AudioWave from '@/components/AudioWave.vue'
 import workletURL from '../utils/pcm-processor.js?url'
-const usableWorkletURL = import.meta.env.DEV ? workletURL : '/static/pcm-processor.js'
+const usableWorkletURL = import.meta.env.DEV ? workletURL : '/static/public/pcm-processor.js'
 
 import {
   languageOptions,
