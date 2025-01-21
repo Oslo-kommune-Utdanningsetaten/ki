@@ -66,22 +66,14 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.audio_input_config = AudioConfig(stream=self.push_stream_audio)
 
 
-
     # Override disconnect method to handle graceful cleanup
     async def websocket_disconnect(self, message):
-        await self.disconnect(message["code"])
-
-    # Called when the WebSocket connection is closed
-    async def disconnect(self, close_code):
-        self.log(f"Disconnect because: {close_code}")
-
-        # this will likely not happen, because the connection is already closed
-        await self.send_server_status("websocketClosed")
-        
+        self.log(f"Disconnect because: {message["code"]}")
         try:
-            self.speech_recognizer.stop_continuous_recognition()
             self.push_stream_audio.close()
+            self.speech_recognizer.stop_continuous_recognition()
             self.speech_synthesizer.stop_speaking()
+            await self.send_server_status("websocketClosed") # this will likely not happen, because the connection is already closed
         except Exception as e:
             self.log(f"Error during cleanup: {e}")
         finally:
