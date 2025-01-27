@@ -209,8 +209,12 @@ const initializeWebsocket = async () => {
 const startRecording = async () => {
   setMic('on')
   // Get audio stream
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-
+  const stream = await navigator.mediaDevices?.getUserMedia({ audio: true })
+  if (!stream) {
+    recordEvent('No audio stream (from mic) available')
+    setMic('off')
+    return
+  }
   // Create a temp audio context to get the sample rate
   const audioContextTemp = new AudioContext()
   const sampleRate = audioContextTemp.sampleRate
