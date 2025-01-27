@@ -50,7 +50,7 @@ services:
         python manage.py migrate
         python manage.py collectstatic --noinput
         cp -r ./public/ /var/www/static/
-        gunicorn app.asgi -b :8000 --worker-class uvicorn.workers.UvicornWorker -w 9
+        gunicorn app.asgi -b :8000 --worker-class app.workers.KiUvicornWorker -w 9
     volumes:
       - ./backend:/code
       - /var/www/:/var/www/
