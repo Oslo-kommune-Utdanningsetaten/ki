@@ -24,7 +24,7 @@ const props = defineProps({
 })
 
 // const websocketUrl = import.meta.env.DEV
-//   ? 'ws://localhost:5000/ws/audio/'
+//   ? 'ws://localhost:8000/ws/audio/'
 //   : `wss://${window.location.host}/ws/audio/`
 
 const websocketUrl = 'ws://iz-ki-ap01t.oslo.int/ws/audio/'
@@ -400,7 +400,7 @@ onBeforeUnmount(() => {
                 ? 'Trykk for å stoppe innspilling'
                 : 'Trykk for å snakke'
           "
-          :disabled="microphonePermissionStatus === 'denied'"
+          :disabled="microphonePermissionStatus === 'TMP_denied'"
         >
           <AudioWave v-if="isMicRecording" />
           <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />
