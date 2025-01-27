@@ -67,17 +67,22 @@ MIDDLEWARE = [
     'ki.views.auth.auth_middleware'
 ]
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
-                        'https://ki-dev.osloskolen.no', 
-                        'https://ki.osloskolen.no',
-                        'http://localhost:5173'
-                        ]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5000',
+    'https://ki-dev.osloskolen.no',
+    'https://ki.osloskolen.no',
+    'http://localhost:5173'
+    'http://iz-ki-ap01t.oslo.int',
+    'ws://iz-ki-ap01t.oslo.int'
+]
                         
 CORS_ALLOWED_ORIGINS = [
     'https://ki.osloskolen.no',
     'https://ki-dev.osloskolen.no',
     'http://127.0.0.1:5173',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://iz-ki-ap01t.oslo.int',
+    'ws://iz-ki-ap01t.oslo.int'
 ]
 
 #CORS_ALLOW_HEADERS = ['content-type']
