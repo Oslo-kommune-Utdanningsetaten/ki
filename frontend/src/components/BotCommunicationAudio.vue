@@ -27,7 +27,8 @@ const props = defineProps({
 //   ? 'ws://localhost:8000/ws/audio/'
 //   : `wss://${window.location.host}/ws/audio/`
 
-const websocketUrl = 'ws://iz-ki-ap01t.oslo.int/ws/audio/'
+//const websocketUrl = 'ws://iz-ki-ap01t.oslo.int/ws/audio/'
+const websocketUrl = `ws://${window.location.host}/ws/audio/`
 
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
@@ -150,7 +151,11 @@ const initializeWebsocket = async () => {
     setBotSpeaking('off')
 
     // 1000 is the normal close code, anything above that is an error
-    if (event.code > 1000) {
+    if (event.code === 1000 || event.code === 1005) {
+      // normal close, do nothing
+      recordEvent(`WebSocket closed with code ${event.code}, and everything should be just fine`)
+      return
+    } else {
       if (connectionRetries < maxConnectionRetries) {
         setTimeout(async () => {
           connectionRetries++

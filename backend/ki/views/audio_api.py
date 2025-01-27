@@ -15,27 +15,10 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-
 # consider using a websocket connection to Azure
 # https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py
 
 # serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
-
-# Wrapper around the PushAudioInputStream class (Azure SDK) to enable logging
-class LoggingPushAudioInputStream(PushAudioInputStream):
-    def write(self, data):
-        try:
-            super().write(data)
-        except Exception as e:
-            print(f"Error writing to stream: {e}")
-            raise RuntimeError("Error writing to stream")
-
-    def close(self):
-        try:
-            super().close()
-            print("Stream closed")
-        except Exception as e:
-            print(f"Error closing stream: {e}")
 
 class AudioConsumer(AsyncWebsocketConsumer):
 
@@ -60,7 +43,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.speech_config = SpeechConfig(subscription=os.environ.get('AZURE_SPEECH_KEY'), region=os.environ.get('AZURE_SPEECH_REGION'))
 
         # Create a push stream
-        self.push_stream_audio = LoggingPushAudioInputStream()
+        self.push_stream_audio = PushAudioInputStream()
 
         # Create an audio configuration using the push stream
         self.audio_input_config = AudioConfig(stream=self.push_stream_audio)
@@ -76,8 +59,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
             await self.send_server_status("websocketClosed") # this will likely not happen, because the connection is already closed
         except Exception as e:
             self.log(f"Error during cleanup: {e}")
-        finally:
-            await self.close()
 
 
     # Called when the WebSocket receives a message
@@ -119,11 +100,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
             try:
                 # Write to outbound stream for transcription by Azure
                 self.push_stream_audio.write(bytes_data)
-            except RuntimeError as e:
+            except Exception as e:
                 self.log(f"Error while processing audio data: {e}")
-                # Create a push stream
-                self.push_stream_audio = LoggingPushAudioInputStream()
-                # Create an audio configuration using the push stream
+                # Re-create a push stream
+                self.push_stream_audio = PushAudioInputStream()
+                # Create an audio configuration using the new push stream
                 self.audio_input_config = AudioConfig(stream=self.push_stream_audio)
                 # Reinitialize speech recognizer
                 self.initialize_speech_recognizer()
