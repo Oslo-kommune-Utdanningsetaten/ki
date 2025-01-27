@@ -83,9 +83,18 @@ class AudioConsumer(AsyncWebsocketConsumer):
     # Called when the WebSocket receives a message
     async def receive(self, text_data=None, bytes_data=None):
         if text_data:
-            # Client is sending text data. This only happens at initialization and later when language or voice is changed
+            # Client is sending text data. This usually happens at init and when language/voice is changed
             data = json.loads(text_data)
 
+            # Handle ping command
+            if data.get("type") == "websocket.text" and data.get("command") == "ping":
+                await self.send(text_data=json.dumps({
+                    "type": "websocket.text",
+                    "command": "pong"
+                }))
+                return
+
+            # Record bot model, bot UUID, messages, language and voice
             if data.get('bot_uuid'):
                 self.bot_uuid = data.get('bot_uuid')
             if data.get('bot_model'):
@@ -96,7 +105,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.selected_language = data.get('selected_language')
             if data.get('selected_voice'):
                 self.selected_voice = data.get('selected_voice')
-            # Initialize speech recognizer and synthesizer if client requests a change in language or voice
+
+            # Initialize speech recognizer and/or synthesizer if client made changes
             if self.selected_language != self.speech_config.speech_recognition_language:
                 await self.initialize_speech_recognizer()
 
