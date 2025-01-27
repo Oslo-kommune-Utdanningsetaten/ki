@@ -32,7 +32,7 @@ print("DEBUG:", DEBUG)
 
 ADMIN_ENABLED = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskolen.no']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskolen.no', 'iz-ki-ap01t.oslo.int']
 
 
 # Application definition
