@@ -71,7 +71,7 @@ services:
     build: ./frontend
     ports:
       - 5000:80 # For local testing
-      - 8000:80
+      - 80:80
     depends_on:
       - backend
     volumes:
