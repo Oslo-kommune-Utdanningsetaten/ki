@@ -8,8 +8,8 @@ import logging
 logging.basicConfig(level=logging.WARNING)
 
 # Create a dedicated logger for this module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger_azure = logging.getLogger(__name__)
+logger_azure.setLevel(logging.DEBUG)
 
 azureClient = AsyncAzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
@@ -20,7 +20,7 @@ azureClient = AsyncAzureOpenAI(
 
 # Wrapper for easy logging with identifier prefix
 def log(message):
-    logger.debug(f"{message}")
+    logger_azure.debug(f"{message}")
 
     
 async def chat_completion_azure(messages, options={}):
