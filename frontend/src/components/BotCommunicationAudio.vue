@@ -27,7 +27,7 @@ const props = defineProps({
 //   ? 'ws://localhost:8000/ws/audio/'
 //   : `wss://${window.location.host}/ws/audio/`
 
-const websocketUrl = 'ws://https://iz-ki-ap01t.oslo.int/ws/audio/'
+const websocketUrl = 'ws://iz-ki-ap01t.oslo.int/ws/audio/'
 
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
