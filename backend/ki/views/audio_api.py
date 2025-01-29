@@ -145,6 +145,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 "content": completion
             })
 
+            asyncio.run(self.send_server_status("sendingTextToClient"))
+
             # Send updated messages to client
             asyncio.run(self.send(text_data=json.dumps({
                 "type": "websocket.text",

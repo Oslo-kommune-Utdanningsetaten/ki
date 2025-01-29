@@ -23,7 +23,7 @@ const props = defineProps({
   },
 })
 
-// URL depending on if we're running on a developer localhost, or a test/production server
+// Websocket connection URL depending on if we're running on developer localhost, or test/production server
 const websocketUrl = import.meta.env.DEV
   ? 'ws://localhost:5000/ws/audio/'
   : `wss://${window.location.host}/ws/audio/`
