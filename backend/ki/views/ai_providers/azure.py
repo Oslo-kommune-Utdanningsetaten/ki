@@ -41,10 +41,10 @@ async def chat_completion_azure(messages, options={}):
         if e.code == "content_filter":
             return "Dette er ikke et passende emne. Start samtalen på nytt."
         else:
-            return "Noe gikk galt. Prøv igjen senere."
+            return "Noe gikk galt. Prøv igjen senere. Bad request error."
     except Exception as e:
         log(f"5 - chat_completion_azure {e}")
-        return "Noe gikk galt. Prøv igjen senere."
+        return "Noe gikk galt. Prøv igjen senere. Exception."
 
 
     if completion.choices:
