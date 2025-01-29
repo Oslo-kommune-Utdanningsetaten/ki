@@ -27,6 +27,7 @@ async def chat_completion_azure(messages, options={}):
     log(f"1 - chat_completion_azure {messages} AND {options}")
     bot_model = options.get('bot_model', 'gpt-4o-mini')
     temperature = options.get('temperature', 0.7)
+    log(f"1.5 - chat_completion_azure {bot_model} AND {temperature}")
 
     try:
         log(f"2 - chat_completion_azure before completion call")
