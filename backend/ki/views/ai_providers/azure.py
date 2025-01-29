@@ -2,14 +2,8 @@ from django.http import StreamingHttpResponse, JsonResponse
 from openai import AsyncAzureOpenAI, BadRequestError
 import os
 import json
-import logging
 
-# Raise the root logger threshold to WARNING
-logging.basicConfig(level=logging.WARNING)
-
-# Create a dedicated logger for this module
-logger_azure = logging.getLogger(__name__)
-logger_azure.setLevel(logging.DEBUG)
+default_bot_model = 'gpt-4o-mini'
 
 azureClient = AsyncAzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
@@ -17,35 +11,21 @@ azureClient = AsyncAzureOpenAI(
     api_version=os.environ.get('OPENAI_API_VERSION'),
 )
 
-
-# Wrapper for easy logging with identifier prefix
-def log(message):
-    logger_azure.debug(f"{message}")
-
     
-async def chat_completion_azure(messages, options={}):
-    log(f"1 - chat_completion_azure {messages} AND {options}")
-    bot_model = options.get('bot_model', 'gpt-4o-mini')
-    temperature = options.get('temperature', 0.7)
-    log(f"1.5 - chat_completion_azure {bot_model} AND {temperature}")
-
+async def chat_completion_azure(messages, model=default_bot_model, temperature=0.7):
     try:
-        log(f"2 - chat_completion_azure before completion call")
         completion = await azureClient.chat.completions.create(
-            model='gpt-4o-mini',
+            model=model,
             messages=messages,
             temperature=float(temperature),
         )
-        log(f"3 - chat_completion_azure after completion call {completion}")
     except BadRequestError as e:
-        log(f"4 - chat_completion_azure {e}")
         if e.code == "content_filter":
             return "Dette er ikke et passende emne. Start samtalen på nytt."
         else:
-            return "Noe gikk galt. Prøv igjen senere. Bad request error."
+            return "Noe gikk galt. Prøv igjen senere?"
     except Exception as e:
-        log(f"5 - chat_completion_azure {e}")
-        return "Noe gikk galt. Prøv igjen senere. Exception."
+        return "Noe gikk galt. Kanskje du kan prøve igjen?"
 
 
     if completion.choices:
@@ -55,12 +35,11 @@ async def chat_completion_azure(messages, options={}):
         if finish_reason == "content_filter":
             return "Beklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
         elif finish_reason == "length":
-            print(completion.choices[0].content_filter_results)
             return "Grensen for antall tegn i samtalen er nådd."
 
         return message
     else:
-        return f"Noe gikk galt. Prøv igjen senere! {completion}"
+        return "Noe gikk galt. Mulig det hjelper å prøve igjen, men det er ikke sikkert."
 
 
 async def chat_completion_azure_streamed(messages, options={}):

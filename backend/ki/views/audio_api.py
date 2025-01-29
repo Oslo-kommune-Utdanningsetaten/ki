@@ -136,7 +136,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
             asyncio.run(self.send_server_status("generatingChatResponse"))
 
             # Request completion based on messages
-            completion = asyncio.run(chat_completion_azure(self.messages, {"bot_model": self.bot_model}))
+            completion = asyncio.run(chat_completion_azure(self.messages, model=self.bot_model))
             self.log(f"Generated completion: {completion}")
 
             # Append completion to messages
