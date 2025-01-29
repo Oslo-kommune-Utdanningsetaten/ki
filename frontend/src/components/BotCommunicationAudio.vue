@@ -297,7 +297,7 @@ const sendServerConfig = () => {
         selected_language: selectedLanguage.value,
         selected_voice: selectedVoice.value,
         bot_uuid: props.bot.uuid,
-        bot_model: props.bot.model?.deployment_id,
+        bot_model: props.bot.model?.deployment_id || 'gpt-4o-mini',
       })
     )
   }

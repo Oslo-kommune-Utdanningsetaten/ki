@@ -32,7 +32,7 @@ async def chat_completion_azure(messages, options={}):
     try:
         log(f"2 - chat_completion_azure before completion call")
         completion = await azureClient.chat.completions.create(
-            model=bot_model,
+            model='gpt-4o-mini',
             messages=messages,
             temperature=float(temperature),
         )
