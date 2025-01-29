@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.WARNING)
 
 # Create a dedicated logger for this module
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # consider using a websocket connection to Azure
 # https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py
@@ -242,7 +242,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
     # Wrapper for easy logging with identifier prefix
     def log(self, message):
-        logger.info(f"{self.identifier}: {message}")
+        logger.debug(f"{self.identifier}: {message}")
 
 
     # The following callbacks are not used, but implemented just to get a sense of what happens when
