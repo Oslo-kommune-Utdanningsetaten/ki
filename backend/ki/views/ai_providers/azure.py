@@ -59,7 +59,7 @@ async def chat_completion_azure(messages, options={}):
 
         return message
     else:
-        return "Noe gikk galt. Prøv igjen senere."
+        return f"Noe gikk galt. Prøv igjen senere! {completion}"
 
 
 async def chat_completion_azure_streamed(messages, options={}):
