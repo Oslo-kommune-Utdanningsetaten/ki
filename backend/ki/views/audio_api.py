@@ -210,7 +210,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.speech_recognizer.speech_start_detected.connect(self.speech_start_callback)
         self.speech_recognizer.speech_end_detected.connect(self.speech_end_callback)
         # Start recognition immediately
-        self.speech_recognizer.start_continuous_recognition()        
+        self.speech_recognizer.start_continuous_recognition()
         await self.send_server_status("idle")
 
 
