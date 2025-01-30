@@ -20,6 +20,9 @@ logger.setLevel(logging.DEBUG)
 
 # serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
 
+def get_ssml(text, language, voice):
+    return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{language}'><voice name='{voice}'><prosody rate='+30.00%'>{text}</prosody></voice></speak>"
+
 class AudioConsumer(AsyncWebsocketConsumer):
 
     # Called when the WebSocket connection is opened
@@ -161,7 +164,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
         await self.send_server_status("generatingAudioResponse")
 
         try:
-            result = self.speech_synthesizer.speak_text_async(textInput).get()
+            #result = self.speech_synthesizer.speak_text_async(textInput).get()
+            input_ssml = get_ssml(textInput, self.selected_language, self.selected_voice)
+            self.log(f"SSML: {input_ssml}")
+            result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
+            self.log(f"SSMLresult: {result}")
             audio_stream = AudioDataStream(result)
         except Exception as e:
             self.log(f"Error during speech synthesis: {e}")
