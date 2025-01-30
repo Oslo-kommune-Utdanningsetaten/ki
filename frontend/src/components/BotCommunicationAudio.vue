@@ -360,8 +360,7 @@ onBeforeUnmount(() => {
           @click="handleTogglePlayback"
           class="audio-control me-4"
           :class="{
-            'audio-control-button-stop': isBotSpeaking,
-            'audio-control-button ': isBotSpeaking,
+            'audio-control-button': isBotSpeaking,
           }"
           :title="isBotSpeaking ? 'Trykk for å pause bablinga' : 'Stille som en mus'"
           :disabled="microphonePermissionStatus === 'denied' || !isBotSpeaking"
@@ -404,7 +403,6 @@ onBeforeUnmount(() => {
         <button
           @click="handleToggleRecording"
           class="audio-control audio-control-button"
-          :class="{ 'audio-control-button-stop': isMicRecording }"
           :title="
             microphonePermissionStatus === 'denied'
               ? 'Nettleseren har ikke tilgang til mikrofonen'
@@ -479,18 +477,6 @@ onBeforeUnmount(() => {
 
 .audio-control-button:hover {
   box-shadow: 0px 0px 6px 4px rgba(45, 45, 45, 0.25);
-}
-
-.audio-control-button-stop:hover::after {
-  content: '×'; /* asdf */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 18rem;
-  opacity: 0.4;
-  transition: opacity 0.25s ease;
-  z-index: 10;
 }
 
 /* Optional: fade in animation */
