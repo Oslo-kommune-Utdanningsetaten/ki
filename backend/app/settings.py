@@ -175,7 +175,7 @@ if not DEBUG:
             },
         },
         "root": {
-            "handlers": ["console"],
+            "handlers": ["file"],
             "level": "ERROR",
         }
     }
