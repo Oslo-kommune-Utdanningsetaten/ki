@@ -3,7 +3,8 @@ from openai import AsyncAzureOpenAI, BadRequestError
 import os
 import json
 
-default_bot_model = 'gpt-4o-mini'
+default_model = 'gpt-4o-mini'
+default_temperature = 0.7
 
 azureClient = AsyncAzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
@@ -11,8 +12,7 @@ azureClient = AsyncAzureOpenAI(
     api_version=os.environ.get('OPENAI_API_VERSION'),
 )
 
-    
-async def chat_completion_azure(messages, model=default_bot_model, temperature=0.7):
+async def chat_completion_azure(messages, model=default_model, temperature=default_temperature):
     try:
         completion = await azureClient.chat.completions.create(
             model=model,
@@ -27,7 +27,6 @@ async def chat_completion_azure(messages, model=default_bot_model, temperature=0
     except Exception as e:
         return "Noe gikk galt. Kanskje du kan prøve igjen?"
 
-
     if completion.choices:
         message = completion.choices[0].message.content or ""
         finish_reason = completion.choices[0].finish_reason
@@ -36,20 +35,16 @@ async def chat_completion_azure(messages, model=default_bot_model, temperature=0
             return "Beklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
         elif finish_reason == "length":
             return "Grensen for antall tegn i samtalen er nådd."
-
         return message
     else:
         return "Noe gikk galt. Mulig det hjelper å prøve igjen, men det er ikke sikkert."
 
 
-async def chat_completion_azure_streamed(messages, options={}):
-    bot_model = options.get('bot_model', 'gpt-4o-mini')
-    temperature = options.get('temperature', 0.7)
-
+async def chat_completion_azure_streamed(messages, model=default_model, temperature=default_temperature):
     async def stream():
         try:
             completion = await azureClient.chat.completions.create(
-                model=bot_model,
+                model=model,
                 messages=messages,
                 temperature=float(temperature),
                 stream=True,
@@ -72,24 +67,18 @@ async def chat_completion_azure_streamed(messages, options={}):
                     break
                 if chunk:
                     yield chunk
-
     return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
 
-async def generate_image_azure(prompt, options={}):
-    bot_model = options.get('bot_model', 'dall-e-3')
-    size = options.get('size', '1024x1024')
-    quality = options.get('quality', 'standard')
-    number_of_images = options.get('n', 1)
-
+async def generate_image_azure(prompt, model):
     try:
         response = await azureClient.images.generate(
-            model=bot_model,
-            size=size,
-            quality=quality,
+            model=model,
             prompt=prompt,
             response_format='url',
-            n=number_of_images,
+            size='1024x1024',
+            quality='standard',
+            n=1,
         )
         json_response = json.loads(response.model_dump_json())
         data = json_response['data'][0]
