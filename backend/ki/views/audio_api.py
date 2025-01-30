@@ -21,7 +21,7 @@ logger.setLevel(logging.DEBUG)
 # serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
 
 def get_ssml(text, language, voice):
-    return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{language}'><voice name='{voice}'><prosody rate='+30.00%'>{text}</prosody></voice></speak>"
+    return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{language}'><voice name='{voice}'><prosody rate='+15.00%'>{text}</prosody></voice></speak>"
 
 class AudioConsumer(AsyncWebsocketConsumer):
 
