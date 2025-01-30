@@ -10,7 +10,9 @@ import {
   getSelectedLanguage,
   getSelectedVoice,
   getVoicesForLanguage,
+  getSelectedSpeechRate,
   updateLanguagePreferences,
+  speechRates,
 } from '../utils/audioOptions.js'
 
 const props = defineProps({
@@ -44,6 +46,7 @@ const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
+const selectedSpeechRate = ref(getSelectedSpeechRate())
 const microphonePermissionStatus = ref('denied')
 
 let audioContext
@@ -300,6 +303,7 @@ const sendServerConfig = () => {
         type: 'websocket.text',
         selected_language: selectedLanguage.value,
         selected_voice: selectedVoice.value,
+        selected_speech_rate: selectedSpeechRate.value,
         bot_uuid: props.bot.uuid,
         bot_model: props.bot.model?.deployment_id || 'gpt-4o-mini',
       })
@@ -323,13 +327,16 @@ const scrollToPageBottom = () => {
 }
 
 // watch for changes in selectedLanguage or selectedVoice
-watch([selectedLanguage, selectedVoice], () => {
+watch([selectedLanguage, selectedVoice, selectedSpeechRate], () => {
+  console.log('Language or voice changed, sending server config', selectedSpeechRate)
   updateLanguagePreferences({
     selectedLanguage: selectedLanguage.value,
     selectedVoice: selectedVoice.value,
+    selectedSpeechRate: selectedSpeechRate.value,
   })
   selectedVoice.value = getSelectedVoice(selectedLanguage.value)
   availableVoices.value = getVoicesForLanguage(selectedLanguage.value)
+  selectedSpeechRate.value = getSelectedSpeechRate()
   sendServerConfig()
 })
 
@@ -393,6 +400,17 @@ onBeforeUnmount(() => {
           <select v-model="selectedVoice" class="form-select mb-3">
             <option v-for="voice in availableVoices" :key="voice.code" :value="voice.code">
               {{ voice.name }}
+            </option>
+          </select>
+
+          <label for="voice">Tempo</label>
+          <select v-model="selectedSpeechRate" class="form-select mb-3">
+            <option
+              v-for="speechRate in speechRates"
+              :key="speechRate.name"
+              :value="speechRate.value"
+            >
+              {{ speechRate.title }}
             </option>
           </select>
         </div>

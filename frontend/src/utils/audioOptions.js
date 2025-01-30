@@ -1,6 +1,11 @@
 import { getPreferences, setPreferences } from './localstorageTools.js'
 
+export const speechRates = [
+  { name: 'slow', title: 'Sakte', value: "-15.00%" },
+  { name: 'normal', title: 'Vanlig', value: "+15.00%" },
+]
 const defaultLanguage = 'nb-NO'
+const defaultSpeechRate = speechRates[1]
 
 export const getSelectedLanguage = () => {
   const { selectedLanguage } = getPreferences()
@@ -13,17 +18,27 @@ export const getSelectedVoice = (language) => {
   return voice || getVoicesForLanguage(language)[0].code
 }
 
+export const getSelectedSpeechRate = () => {
+  const { selectedSpeechRate } = getPreferences()
+  return selectedSpeechRate || defaultSpeechRate
+}
+
 export const getVoicesForLanguage = (language) => {
   return languageOptions.languages.find((lang) => lang.code === language).voices
 }
 
-
 export const updateLanguagePreferences = (options = {}) => {
-  let { selectedLanguage, selectedVoice } = options
-  selectedLanguage = selectedLanguage || getSelectedLanguage()
+  let { selectedLanguage, selectedVoice, selectedSpeechRate } = options
+
   // Update language
+  selectedLanguage = selectedLanguage || getSelectedLanguage()
   setPreferences('selectedLanguage', selectedLanguage)
 
+  // Update speech rate
+  selectedSpeechRate = selectedSpeechRate || getSelectedSpeechRate()
+  setPreferences('selectedSpeechRate', selectedSpeechRate)
+
+  // Update voice
   if (!getVoicesForLanguage(selectedLanguage).find((voice) => voice.code === selectedVoice)) {
     selectedVoice = getSelectedVoice(selectedLanguage)
   }

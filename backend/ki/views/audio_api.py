@@ -15,10 +15,6 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# Use SSML to adjust speech rate
-def assemble_ssml(text, language, voice):
-    return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{language}'><voice name='{voice}'><prosody rate='+15.00%'>{text}</prosody></voice></speak>"
-
 
 class AudioConsumer(AsyncWebsocketConsumer):
 
@@ -34,6 +30,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.bot_uuid = None
         self.selected_language = None
         self.selected_voice = None
+        self.selected_speech_rate = None
         self.current_server_status = None
         self.speech_recognizer = None
         self.speech_synthesizer = None
@@ -85,8 +82,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.selected_language = data.get('selected_language')
             if data.get('selected_voice'):
                 self.selected_voice = data.get('selected_voice')
+            if data.get('selected_speech_rate'):
+                self.selected_speech_rate = data.get('selected_speech_rate')
 
             # Initialize speech recognizer and/or synthesizer if client made changes
+            # If speech rate is changed, no need to reinitialize
             if self.selected_language != self.speech_config.speech_recognition_language:
                 await self.initialize_speech_recognizer()
 
@@ -160,7 +160,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         await self.send_server_status("generatingAudioResponse")
 
         try:
-            input_ssml = assemble_ssml(textInput, self.selected_language, self.selected_voice)
+            input_ssml = self.assemble_ssml(textInput)
             result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
             audio_stream = AudioDataStream(result)
         except Exception as e:
@@ -240,6 +240,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
             "type": "websocket.text",
             "serverStatus": status
         }))
+
+
+    # Use SSML to adjust speech rate
+    def assemble_ssml(self, text):
+        return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{self.selected_language}'><voice name='{self.selected_voice}'><prosody rate='{self.selected_speech_rate}'>{text}</prosody></voice></speak>"
 
 
     # Wrapper for easy logging with identifier prefix
