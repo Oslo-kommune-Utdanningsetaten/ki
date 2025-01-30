@@ -23,14 +23,20 @@ const props = defineProps({
   },
 })
 
+// Websocket connection URL depending on if we're running on developer localhost, or test/production server
 const websocketUrl = import.meta.env.DEV
   ? 'ws://localhost:5000/ws/audio/'
   : `wss://${window.location.host}/ws/audio/`
+const recordButtonCooldown = 2000
+const maxConnectionRetries = 5
+// Put record button on 2 seconds cooldown to avoid double clicks and spam-creating websocket connections
+let connectionRetries = 0
 
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
 const isLanguageOptionsVisible = ref(false)
 const isDebugHistoryVisible = ref(false)
+const isRecordButtonOnCooldown = ref(false)
 const currentServerStatus = ref('')
 const statusHistory = ref([])
 const startTime = ref(null)
@@ -38,11 +44,8 @@ const messages = ref([])
 const selectedLanguage = ref(getSelectedLanguage())
 const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
 const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
+const microphonePermissionStatus = ref('denied')
 
-let connectionRetries = 0
-const maxConnectionRetries = 5
-
-let microphonePermissionStatus = ref('denied')
 let audioContext
 let audioSource
 let websocket
@@ -71,8 +74,12 @@ const setBotSpeaking = position => {
 const handleToggleRecording = async () => {
   // start and stop functions handle toggling of isMicRecording.value
   if (!isMicRecording.value) {
+    isRecordButtonOnCooldown.value = true
     await initializeWebsocket()
     await startRecording()
+    setTimeout(() => {
+      isRecordButtonOnCooldown.value = false
+    }, recordButtonCooldown)
   } else {
     await stopRecording()
   }
@@ -147,12 +154,12 @@ const initializeWebsocket = async () => {
     setMic('off')
     setBotSpeaking('off')
 
-    // 1000 is the normal close code, anything above that is an error
     if (event.code === 1000 || event.code === 1005) {
       // normal close, do nothing
       recordEvent(`WebSocket closed with code ${event.code}, and everything should be just fine`)
       return
     } else {
+      // unexpected close, try to reconnect
       if (connectionRetries < maxConnectionRetries) {
         setTimeout(async () => {
           connectionRetries++
@@ -294,7 +301,7 @@ const sendServerConfig = () => {
         selected_language: selectedLanguage.value,
         selected_voice: selectedVoice.value,
         bot_uuid: props.bot.uuid,
-        bot_model: props.bot.model?.deployment_id,
+        bot_model: props.bot.model?.deployment_id || 'gpt-4o-mini',
       })
     )
   }
@@ -306,7 +313,6 @@ const checkMicrophonePermissionStatus = async () => {
 }
 
 const scrollToPageBottom = () => {
-  //window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight)
   nextTick(() => {
     window.scrollTo({
       top: document.body.scrollHeight,
@@ -406,7 +412,7 @@ onBeforeUnmount(() => {
                 ? 'Trykk for å stoppe innspilling'
                 : 'Trykk for å snakke'
           "
-          :disabled="microphonePermissionStatus === 'TMP_denied'"
+          :disabled="microphonePermissionStatus === 'denied' || isRecordButtonOnCooldown"
         >
           <AudioWave v-if="isMicRecording" />
           <img v-else src="@/components/icons/microphone.svg" class="mic-icon" alt="mikrofon" />

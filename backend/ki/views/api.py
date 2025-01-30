@@ -707,11 +707,7 @@ async def send_message(request):
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
     await use_log(bot, request, len(messages))
-    options = {
-        'bot_model': bot_model,
-        'temperature': float(bot.temperature)
-    }
-    return await chat_completion_azure_streamed(messages, options)
+    return await chat_completion_azure_streamed(messages, model=bot_model, temperature=bot.temperature)
 
 
 # @api_view(["POST"])
@@ -726,8 +722,5 @@ async def send_img_message(request):
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
     await use_log(bot, request, 1)
-    options = {
-        'bot_model': bot.model.deployment_id
-    }
-    return await generate_image_azure(prompt, options)
+    return await generate_image_azure(prompt, model=bot.model.deployment_id)
 

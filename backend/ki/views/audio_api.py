@@ -13,12 +13,15 @@ logging.basicConfig(level=logging.WARNING)
 
 # Create a dedicated logger for this module
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # consider using a websocket connection to Azure
 # https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py
 
 # serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
+
+def get_ssml(text, language, voice):
+    return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{language}'><voice name='{voice}'><prosody rate='+30.00%'>{text}</prosody></voice></speak>"
 
 class AudioConsumer(AsyncWebsocketConsumer):
 
@@ -136,7 +139,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
             asyncio.run(self.send_server_status("generatingChatResponse"))
 
             # Request completion based on messages
-            completion = asyncio.run(chat_completion_azure(self.messages, {"bot_model": self.bot_model}))
+            completion = asyncio.run(chat_completion_azure(self.messages, model=self.bot_model))
             self.log(f"Generated completion: {completion}")
 
             # Append completion to messages
@@ -144,6 +147,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 "role": "assistant",
                 "content": completion
             })
+
+            asyncio.run(self.send_server_status("sendingTextToClient"))
 
             # Send updated messages to client
             asyncio.run(self.send(text_data=json.dumps({
@@ -159,7 +164,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
         await self.send_server_status("generatingAudioResponse")
 
         try:
-            result = self.speech_synthesizer.speak_text_async(textInput).get()
+            #result = self.speech_synthesizer.speak_text_async(textInput).get()
+            input_ssml = get_ssml(textInput, self.selected_language, self.selected_voice)
+            self.log(f"SSML: {input_ssml}")
+            result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
+            self.log(f"SSMLresult: {result}")
             audio_stream = AudioDataStream(result)
         except Exception as e:
             self.log(f"Error during speech synthesis: {e}")
@@ -208,7 +217,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.speech_recognizer.speech_start_detected.connect(self.speech_start_callback)
         self.speech_recognizer.speech_end_detected.connect(self.speech_end_callback)
         # Start recognition immediately
-        self.speech_recognizer.start_continuous_recognition()        
+        self.speech_recognizer.start_continuous_recognition()
         await self.send_server_status("idle")
 
 
@@ -242,7 +251,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
     # Wrapper for easy logging with identifier prefix
     def log(self, message):
-        logger.info(f"{self.identifier}: {message}")
+        logger.debug(f"{self.identifier}: {message}")
 
 
     # The following callbacks are not used, but implemented just to get a sense of what happens when

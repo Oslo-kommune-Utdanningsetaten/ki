@@ -1,8 +1,10 @@
 # ki - backend
 
-Some notes/documentation on the communication going on across the websocket in audio mode\_
+Some notes/documentation on the communication going on across the websocket in audio mode.
 
-On start, the client sends a config message to the server, it typically looks like this:
+## Messages from the client
+
+When the user presses the record button, a websocket connection is opened, and the client sends a config message to the server, it typically looks like this:
 
 ```json
 {
@@ -23,34 +25,56 @@ It then follows up with a message containing the initial dialog (between user an
 }
 ```
 
-The data stream from the server to the client is also either text or audio binary. An example of the former:
+## Messages from the server
+
+The server will report on its status using the `serverStatus`. Such messages look like:
 
 ```json
 {
   "type": "websocket.text",
-  "serverStatus": "ready",
-  "messages": [
-    { "role": "system", "content": "You are a nice bot" },
-    { "role": "user", "content": "What is sugar" },
-    { "role": "assistant", "content": "Sugar is sweet" }
-  ]
+  "serverStatus": "idle"
 }
 ```
 
-The `serverStatus` field reports what the server is currently up to. This can be one of
+Server status may be one of:
 
-```json
-[
-  "websocketOpened",
-  "websocketClosed",
-  "initializing",
-  "streamingAudioToAzure",
-  "streamingTextToClient",
-  "generatingChatResponse",
-  "generatingAudioResponse",
-  "streamingAudioToClient",
-  "ready"
+```js
+;[
+  'websocketOpened', // the websocket connection was just opened
+  'websocketClosed', // the websocket connection closed
+  'initializing', // initializing serverside config (language, voice, azure connection etc)
+  'streamingAudioToAzure', // audio (received from the client) is now being streamed from the server to azure
+  'streamingTextToClient', // sending text update to client
+  'generatingChatResponse', // azure chat completion is currently in progress
+  'generatingAudioResponse', // azure is working on speech synthesis
+  'streamingAudioToClient', // audio (received from azure) is being streamed from the server to the client
+  'idle', // server is chilling and ready for duty
 ]
 ```
 
-The `command` field flags the beginning or end of an audio stream
+When streaming audio, the server will begin the stream with this message:
+
+```json
+{
+  "type": "websocket.audio",
+  "command": "audio-stream-begin"
+}
+```
+
+When streaming audio, the server will signal that the stream is finished with this message:
+
+```json
+{
+  "type": "websocket.audio",
+  "command": "audio-stream-end"
+}
+```
+
+A `ping` command sent to the server will be returned with as similar message containing `pong`
+
+```json
+{
+  "type": "websocket.text",
+  "command": "ping"
+}
+```
