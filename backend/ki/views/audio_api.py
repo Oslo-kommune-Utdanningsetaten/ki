@@ -11,18 +11,14 @@ import random
 
 # Raise the root logger threshold to WARNING
 logging.basicConfig(level=logging.WARNING)
-
 # Create a dedicated logger for this module
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# consider using a websocket connection to Azure
-# https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/tts-text-stream/text_stream_sample.py
-
-# serverStatus is one of: 'websocketOpened', 'websocketClosed','initializing', 'receivingAudioFromClient', 'sendingTextToClient', 'generatingChatResponse', 'generatingAudioResponse', 'streamingAudioToClient', 'idle'
-
-def get_ssml(text, language, voice):
+# Use SSML to adjust speech rate
+def assemble_ssml(text, language, voice):
     return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{language}'><voice name='{voice}'><prosody rate='+15.00%'>{text}</prosody></voice></speak>"
+
 
 class AudioConsumer(AsyncWebsocketConsumer):
 
@@ -60,7 +56,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
             self.push_stream_audio.close()
             self.speech_recognizer.stop_continuous_recognition()
             self.speech_synthesizer.stop_speaking()
-            await self.send_server_status("websocketClosed") # this will likely not happen, because the connection is already closed
         except Exception as e:
             self.log(f"Error during cleanup: {e}")
         raise StopConsumer()
@@ -165,11 +160,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
         await self.send_server_status("generatingAudioResponse")
 
         try:
-            #result = self.speech_synthesizer.speak_text_async(textInput).get()
-            input_ssml = get_ssml(textInput, self.selected_language, self.selected_voice)
-            self.log(f"SSML: {input_ssml}")
+            input_ssml = assemble_ssml(textInput, self.selected_language, self.selected_voice)
             result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
-            self.log(f"SSMLresult: {result}")
             audio_stream = AudioDataStream(result)
         except Exception as e:
             self.log(f"Error during speech synthesis: {e}")
