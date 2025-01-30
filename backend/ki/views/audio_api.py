@@ -4,6 +4,7 @@ import json
 from azure.cognitiveservices.speech import SpeechConfig, AudioConfig, SpeechRecognizer, SpeechSynthesizer, AudioDataStream, SpeechSynthesisOutputFormat
 from azure.cognitiveservices.speech.audio import PushAudioInputStream
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.exceptions import StopConsumer
 from ki.views.ai_providers.azure import chat_completion_azure
 import logging
 import random
@@ -62,7 +63,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
             await self.send_server_status("websocketClosed") # this will likely not happen, because the connection is already closed
         except Exception as e:
             self.log(f"Error during cleanup: {e}")
-
+        raise StopConsumer()
 
     # Called when the WebSocket receives a message
     async def receive(self, text_data=None, bytes_data=None):
