@@ -303,7 +303,7 @@ const sendServerConfig = () => {
         type: 'websocket.text',
         selected_language: selectedLanguage.value,
         selected_voice: selectedVoice.value,
-        selected_speech_rate: selectedSpeechRate.value,
+        selected_speech_rate: selectedSpeechRate.value.value,
         bot_uuid: props.bot.uuid,
         bot_model: props.bot.model?.deployment_id || 'gpt-4o-mini',
       })
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
           {{ isLanguageOptionsVisible ? 'Skjul' : 'Vis' }} språkvalg
         </button>
 
-        <div class="container border" v-if="isLanguageOptionsVisible">
+        <div class="container border pt-2" v-if="isLanguageOptionsVisible">
           <label for="language">Språk</label>
           <select v-model="selectedLanguage" class="form-select mb-3" @input="handleFormEdited">
             <option
@@ -403,13 +403,9 @@ onBeforeUnmount(() => {
             </option>
           </select>
 
-          <label for="voice">Tempo</label>
+          <label for="tempo">Tempo</label>
           <select v-model="selectedSpeechRate" class="form-select mb-3">
-            <option
-              v-for="speechRate in speechRates"
-              :key="speechRate.name"
-              :value="speechRate.value"
-            >
+            <option v-for="speechRate in speechRates" :key="speechRate.name" :value="speechRate">
               {{ speechRate.title }}
             </option>
           </select>

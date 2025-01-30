@@ -161,6 +161,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
         try:
             input_ssml = self.assemble_ssml(textInput)
+            self.log(f"SSML: {input_ssml}")
             result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
             audio_stream = AudioDataStream(result)
         except Exception as e:
