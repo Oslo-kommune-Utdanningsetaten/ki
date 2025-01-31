@@ -189,7 +189,7 @@ onMounted(async () => {
         <strong>Dette er instruksene jeg har fått</strong>
         <p>{{ getSystemPrompt() }}</p>
         <strong>Jeg bruker modellen</strong>
-        <p>{{ bot.model.display_name }}</p>
+        <p>{{ bot.model ? bot.model.display_name : store.defaultModel.display_name }}</p>
       </div>
     </div>
   </div>
