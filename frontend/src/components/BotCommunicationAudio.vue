@@ -331,18 +331,24 @@ const scrollToPageBottom = () => {
 }
 
 // watch for changes in selectedLanguage or selectedVoice
-watch([selectedLanguage, selectedVoice, selectedSpeechRate], () => {
-  console.log('Language or voice changed, sending server config', selectedSpeechRate)
-  updateLanguagePreferences({
-    selectedLanguage: selectedLanguage.value,
-    selectedVoice: selectedVoice.value,
-    selectedSpeechRate: selectedSpeechRate.value,
-  })
-  selectedVoice.value = getSelectedVoice(selectedLanguage.value)
-  availableVoices.value = getVoicesForLanguage(selectedLanguage.value)
-  selectedSpeechRate.value = getSelectedSpeechRate()
-  sendServerConfig()
-})
+watch(
+  [selectedLanguage, selectedVoice, selectedSpeechRate],
+  ([newLang, newVoice, newRate], [oldLang, oldVoice, oldRate]) => {
+    const oldConfig = `${oldLang}--${oldVoice}--${JSON.stringify(oldRate)}`
+    const newConfig = `${newLang}--${newVoice}--${JSON.stringify(newRate)}`
+    if (oldConfig === newConfig) return
+    recordEvent(`New settings: ${newConfig}`)
+    updateLanguagePreferences({
+      selectedLanguage: selectedLanguage.value,
+      selectedVoice: selectedVoice.value,
+      selectedSpeechRate: selectedSpeechRate.value,
+    })
+    selectedVoice.value = getSelectedVoice(selectedLanguage.value)
+    availableVoices.value = getVoicesForLanguage(selectedLanguage.value)
+    selectedSpeechRate.value = getSelectedSpeechRate()
+    sendServerConfig()
+  }
+)
 
 onMounted(() => {
   resetConversation()
