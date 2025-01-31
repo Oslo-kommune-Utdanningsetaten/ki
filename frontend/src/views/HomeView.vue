@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
-import { ref, onMounted, watchEffect, computed } from 'vue'
+import { ref, watchEffect, computed } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 

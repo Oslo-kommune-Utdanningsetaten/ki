@@ -1,7 +1,7 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
-import { ref, onMounted, computed, watchEffect, watch } from 'vue'
+import { ref, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
 import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
@@ -13,7 +13,6 @@ const bot = ref({
   ingress: '',
   prompt: '',
   prompt_visibility: false,
-  bot_img: 'bot1.svg',
   avatar_scheme: [0, 0, 0, 0, 0, 0, 0],
   temperature: 1,
   model: null,
@@ -138,10 +137,17 @@ const getBotInfo = async () => {
     if (!bot.value.model) {
       bot.value.model = 'none'
     }
-    models.value = data.models
     lifeSpan.value = data.lifespan
   } catch (error) {
     console.log(error)
+  }
+  if (store.isAdmin || store.isAuthor) {
+    try {
+      const { data } = await axios.get('/api/bot_models')
+      models.value = data.models
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 

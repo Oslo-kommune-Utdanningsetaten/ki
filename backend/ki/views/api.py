@@ -178,6 +178,21 @@ def favorite(request, bot_uuid):
             return Response({'favorite': True})
 
 @api_view(["GET"])
+def bot_models(request):
+    bot_models = models.BotModel.objects.all()
+    return Response({
+        'models': [
+            {
+                'model_id': model.model_id,
+                'display_name': model.display_name,
+                'model_description': model.model_description,
+                'training_cutoff': model.training_cutoff,
+            }
+            for model in bot_models
+        ]
+    })
+
+@api_view(["GET"])
 def user_bots(request):
     if not request.session.get('user.username', None):
         return Response({
@@ -284,16 +299,6 @@ def empty_bot(request, bot_type):
             'tags': tag_items,
         })
 
-    bot_models = []
-    if is_admin or is_author:
-        for model in models.BotModel.objects.all():
-            bot_models.append({
-                'model_id': model.model_id,
-                'display_name': model.display_name,
-                'model_description': model.model_description,
-                'training_cutoff': model.training_cutoff,
-            })
-
     return Response({
         'bot': {
             'title': '',
@@ -304,7 +309,6 @@ def empty_bot(request, bot_type):
             'allow_distribution': True,
             'mandatory': False,
             'is_audio_enabled': False,
-            'bot_img': "bot5.svg",
             'avatar_scheme': [0, 0, 0, 0, 0, 0, 0],
             'temperature': '1',
             'model': None,
@@ -317,7 +321,6 @@ def empty_bot(request, bot_type):
             'tag_categories': tag_categories,
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
-        'models': bot_models,
     })
 
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -573,16 +576,6 @@ def bot_info(request, bot_uuid=None):
         'training_cutoff': bot.model_id.training_cutoff,
     } if bot.model_id else None
 
-    bot_models = []
-    if is_admin or is_author:
-        for model in models.BotModel.objects.all():
-            bot_models.append({
-                'model_id': model.model_id,
-                'display_name': model.display_name,
-                'model_description': model.model_description,
-                'training_cutoff': model.training_cutoff,
-            })
-
     return Response({
         'bot': {
             'uuid': bot.uuid,
@@ -608,7 +601,6 @@ def bot_info(request, bot_uuid=None):
             'tag_categories': tag_categories,
         },
         'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
-        'models': bot_models,
     })
 
 

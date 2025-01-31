@@ -4,9 +4,11 @@ import { axiosInstance as axios } from './clients'
 export const store = reactive({
   isAdmin: false,
   isEmployee: false,
+  isAuthor: false,
   editGroups: false,
   messages: [],
   isAuthenticated: null,
+  defaultModel: {},
 
   logout() {
     axios
@@ -23,6 +25,7 @@ export const store = reactive({
   resetStore() {
     this.isAdmin = false
     this.isEmployee = false
+    this.isAuthor = false
     this.editGroups = false
     this.messages = []
     this.isAuthenticated = false

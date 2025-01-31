@@ -6,7 +6,6 @@ import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import Conversation from '@/components/Conversation.vue'
 import { getCookie } from '../utils/httpTools.js'
-import { renderMessage } from '../utils/renderTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
 
 const route = useRoute()
@@ -264,11 +263,8 @@ onMounted(() => {
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått:</strong>
         <p>{{ messages[0].content }}</p>
-        <p v-if="bot.model" class="mb-0">
-          <strong>Jeg bruker modellen {{ bot.model.display_name }}.</strong>
-        </p>
-        <p v-else class="mb-0">
-          <strong>Jeg bruker modellen {{ store.defaultModel.display_name }}</strong>
+        <p class="mb-0">
+          <strong>Jeg bruker modellen {{ bot.model ? bot.model.display_name : store.defaultModel.display_name }}.</strong>
         </p>
       </div>
     </div>

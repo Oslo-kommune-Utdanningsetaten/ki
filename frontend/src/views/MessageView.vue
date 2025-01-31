@@ -1,6 +1,6 @@
 <script setup>
-import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, watchEffect } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { watchEffect } from 'vue'
 import { store } from '../store.js'
 
 const route = useRoute()

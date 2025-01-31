@@ -1,7 +1,7 @@
 <script setup>
-import { RouterLink, useRouter, useRoute } from 'vue-router'
+import {  useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
-import { ref, onMounted, watchEffect } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 const contentText = ref('')
 const route = useRoute()
