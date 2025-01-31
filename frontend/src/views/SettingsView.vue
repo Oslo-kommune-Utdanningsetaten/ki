@@ -1,5 +1,5 @@
 <script setup>
-import { RouterLink, useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
 import { ref, onMounted, computed } from 'vue'
 
