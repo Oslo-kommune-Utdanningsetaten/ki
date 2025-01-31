@@ -239,7 +239,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.current_server_status = status
         await self.send(text_data=json.dumps({
             "type": "websocket.text",
-            "serverStatus": status
+            "serverStatus": status,
+            "connectionId": self.identifier
         }))
 
 

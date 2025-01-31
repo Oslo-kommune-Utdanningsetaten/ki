@@ -88,11 +88,12 @@ const handleToggleRecording = async () => {
   }
 }
 
-const recordEvent = (description, isMessageFromServer) => {
+const recordEvent = (description, connectionId) => {
   statusHistory.value.push({
     time: elapsedSeconds(),
     event: description,
-    source: isMessageFromServer ? 'server' : 'client',
+    source: connectionId ? 'server' : 'client',
+    connectionId,
   })
 }
 
@@ -163,7 +164,7 @@ const initializeWebsocket = async () => {
 
     if (event.code === 1000 || event.code === 1005) {
       // normal close, do nothing
-      recordEvent(`WebSocket closed with code ${event.code}, and everything should be just fine`)
+      recordEvent(`Close code ${event.code} is expected, all is well`)
       return
     } else {
       // unexpected close, try to reconnect
@@ -186,14 +187,20 @@ const initializeWebsocket = async () => {
   websocket.onmessage = event => {
     if (typeof event.data === 'string') {
       // server is updating messages or reporting on its status
-      const { type, command, serverStatus, messages: updatedMessages } = JSON.parse(event.data)
+      const {
+        type,
+        command,
+        serverStatus,
+        connectionId,
+        messages: updatedMessages,
+      } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         messages.value = [...updatedMessages]
         scrollToPageBottom()
       }
       if (serverStatus) {
         currentServerStatus.value = serverStatus
-        recordEvent(serverStatus, true)
+        recordEvent(serverStatus, connectionId)
         if (
           [
             'sendingTextToClient',
@@ -447,19 +454,21 @@ onBeforeUnmount(() => {
     <a @click="handleToggleDebug" class="invisible-button">
       {{ isDebugHistoryVisible ? 'Skjul' : 'Vis' }} debughistorikk
     </a>
-    <table v-if="isDebugHistoryVisible" class="table table-sm table-striped">
+    <table v-if="isDebugHistoryVisible" class="table table-sm">
       <thead>
         <tr>
           <th>Time</th>
-          <th>Source</th>
           <th>Event</th>
+          <th>Source</th>
+          <th>Connection ID</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="status in statusHistory">
+        <tr v-for="status in statusHistory" :class="status.source">
           <td>{{ status.time }}</td>
-          <td>{{ status.source }}</td>
           <td>{{ status.event }}</td>
+          <td>{{ status.source }}</td>
+          <td>{{ status.connectionId || '' }}</td>
         </tr>
       </tbody>
     </table>
@@ -472,6 +481,13 @@ onBeforeUnmount(() => {
   background-color: transparent;
   border: none;
   cursor: pointer;
+}
+
+tr.client td {
+  background-color: #a1c2fa;
+}
+tr.server td {
+  background-color: #ddbcff;
 }
 
 .audio-control {
