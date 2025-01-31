@@ -22,9 +22,9 @@ class AudioConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
 
-        self.identifier = random.randint(1000, 9999)
+        self.identifier = random.randint(10000, 99999)
 
-        # Initialize messages list
+        # Initialize vars
         self.messages = []
         self.bot_model = None
         self.bot_uuid = None
@@ -57,7 +57,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
             self.log(f"Error during cleanup: {e}")
         raise StopConsumer()
 
-    # Called when the WebSocket receives a message
+
+    # Fires when the WebSocket receives a message from the client
     async def receive(self, text_data=None, bytes_data=None):
         if text_data:
             # Client is sending text data. This usually happens at init and when language/voice is changed
@@ -109,6 +110,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.initialize_speech_recognizer()
 
 
+    # Callback which fires whenever Azure recognizes speech
     def recognized_callback(self, evt):
         # Received transcript from Azure
         recognized_text = evt.result.text
@@ -156,12 +158,12 @@ class AudioConsumer(AsyncWebsocketConsumer):
             asyncio.run(self.synthesize_and_stream(completion))
 
 
+    # Synthesize speech from text and stream audio to client
     async def synthesize_and_stream(self, textInput):
         await self.send_server_status("generatingAudioResponse")
 
         try:
             input_ssml = self.assemble_ssml(textInput)
-            self.log(f"SSML: {input_ssml}")
             result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
             audio_stream = AudioDataStream(result)
         except Exception as e:
@@ -194,8 +196,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
 
     async def initialize_speech_recognizer(self):
-        self.log(f"Initializing speech recognizer")
-        self.log(f"Language: {self.selected_language}")
+        self.log(f"Initializing speech recognizer [{self.selected_language}]")
         await self.send_server_status("initializing")
         # Stop any existing recognition
         if self.speech_recognizer:
@@ -216,8 +217,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
 
     async def initialize_speech_synthesizer(self):
-        self.log(f"Initializing speech synthesizer")
-        self.log(f"Language: {self.selected_language} and voice: {self.selected_voice}")
+        self.log(f"Initializing speech synthesizer [{self.selected_language}, {self.selected_voice}]")
         await self.send_server_status("initializing")
         # Stop any existing synthesis
         if self.speech_synthesizer:
@@ -243,7 +243,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         }))
 
 
-    # Use SSML to adjust speech rate
+    # Use SSML in order to control speech rate
     def assemble_ssml(self, text):
         return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{self.selected_language}'><voice name='{self.selected_voice}'><prosody rate='{self.selected_speech_rate}'>{text}</prosody></voice></speak>"
 

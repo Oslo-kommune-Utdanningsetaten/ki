@@ -88,8 +88,12 @@ const handleToggleRecording = async () => {
   }
 }
 
-const recordEvent = description => {
-  statusHistory.value.push({ time: elapsedSeconds(), event: description })
+const recordEvent = (description, isMessageFromServer) => {
+  statusHistory.value.push({
+    time: elapsedSeconds(),
+    event: description,
+    source: isMessageFromServer ? 'server' : 'client',
+  })
 }
 
 const handleTogglePlayback = () => {
@@ -189,7 +193,7 @@ const initializeWebsocket = async () => {
       }
       if (serverStatus) {
         currentServerStatus.value = serverStatus
-        recordEvent(`Server status: ${serverStatus}`)
+        recordEvent(serverStatus, true)
         if (
           [
             'sendingTextToClient',
@@ -441,12 +445,14 @@ onBeforeUnmount(() => {
       <thead>
         <tr>
           <th>Time</th>
+          <th>Source</th>
           <th>Event</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="status in statusHistory">
           <td>{{ status.time }}</td>
+          <td>{{ status.source }}</td>
           <td>{{ status.event }}</td>
         </tr>
       </tbody>
