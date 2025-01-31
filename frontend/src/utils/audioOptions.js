@@ -3,6 +3,7 @@ import { getPreferences, setPreferences } from './localstorageTools.js'
 export const speechRates = [
   { name: 'slow', title: 'Sakte', value: "-15.00%" },
   { name: 'normal', title: 'Vanlig', value: "+10.00%" },
+  { name: 'fast', title: 'Fort', value: "+20.00%" },
 ]
 const defaultLanguage = 'nb-NO'
 const defaultSpeechRate = speechRates[1]
