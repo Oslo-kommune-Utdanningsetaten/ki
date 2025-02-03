@@ -720,8 +720,7 @@ async def send_img_message(request):
 
     try:
         response = await azureClient.images.generate(
-            model=bot.model.deployment_id,
-            # model='dall-e-3',
+            model='dall-e-3',
             size='1024x1024',
             quality='standard',
             prompt=prompt,
