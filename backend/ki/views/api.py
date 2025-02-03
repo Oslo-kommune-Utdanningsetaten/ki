@@ -617,8 +617,8 @@ def school_access(request):
         school_body = body.get('school', False)
         school = models.School.objects.get(org_nr=school_body.get('org_nr'))
         school.access = school_body.get('access', 'none')
+        school.school_accesses.all().delete()
         if school.access == 'levels':
-            school.school_accesses.all().delete()
             for level in school_body.get('access_list', []):
                 access = models.SchoolAccess(school_id=school, level=level)
                 access.save()
