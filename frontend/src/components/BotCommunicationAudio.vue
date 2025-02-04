@@ -4,7 +4,7 @@ import BotAvatar from '@/components/BotAvatar.vue'
 import ConversationSimple from '@/components/ConversationSimple.vue'
 import AudioWave from '@/components/AudioWave.vue'
 import workletURL from '@/utils/pcm-processor.js?url'
-
+import { getUser } from '@/utils/httpTools.js'
 import {
   languageOptions,
   getSelectedLanguage,
@@ -13,7 +13,7 @@ import {
   getSelectedSpeechRate,
   updateLanguagePreferences,
   speechRates,
-} from '../utils/audioOptions.js'
+} from '@/utils/audioOptions.js'
 
 const props = defineProps({
   bot: {
@@ -29,26 +29,34 @@ const props = defineProps({
 const websocketUrl = import.meta.env.DEV
   ? 'ws://localhost:5000/ws/audio/'
   : `wss://${window.location.host}/ws/audio/`
-const recordButtonCooldown = 2000
-const maxConnectionRetries = 5
+
 // Put record button on 2 seconds cooldown to avoid double clicks and spam-creating websocket connections
+const recordButtonCooldown = 2000
+
+// For keeping track of connection retries
+const maxConnectionRetries = 5
 let connectionRetries = 0
 
+const microphonePermissionStatus = ref('denied')
 const isMicRecording = ref(false)
 const isBotSpeaking = ref(false)
 const isLanguageOptionsVisible = ref(false)
-const isDebugHistoryVisible = ref(false)
 const isRecordButtonOnCooldown = ref(false)
 const currentServerStatus = ref('')
+const messages = ref([])
+
+// Debug history, we can get rid of this after a couple of weeks in production
+const isDebugHistoryVisible = ref(false)
 const statusHistory = ref([])
 const startTime = ref(null)
-const messages = ref([])
-const selectedLanguage = ref(getSelectedLanguage())
-const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
-const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
-const selectedSpeechRate = ref(getSelectedSpeechRate())
-const microphonePermissionStatus = ref('denied')
 
+// Language options
+const selectedLanguage = ref(getSelectedLanguage())
+const availableVoices = ref(getVoicesForLanguage(selectedLanguage.value))
+const selectedVoice = ref(getSelectedVoice(selectedLanguage.value))
+const selectedSpeechRate = ref(getSelectedSpeechRate())
+
+let currentUser
 let audioContext
 let audioSource
 let websocket
@@ -117,6 +125,12 @@ const resetConversation = () => {
       content: props.systemPrompt,
     },
   ]
+}
+
+const getUserInfo = async () => {
+  currentUser = await getUser()
+  delete currentUser.username
+  delete currentUser.name
 }
 
 const initializeWebsocket = async () => {
@@ -317,6 +331,7 @@ const sendServerConfig = () => {
         selected_speech_rate: selectedSpeechRate.value.value,
         bot_uuid: props.bot.uuid,
         bot_model: props.bot.model?.deployment_id || 'gpt-4o-mini',
+        user_info: currentUser,
       })
     )
   }
@@ -358,6 +373,7 @@ watch(
 )
 
 onMounted(() => {
+  getUserInfo()
   resetConversation()
   checkMicrophonePermissionStatus()
   startTime.value = Date.now()

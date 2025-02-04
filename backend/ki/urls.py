@@ -19,6 +19,7 @@ apiurls = [
   path("api/empty_bot/<str:bot_type>", api.empty_bot, name="api.empty_bot"),
   path("api/bot_info/", api.bot_info, name="api.bot_info"),
   path("api/bot_info/<uuid:bot_uuid>", api.bot_info, name="api.bot_info"),
+  path("api/user_info/", api.user_info, name="api.buser_info"),
   path("api/settings", api.settings, name="api.settings"),
   path("api/school_access", api.school_access, name="api.school_access"),
   path("api/menu_items", api.menu_items, name="api.menu_items"),

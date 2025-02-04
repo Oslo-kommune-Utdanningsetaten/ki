@@ -17,6 +17,15 @@ export const getCookie = name => {
   return cookieValue
 }
 
+export const getUser = async (botId) => {
+  try {
+    const { data } = await axios.get('/api/user_info/')
+    return data.user
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 export const getBot = async (botId) => {
   try {
     const { data } = await axios.get('/api/bot_info/' + botId)

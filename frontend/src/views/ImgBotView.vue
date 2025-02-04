@@ -26,25 +26,21 @@ const editMessageAtIndex = index => {
 }
 
 const sendMessage = async () => {
-  messages.value.push(
-    {
-      role: 'user',
-      content: message.value,
-    },
-    {
-      role: 'assistant',
-      content: '',
-      imageUrl: '',
-    }
-  )
   isProcessingInput.value = true
-
+  messages.value.push({
+    role: 'user',
+    content: message.value,
+  })
   const data = {
     uuid: bot.value.uuid,
-    prompt: message.value,
+    messages: new Array(...messages.value),
   }
+  messages.value.push({
+    role: 'assistant',
+    content: '',
+    imageUrl: '',
+  })
   const { revisedPrompt, imageUrl } = await submitImagePrompt(data)
-
   message.value = revisedPrompt
   // patch the last message with the revised prompt and image url
   messages.value[messages.value.length - 1].content = revisedPrompt

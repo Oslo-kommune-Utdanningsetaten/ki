@@ -24,26 +24,26 @@ aarstrinn_codes = {
     'vg3': 13,
 }
 
-
-async def use_log(bot, request, message_length):
+def get_user_data_from_request(request):
+    # level
+    level = None
+    if (levels := request.g.get('levels', None)) and role == 'student':
+        level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+    # school_ids
+    school_ids = [school.org_nr for school in request.g.get('schools', [])]
+    # role
     role = 'student'
     role = 'employee' if request.g.get('employee', False) else role
     role = 'admin' if request.g.get('admin', False) else role
-    log_line = models.UseLog()
-    log_line.role = role
-    if (levels := request.g.get('levels', None)) and role == 'student':
-        log_line.level =min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
-    else:
-        log_line.level = None
-    log_line.bot_id = bot.uuid
-    log_line.message_length = message_length
+    return level, school_ids, role
+
+
+async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1):
+    print(f"role: {role}, level: {level}, schools: {schools}, message_length: {message_length}")
+    log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length)
     await log_line.asave()
-   
-    for school in request.g.get('schools', []):
-        await models.LogSchool(
-            school_id=school,
-            log_id=log_line
-        ).asave()
+    for school in schools:
+        await models.LogSchool(school_id=school.org_nr, log_id=log_line.id).asave()
 
 
 def get_groups(request):
@@ -239,6 +239,46 @@ def user_bots(request):
         'tag_categories': tag_categories,
         'status': 'ok',
         'view_filter': request.g['settings']['view_filter'],
+    })
+
+
+@api_view(["GET"])
+def user_info(request):
+    # Roles
+    roles = []
+    role = 'student'
+    if request.g.get('employee', False):
+        role = 'employee'
+        roles.append(role)
+    if request.g.get('admin', False):
+        role = 'admin'
+        roles.append(role)
+    # Schools
+    schools = []
+    for school in request.g.get('schools', []):
+        schools.append({
+            'org_nr': school.org_nr,
+            'school_name': school.school_name,
+        })
+    # Levels
+    level = None
+    if (levels := request.g.get('levels', None)) and role == 'student':
+        level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+
+    return Response({
+        'user': {
+            'username': request.g.get('username', None),
+            'name': request.g.get('name', None),
+            'is_admin': request.g.get('admin', False),
+            'is_employee': request.g.get('employee', False),
+            'is_author': request.g.get('author', False),
+            'schools': schools,
+            'auth_school': request.g.get('auth_school', None),
+            'role': role,
+            'roles': roles,
+            'level': level,
+            'levels': request.g.get('levels', None),
+        }
     })
 
 
@@ -696,7 +736,8 @@ async def send_message(request):
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    await use_log(bot, request, len(messages))
+    level, school_ids, role = get_user_data_from_request(request)
+    await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages))
     return await chat_completion_azure_streamed(messages, model=bot_model, temperature=bot.temperature)
 
 
@@ -704,13 +745,16 @@ async def send_message(request):
 async def send_img_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
-    prompt = body.get('prompt')
+    messages = body.get('messages')
+    prompt = messages[-1].get('content')
     if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
+        bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    await use_log(bot, request, 1)
-    return await generate_image_azure(prompt, model=bot.model.deployment_id)
+    level, school_ids, role = get_user_data_from_request(request)
+    await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages))
+    return await generate_image_azure(prompt, model=bot_model_obj.deployment_id)
 

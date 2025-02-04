@@ -6,6 +6,8 @@ from azure.cognitiveservices.speech.audio import PushAudioInputStream
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.exceptions import StopConsumer
 from ki.views.ai_providers.azure import chat_completion_azure
+from .api import use_log
+
 import logging
 import random
 
@@ -28,6 +30,9 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.messages = []
         self.bot_model = None
         self.bot_uuid = None
+        self.user_level = None
+        self.user_role = None
+        self.user_schools = None
         self.selected_language = None
         self.selected_voice = None
         self.selected_speech_rate = None
@@ -85,12 +90,15 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.selected_voice = data.get('selected_voice')
             if data.get('selected_speech_rate'):
                 self.selected_speech_rate = data.get('selected_speech_rate')
+            if data.get('user_info'):
+                self.user_role = data.get('user_info', {}).get('role', None)
+                self.user_level = data.get('user_info', {}).get('level', None)
+                self.user_schools = data.get('user_info', {}).get('schools', [])
 
-            # Initialize speech recognizer and/or synthesizer if client made changes
-            # If speech rate is changed, no need to reinitialize
+            # Initialize speech recognizer if client made changes
             if self.selected_language != self.speech_config.speech_recognition_language:
                 await self.initialize_speech_recognizer()
-
+            # Initialize speech synthesizer if client made changes
             if self.selected_language != self.speech_config.speech_recognition_language or self.selected_voice != self.speech_config.speech_synthesis_voice_name:
                 await self.initialize_speech_synthesizer()
 
@@ -110,52 +118,51 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.initialize_speech_recognizer()
 
 
-    # Callback which fires whenever Azure recognizes speech
-    def recognized_callback(self, evt):
-        # Received transcript from Azure
-        recognized_text = evt.result.text
-        if recognized_text:
-            self.log(f"Received transcript: {recognized_text}")
+    async def create_completion_from_transcript(self, recognized_text):
+        self.log(f"Received transcript: {recognized_text}")
 
-            # For cosmetic reasons, if recognized_text includes only one period, remove it
-            if recognized_text.count('.') == 1:
-                recognized_text = recognized_text.strip('.')
+        # For cosmetic reasons, if recognized_text includes only one period, remove it
+        if recognized_text.count('.') == 1:
+            recognized_text = recognized_text.strip('.')
 
-            self.messages.append({
-                "role": "user",
-                "content": recognized_text
-            })
+        self.messages.append({
+            "role": "user",
+            "content": recognized_text
+        })
 
-            asyncio.run(self.send_server_status("sendingTextToClient"))
+        await self.send_server_status("sendingTextToClient")
 
-            # Send updated messages to client
-            asyncio.run(self.send(text_data=json.dumps({
-                "type": "websocket.text",
-                "messages": self.messages
-            })))
+        # Send updated messages to client
+        await self.send(text_data=json.dumps({
+            "type": "websocket.text",
+            "messages": self.messages
+        }))
 
-            asyncio.run(self.send_server_status("generatingChatResponse"))
+        # Log usage
+        await use_log(self.bot_uuid, role=self.user_role, level=self.user_level, schools=self.user_schools, message_length=len(self.messages))
 
-            # Request completion based on messages
-            completion = asyncio.run(chat_completion_azure(self.messages, model=self.bot_model))
-            self.log(f"Generated completion: {completion}")
+        await self.send_server_status("generatingChatResponse")
 
-            # Append completion to messages
-            self.messages.append({
-                "role": "assistant",
-                "content": completion
-            })
+        # Request completion based on messages
+        completion = await chat_completion_azure(self.messages, model=self.bot_model)
+        self.log(f"Generated completion: {completion}")
 
-            asyncio.run(self.send_server_status("sendingTextToClient"))
+        # Append completion to messages
+        self.messages.append({
+            "role": "assistant",
+            "content": completion
+        })
 
-            # Send updated messages to client
-            asyncio.run(self.send(text_data=json.dumps({
-                "type": "websocket.text",
-                "messages": self.messages
-            })))
+        await self.send_server_status("sendingTextToClient")
 
-            # Synthesize completion and stream audio to client
-            asyncio.run(self.synthesize_and_stream(completion))
+        # Send updated messages to client
+        await self.send(text_data=json.dumps({
+            "type": "websocket.text",
+            "messages": self.messages
+        }))
+
+        # Synthesize completion and stream audio to client
+        await self.synthesize_and_stream(completion)
 
 
     # Synthesize speech from text and stream audio to client
@@ -255,7 +262,13 @@ class AudioConsumer(AsyncWebsocketConsumer):
         logger.debug(f"{self.identifier}: {message}")
 
 
-    # The following callbacks are not used, but implemented just to get a sense of what happens when
+    # Speech recognizer callback which fires whenever Azure recognizes speech
+    def recognized_callback(self, evt):
+        recognized_text = evt.result.text
+        if recognized_text:
+            asyncio.run(self.create_completion_from_transcript(recognized_text))
+
+    # The following callbacks are not used, but implemented to get a sense of what happens when
     def speech_start_callback(self, evt):
         self.log(f"Recognition start")
 
