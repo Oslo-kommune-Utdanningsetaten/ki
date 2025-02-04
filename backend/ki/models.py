@@ -199,12 +199,17 @@ class Role(models.Model):
 
 
 class UseLog(models.Model):
+    class InteractionTypeEnum(models.TextChoices):
+        TEXT = 'text'
+        AUDIO = 'audio'
+
     id = models.AutoField(primary_key=True)
     role = models.CharField(max_length=20)
     level = models.IntegerField(null=True)
     bot_id = models.CharField(max_length=36)
     message_length = models.IntegerField(null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    interaction_type = models.CharField(max_length=10, choices=InteractionTypeEnum.choices, default=InteractionTypeEnum.TEXT, null=False)
 
     class Meta:
         db_table = 'use_log'

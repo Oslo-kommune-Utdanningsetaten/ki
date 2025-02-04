@@ -55,9 +55,9 @@ def get_user_data_from_request(request):
     return level, school_ids, role
 
 
-async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1):
+async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1, interaction_type='text'):
     from ki import models # Avoid circular import
-    log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length)
+    log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
     await log_line.asave()
     for school in schools:
         await models.LogSchool(school_id=school.org_nr, log_id=log_line.id).asave()

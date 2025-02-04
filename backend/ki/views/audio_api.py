@@ -139,7 +139,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         }))
 
         # Log usage
-        await use_log(self.bot_uuid, role=self.user_role, level=self.user_level, schools=self.user_schools, message_length=len(self.messages))
+        await use_log(self.bot_uuid, role=self.user_role, level=self.user_level, schools=self.user_schools, message_length=len(self.messages), interaction_type='audio')
 
         await self.send_server_status("generatingChatResponse")
 
