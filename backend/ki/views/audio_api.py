@@ -6,7 +6,7 @@ from azure.cognitiveservices.speech.audio import PushAudioInputStream
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.exceptions import StopConsumer
 from ki.views.ai_providers.azure import chat_completion_azure
-from .api import use_log
+from ki.views.utils import use_log
 
 import logging
 import random
