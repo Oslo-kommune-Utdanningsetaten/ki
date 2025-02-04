@@ -35,16 +35,18 @@ const sendMessage = async () => {
     uuid: bot.value.uuid,
     messages: new Array(...messages.value),
   }
+  // Add a new message to indicate that the bot is working
   messages.value.push({
     role: 'assistant',
     content: '',
     imageUrl: '',
   })
   const { revisedPrompt, imageUrl } = await submitImagePrompt(data)
-  message.value = revisedPrompt
   // patch the last message with the revised prompt and image url
   messages.value[messages.value.length - 1].content = revisedPrompt
   messages.value[messages.value.length - 1].imageUrl = imageUrl
+  // Update text area content with revised prompt
+  message.value = revisedPrompt
   isProcessingInput.value = false
 }
 
