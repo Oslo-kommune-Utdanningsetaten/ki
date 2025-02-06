@@ -84,7 +84,7 @@ const clipboardAll = bot => {
     user: 'Du',
     assistant: 'Bot',
   }
-  const omitFirst = !bot.prompt_visibility && copy_text.length > 0
+  const omitFirst = !bot.prompt_visibility && messages.value.length > 0
   const sourceMessages = omitFirst ? messages.value.slice(1) : messages.value
   const textToCopy = sourceMessages
     .map(message => `${roles[message.role]}: ${message.content}`)

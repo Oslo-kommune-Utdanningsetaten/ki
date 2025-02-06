@@ -114,7 +114,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 # Create an audio configuration using the new push stream
                 self.audio_input_config = AudioConfig(stream=self.push_stream_audio)
                 # Reinitialize speech recognizer
-                self.initialize_speech_recognizer()
+                await self.initialize_speech_recognizer()
 
 
     async def create_completion_from_transcript(self, recognized_text):
