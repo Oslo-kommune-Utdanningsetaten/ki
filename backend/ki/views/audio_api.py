@@ -1,15 +1,14 @@
 import os
 import asyncio
 import json
+import uuid
+import logging
 from azure.cognitiveservices.speech import SpeechConfig, AudioConfig, SpeechRecognizer, SpeechSynthesizer, AudioDataStream, SpeechSynthesisOutputFormat
 from azure.cognitiveservices.speech.audio import PushAudioInputStream
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.exceptions import StopConsumer
-from ki.views.ai_providers.azure import chat_completion_azure
-from ki.views.utils import use_log
-
-import logging
-import random
+from ki.ai_providers.azure import chat_completion_azure
+from ki.utils import use_log
 
 # Raise the root logger threshold to WARNING
 logging.basicConfig(level=logging.WARNING)
@@ -24,9 +23,9 @@ class AudioConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
 
-        self.identifier = random.randint(10000, 99999)
 
         # Initialize vars
+        self.connection_id = str(uuid.uuid4())
         self.messages = []
         self.bot_model = None
         self.bot_uuid = None
@@ -144,7 +143,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         await self.send_server_status("generatingChatResponse")
 
         # Request completion based on messages
-        completion = await chat_completion_azure(self.messages, model=self.bot_model)
+        completion = await chat_completion_azure(self.messages, self.bot_model)
         self.log(f"Generated completion: {completion}")
 
         # Append completion to messages
@@ -171,7 +170,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
         try:
             input_ssml = self.assemble_ssml(textInput)
-            self.log(f"Synthesizing SSML: {input_ssml}")
             result = self.speech_synthesizer.speak_ssml_async(input_ssml).get()
             audio_stream = AudioDataStream(result)
         except Exception as e:
@@ -248,7 +246,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "websocket.text",
             "serverStatus": status,
-            "connectionId": self.identifier
+            "connectionId": self.connection_id
         }))
 
 
@@ -257,9 +255,9 @@ class AudioConsumer(AsyncWebsocketConsumer):
         return f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='{self.selected_language}'><voice name='{self.selected_voice}'><prosody rate='{self.selected_speech_rate}'>{text}</prosody></voice></speak>"
 
 
-    # Wrapper for easy logging with identifier prefix
+    # Wrapper for easy logging with connection_id prefix
     def log(self, message):
-        logger.debug(f"{self.identifier}: {message}")
+        logger.debug(f"{self.connection_id}: {message}")
 
 
     # Speech recognizer callback which fires whenever Azure recognizes speech

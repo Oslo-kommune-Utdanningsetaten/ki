@@ -4,7 +4,7 @@ import os
 import json
 
 default_model = 'gpt-4o-mini'
-default_temperature = 0.7
+DEFAULT_TEMPERATURE = 0.7
 
 azureClient = AsyncAzureOpenAI(
     azure_endpoint=os.environ.get('OPENAI_API_BASE'),
@@ -12,7 +12,7 @@ azureClient = AsyncAzureOpenAI(
     api_version=os.environ.get('OPENAI_API_VERSION'),
 )
 
-async def chat_completion_azure(messages, model=default_model, temperature=default_temperature):
+async def chat_completion_azure(messages, model, temperature=DEFAULT_TEMPERATURE):
     try:
         completion = await azureClient.chat.completions.create(
             model=model,
@@ -40,7 +40,7 @@ async def chat_completion_azure(messages, model=default_model, temperature=defau
         return "Noe gikk galt. Mulig det hjelper å prøve igjen, men det er ikke sikkert."
 
 
-async def chat_completion_azure_streamed(messages, model=default_model, temperature=default_temperature):
+async def chat_completion_azure_streamed(messages, model, temperature=DEFAULT_TEMPERATURE):
     async def stream():
         try:
             completion = await azureClient.chat.completions.create(

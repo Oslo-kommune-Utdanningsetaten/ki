@@ -1,12 +1,11 @@
 from ki import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from asgiref.sync import async_to_sync
 from django.http import HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
 import json
-from ki.views.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.views.utils import use_log, get_user_data_from_request, get_groups_from_request
+from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
+from ki.utils import use_log, get_user_data_from_request, get_groups_from_request, aarstrinn_codes
 
 
 @api_view(["GET"])
@@ -675,7 +674,7 @@ async def send_message(request):
         return HttpResponseNotFound()
     level, school_ids, role = get_user_data_from_request(request)
     await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages), interaction_type='text')
-    return await chat_completion_azure_streamed(messages, model=bot_model, temperature=bot.temperature)
+    return await chat_completion_azure_streamed(messages, bot_model, temperature=bot.temperature)
 
 
 async def send_img_message(request):

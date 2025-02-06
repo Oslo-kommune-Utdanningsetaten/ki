@@ -406,7 +406,9 @@ onBeforeUnmount(() => {
           :disabled="microphonePermissionStatus === 'denied' || !isBotSpeaking"
         >
           <AudioWave v-if="isBotSpeaking" />
-          <BotAvatar v-else :avatar_scheme="props.bot.avatar_scheme" />
+          <span v-else class="bot-icon">
+            <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+          </span>
         </button>
 
         <button
@@ -491,7 +493,7 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-<style>
+<style scoped>
 .invisible-button {
   color: transparent;
   background-color: transparent;
@@ -518,9 +520,8 @@ tr.server td {
   align-items: center;
   padding: 10px;
 
-  svg {
-    width: 55px;
-    padding: auto;
+  .bot-icon {
+    width: 55%;
   }
 
   .mic-icon {
@@ -537,7 +538,6 @@ tr.server td {
   box-shadow: 0px 0px 6px 4px rgba(45, 45, 45, 0.25);
 }
 
-/* Optional: fade in animation */
 .audio-control-button::after {
   opacity: 0;
 }
