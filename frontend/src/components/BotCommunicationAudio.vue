@@ -380,7 +380,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  websocket.close()
+  websocket?.close()
 })
 </script>
 

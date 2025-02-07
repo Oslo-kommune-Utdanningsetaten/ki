@@ -196,12 +196,12 @@ onMounted(async () => {
     </div>
 
     <BotCommunicationText
-      v-if="bot.uuid && communicationMode === 'text'"
+      v-if="communicationMode === 'text'"
       :bot="bot"
       :systemPrompt="systemPrompt"
     />
     <BotCommunicationAudio
-      v-if="bot.uuid && communicationMode === 'audio'"
+      v-if="communicationMode === 'audio'"
       :bot="bot"
       :systemPrompt="systemPrompt"
     />
