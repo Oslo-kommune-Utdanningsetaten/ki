@@ -132,8 +132,7 @@ def user_bots(request):
             'bots': None,
         })
 
-    open_for_distribution = (request.g['settings']['allow_groups'] 
-                            and request.g['dist_to_groups'])
+    open_for_distribution = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     tag_categories = []
     for category in models.TagCategory.objects.all():
@@ -225,8 +224,7 @@ def empty_bot(request, bot_type):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    edit_groups = (request.g['settings']['allow_groups']
-                  and request.g['dist_to_groups'])
+    edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -295,8 +293,7 @@ def bot_info(request, bot_uuid=None):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    edit_groups = (request.g['settings']['allow_groups']
-                  and request.g['dist_to_groups'])
+    edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     new_bot = False if bot_uuid else True
 
@@ -337,14 +334,10 @@ def bot_info(request, bot_uuid=None):
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
         bot.bot_info = body.get('bot_info', bot.bot_info)
-        bot.prompt_visibility = body.get(
-            'prompt_visibility', bot.prompt_visibility)
-        bot.allow_distribution = body.get(
-            'allow_distribution', bot.allow_distribution)
-        bot.mandatory = body.get(
-            'mandatory', bot.mandatory)
-        bot.is_audio_enabled = body.get(
-            'is_audio_enabled', bot.is_audio_enabled)
+        bot.prompt_visibility = body.get('prompt_visibility', bot.prompt_visibility)
+        bot.allow_distribution = body.get('allow_distribution', bot.allow_distribution)
+        bot.mandatory = body.get('mandatory', bot.mandatory)
+        bot.is_audio_enabled = body.get('is_audio_enabled', bot.is_audio_enabled)
         bot.avatar_scheme = ','.join([str(a) for a in body.get('avatar_scheme', bot.avatar_scheme)]) if body.get('avatar_scheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
@@ -625,11 +618,11 @@ def school_access(request):
     schools = models.School.objects.all()
     response = []
     for school in schools:
+        access_list = []
         if school.access == 'levels':
-            access_list = [
-                access.level for access in school.school_accesses.all()]
-        else:
-            access_list = []
+            for access in school.school_accesses.all():
+                access_list.append(access.level)
+
         response.append({
             'org_nr': school.org_nr,
             'school_name': school.school_name,
