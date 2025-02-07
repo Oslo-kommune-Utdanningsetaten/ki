@@ -3,6 +3,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { ref, watchEffect } from 'vue'
 import SpeechToText from '@/components/SpeechToText.vue'
 import Conversation from '@/components/Conversation.vue'
+import { store } from '../store.js'
 import { getBot, submitImagePrompt } from '../utils/httpTools.js'
 
 const route = useRoute()
