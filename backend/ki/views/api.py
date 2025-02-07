@@ -647,8 +647,8 @@ def school_access(request):
         school_body = body.get('school', False)
         school = models.School.objects.get(org_nr=school_body.get('org_nr'))
         school.access = school_body.get('access', 'none')
+        school.school_accesses.all().delete()
         if school.access == 'levels':
-            school.school_accesses.all().delete()
             for level in school_body.get('access_list', []):
                 access = models.SchoolAccess(school_id=school, level=level)
                 access.save()
@@ -749,8 +749,7 @@ async def send_img_message(request):
 
     try:
         response = await azureClient.images.generate(
-            model=bot.model.deployment_id,
-            # model='dall-e-3',
+            model='dall-e-3',
             size='1024x1024',
             quality='standard',
             prompt=prompt,
