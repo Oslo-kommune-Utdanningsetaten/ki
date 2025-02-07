@@ -1,5 +1,6 @@
 <script setup>
 import { ref, useTemplateRef, onMounted } from 'vue'
+import { store } from '../store.js'
 import Conversation from '@/components/Conversation.vue'
 import { submitTextPrompt } from '../utils/httpTools.js'
 import SpeechToText from '@/components/SpeechToText.vue'
@@ -9,6 +10,7 @@ const message = ref('')
 const isProcessingInput = ref(false)
 const isStreaming = ref(false)
 const textInput = useTemplateRef('text-input')
+const maxMessageLength = 15000
 
 const props = defineProps({
   bot: {
@@ -32,6 +34,20 @@ const resetMessages = () => {
 
 const handleMessageInput = messageContent => {
   message.value = message.value + ' ' + messageContent
+}
+
+const handlePaste = () => {
+  // Wait for the paste to complete before checking the length
+  setTimeout(function () {
+    if (message.value.length > maxMessageLength) {
+      const originalLength = message.value.length
+      message.value = message.value.substring(0, maxMessageLength)
+      store.addMessage(
+        `Maks antall tegn tillatt er ${maxMessageLength}. Teksten du limte inn ble redusert med ${originalLength - maxMessageLength} tegn.`,
+        'warning'
+      )
+    }
+  }, 10)
 }
 
 const scrollTo = view => {
@@ -121,6 +137,7 @@ onMounted(async () => {
         v-model="message"
         class="form-control"
         placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
+        @paste="handlePaste()"
         @keypress.enter.exact="sendMessage()"
       ></textarea>
       <div class="card">
