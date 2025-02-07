@@ -11,6 +11,7 @@ const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
 const textInput = ref(null)
+const maxMessageLength = 1500
 
 const resetMessages = () => {
   message.value = ''
@@ -19,6 +20,20 @@ const resetMessages = () => {
 
 const handleMessageInput = messageContent => {
   message.value = message.value + ' ' + messageContent
+}
+
+const handlePaste = () => {
+  // Wait for the paste to complete before checking the length
+  setTimeout(function () {
+    if (message.value.length > maxMessageLength) {
+      const originalLength = message.value.length
+      message.value = message.value.substring(0, maxMessageLength)
+      store.addMessage(
+        `Maks antall tegn tillatt er ${maxMessageLength}. Teksten du limte inn ble redusert med ${originalLength - maxMessageLength} tegn.`,
+        'warning'
+      )
+    }
+  }, 10)
 }
 
 const editMessageAtIndex = index => {
@@ -94,6 +109,7 @@ watchEffect(async () => {
       class="form-control"
       :disabled="isProcessingInput"
       placeholder="Forklar hva bildet skal vise. Ikke legg inn personlige og sensitive opplysninger."
+      @paste="handlePaste()"
       @keypress.enter.exact="sendMessage()"
     ></textarea>
     <div class="card">
