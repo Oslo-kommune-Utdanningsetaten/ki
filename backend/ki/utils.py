@@ -42,16 +42,16 @@ def get_groups_from_request(request):
 
 
 def get_user_data_from_request(request):
+    # role
+    role = 'student'
+    role = 'employee' if request.g.get('employee', False) else role
+    role = 'admin' if request.g.get('admin', False) else role
     # level
     level = None
     if (levels := request.g.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
     # school_ids
     school_ids = [school.org_nr for school in request.g.get('schools', [])]
-    # role
-    role = 'student'
-    role = 'employee' if request.g.get('employee', False) else role
-    role = 'admin' if request.g.get('admin', False) else role
     return level, school_ids, role
 
 
@@ -59,5 +59,9 @@ async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1,
     from ki import models # Avoid circular import
     log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
     await log_line.asave()
-    for school in schools:
-        await models.LogSchool(school_id=school.org_nr, log_id=log_line.id).asave()
+    for school_id in schools:
+        await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
+
+
+
+
