@@ -75,7 +75,7 @@ export const submitImagePrompt = async (data) => {
         }
       }
     )
-    return { revisedPrompt: result.data.revised_prompt, imageUrl: result.data.url }
+    return { revisedPrompt: result.data.revised_prompt, imageUrl: result.data.url, systemMessage: result.data.system_message }
   } catch (error) {
     console.log(error)
   }

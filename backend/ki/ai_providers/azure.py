@@ -84,9 +84,9 @@ async def generate_image_azure(prompt, model):
         data = json_response['data'][0]
     except BadRequestError as e:
         if e.code == "content_policy_violation":
-            data = {'msg': "Dette er ikke et passende emne. Velg noe annet å lage bilde av."}
+            data = {'system_message': "Jeg klarte ikke å lage et bilde av den instruksen. Prøv igjen med en annen?"}
         else:
-            data = {'msg': "Noe gikk galt. Prøv igjen senere."}
+            data = {'system_message': "Noe gikk galt. Prøv igjen senere."}
     return JsonResponse(data)
 
 

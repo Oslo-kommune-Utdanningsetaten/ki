@@ -57,12 +57,12 @@ const sendMessage = async () => {
     content: '',
     imageUrl: '',
   })
-  const { revisedPrompt, imageUrl } = await submitImagePrompt(data)
+  const { revisedPrompt, imageUrl, systemMessage } = await submitImagePrompt(data)
   // patch the last message with the revised prompt and image url
-  messages.value[messages.value.length - 1].content = revisedPrompt
+  messages.value[messages.value.length - 1].content = revisedPrompt || systemMessage
   messages.value[messages.value.length - 1].imageUrl = imageUrl
   // Update text area content with revised prompt
-  message.value = revisedPrompt
+  message.value = revisedPrompt || ''
   isProcessingInput.value = false
 }
 
