@@ -25,18 +25,29 @@ services:
     environment:
       ADMINER_DESIGN: 'dracula'
     extra_hosts:
-      - "db:host-gateway"
+      - 'db:host-gateway'
     volumes:
       - /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock:ro
     profiles:
       - dev
       - prod
-    command: ["php", "-d", "post_max_size=500M", "-d", "upload_max_filesize=500M", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+    command:
+      [
+        'php',
+        '-d',
+        'post_max_size=500M',
+        '-d',
+        'upload_max_filesize=500M',
+        '-S',
+        '0.0.0.0:8080',
+        '-t',
+        '/var/www/html',
+      ]
   backend:
     build: ./backend
     command:
-      - bash 
-      - -c 
+      - bash
+      - -c
       - |
         python manage.py migrate
         python manage.py collectstatic --noinput
@@ -53,7 +64,7 @@ services:
     environment:
       DJANGO_DEBUG: 'False'
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     profiles:
       - prod
     restart: always
@@ -61,7 +72,7 @@ services:
     build: ./frontend
     ports:
       - 5000:80 # For local testing
-      - 8000:80
+      - 80:80
     depends_on:
       - backend
     volumes:
