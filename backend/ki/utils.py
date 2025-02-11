@@ -1,4 +1,5 @@
 import requests
+from ki import models
 
 aarstrinn_codes = {
     'aarstrinn1': 1,
@@ -62,6 +63,13 @@ async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1,
     for school_id in schools:
         await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
 
+
+def get_setting(setting_key):
+    setting = models.Setting.objects.get(setting_key=setting_key)
+    if setting.is_txt:
+        return setting.txt_val
+    else:
+        return setting.int_val
 
 
 

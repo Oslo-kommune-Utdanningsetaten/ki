@@ -5,7 +5,7 @@ from django.http import HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
 import json
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.utils import use_log, get_user_data_from_request, get_groups_from_request, aarstrinn_codes
+from ki.utils import use_log, get_user_data_from_request, get_groups_from_request, aarstrinn_codes, get_setting
 
 
 @api_view(["GET"])
@@ -56,7 +56,7 @@ def menu_items(request):
     can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
 
     # Get default model
-    default_model_id = models.Setting.objects.get(setting_key='default_model').int_val
+    default_model_id = get_setting('default_model')
     default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
     default_model = {
         'model_id': default_model_obj.model_id,
@@ -284,7 +284,7 @@ def empty_bot(request, bot_type):
             'library': library,
             'tag_categories': tag_categories,
         },
-        'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        'lifespan': get_setting('lifespan'),
     })
 
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -472,7 +472,7 @@ def bot_info(request, bot_uuid=None):
     group_list = []
     if distribute:
         access_list = []
-        lifespan = models.Setting.objects.get(setting_key='lifespan').int_val
+        lifespan = get_setting('lifespan')
         for subj in bot.subjects.all():
             if (subj.created and
                     (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
@@ -560,7 +560,7 @@ def bot_info(request, bot_uuid=None):
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tag_categories': tag_categories,
         },
-        'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        'lifespan': get_setting('lifespan'),
     })
 
 
@@ -573,8 +573,8 @@ def settings(request):
     if request.method == "PUT":
         body = json.loads(request.body)
         if setting_body := body.get('setting', False):
-            setting = models.Setting.objects.get(
-                setting_key=setting_body.get('setting_key'))
+            setting_key = setting_body.get('setting_key')
+            setting = models.Setting.objects.get(setting_key=setting_key)
             if setting.is_txt:
                 setting.txt_val = setting_body.get('value', setting.txt_val)
             else:
@@ -584,7 +584,7 @@ def settings(request):
         else:
             return Response(status=400)
 
-    settings = models.Setting.objects.all()
+    all_settings = models.Setting.objects.all()
     setting_response = [
         {
             'setting_key': setting.setting_key,
@@ -592,7 +592,7 @@ def settings(request):
             'value': setting.txt_val if setting.is_txt else setting.int_val,
             'type': 'text' if setting.is_txt else 'number',
         }
-        for setting in settings
+        for setting in all_settings
     ]
     return Response({'settings': setting_response})
 
@@ -659,8 +659,7 @@ async def send_message(request):
         try:
             bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
         except models.BotModel.DoesNotExist:
-            default_model = await models.Setting.objects.aget(setting_key='default_model')
-            default_model_id = default_model.int_val
+            default_model_id = get_setting('default_model')
             bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
