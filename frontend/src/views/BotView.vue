@@ -4,7 +4,8 @@ import { ref, onMounted } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotCommunicationText from '@/components/BotCommunicationText.vue'
 import BotCommunicationAudio from '@/components/BotCommunicationAudio.vue'
-import { getBot, deleteBot } from '../utils/httpTools.js'
+import { getBot, deleteBot } from '@/utils/httpTools.js'
+import { store } from '@/store.js'
 
 const route = useRoute()
 const router = useRouter()
