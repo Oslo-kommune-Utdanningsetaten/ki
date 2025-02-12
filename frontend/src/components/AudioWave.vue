@@ -8,19 +8,22 @@
   </span>
 </template>
 
-<style>
+<style scoped>
 .audioWave {
   display: inline-flex;
   align-items: flex-end;
-  height: 20px;
   vertical-align: middle;
+  justify-content: center;
+  height: 80%;
+  width: 80%;
+  padding: 0px;
 }
 
 .audioWave span {
   display: inline-block;
-  width: 3px;
-  background-color: #2c2c2c;
-  margin-right: 1px;
+  width: 15%;
+  background-color: rgba(45, 45, 45, 0.5);
+  margin-right: 2px;
   animation: sound 0.8s infinite;
   animation-timing-function: ease-out;
 }
@@ -43,6 +46,7 @@
 
 .audioWave span:nth-child(5) {
   animation-delay: 0.2s;
+  margin-right: 0px;
 }
 
 @keyframes sound {

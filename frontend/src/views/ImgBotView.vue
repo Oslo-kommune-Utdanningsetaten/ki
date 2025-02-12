@@ -1,10 +1,10 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
-import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect } from 'vue'
 import SpeechToText from '@/components/SpeechToText.vue'
 import Conversation from '@/components/Conversation.vue'
-import { getCookie } from '../utils/httpTools.js'
+import { store } from '../store.js'
+import { getBot, submitImagePrompt } from '../utils/httpTools.js'
 
 const route = useRoute()
 const bot = ref({})
@@ -12,15 +12,7 @@ const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
 const textInput = ref(null)
-
-const getBot = async () => {
-  try {
-    const { data } = await axios.get('/api/bot_info/' + route.params.id)
-    bot.value = data.bot
-  } catch (error) {
-    console.log(error)
-  }
-}
+const maxMessageLength = 1500
 
 const resetMessages = () => {
   message.value = ''
@@ -31,49 +23,51 @@ const handleMessageInput = messageContent => {
   message.value = message.value + ' ' + messageContent
 }
 
+const handlePaste = () => {
+  // Wait for the paste to complete before checking the length
+  setTimeout(function () {
+    if (message.value.length > maxMessageLength) {
+      const originalLength = message.value.length
+      message.value = message.value.substring(0, maxMessageLength)
+      store.addMessage(
+        `Maks antall tegn tillatt er ${maxMessageLength}. Teksten du limte inn ble redusert med ${originalLength - maxMessageLength} tegn.`,
+        'warning'
+      )
+    }
+  }, 10)
+}
+
 const editMessageAtIndex = index => {
   console.log('editMessageAtIndex', index)
 }
 
 const sendMessage = async () => {
-  messages.value.push(
-    {
-      role: 'user',
-      content: message.value,
-    },
-    {
-      role: 'assistant',
-      content: '',
-      imageUrl: '',
-    }
-  )
-  try {
-    isProcessingInput.value = true
-    const { data } = await axios.post(
-      '/api/send_img_message',
-      {
-        uuid: bot.value.uuid,
-        prompt: message.value,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-      }
-    )
-    message.value = data.revised_prompt
-    // patch the last message with the revised prompt and image url
-    messages.value[messages.value.length - 1].content = data.revised_prompt
-    messages.value[messages.value.length - 1].imageUrl = data.url
-    isProcessingInput.value = false
-  } catch (error) {
-    console.log(error)
+  isProcessingInput.value = true
+  messages.value.push({
+    role: 'user',
+    content: message.value,
+  })
+  const data = {
+    uuid: bot.value.uuid,
+    messages: new Array(...messages.value),
   }
+  // Add a new message to indicate that the bot is working
+  messages.value.push({
+    role: 'assistant',
+    content: '',
+    imageUrl: '',
+  })
+  const { revisedPrompt, imageUrl, systemMessage } = await submitImagePrompt(data)
+  // patch the last message with the revised prompt and image url
+  messages.value[messages.value.length - 1].content = revisedPrompt || systemMessage
+  messages.value[messages.value.length - 1].imageUrl = imageUrl
+  // Update text area content with revised prompt
+  message.value = revisedPrompt || ''
+  isProcessingInput.value = false
 }
 
-watchEffect(() => {
-  getBot()
+watchEffect(async () => {
+  bot.value = await getBot(route.params.id)
 })
 </script>
 
@@ -116,6 +110,7 @@ watchEffect(() => {
       class="form-control"
       :disabled="isProcessingInput"
       placeholder="Forklar hva bildet skal vise. Ikke legg inn personlige og sensitive opplysninger."
+      @paste="handlePaste()"
       @keypress.enter.exact="sendMessage()"
     ></textarea>
     <div class="card">

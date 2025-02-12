@@ -1,90 +1,15 @@
-from .. import models
+from ki import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from asgiref.sync import async_to_sync
-from django.http import StreamingHttpResponse, HttpResponseNotFound, HttpResponseForbidden, JsonResponse
+from django.http import HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
-import requests
-from openai import AsyncAzureOpenAI
-import openai
-import uuid
-import os
 import json
-# from ..mock import mock_acreate
+from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
+from ki.utils import use_log, get_user_data_from_request, get_groups_from_request, aarstrinn_codes, get_setting
 
-aarstrinn_codes = {
-    'aarstrinn1': 1,
-    'aarstrinn2': 2,
-    'aarstrinn3': 3,
-    'aarstrinn4': 4,
-    'aarstrinn5': 5,
-    'aarstrinn6': 6,
-    'aarstrinn7': 7,
-    'aarstrinn8': 8,
-    'aarstrinn9': 9,
-    'aarstrinn10': 10,
-    'vg1': 11,
-    'vg2': 12,
-    'vg3': 13,
-}
-
-
-azureClient = AsyncAzureOpenAI(
-    azure_endpoint=os.environ.get('OPENAI_API_BASE'),
-    api_key=os.environ.get('OPENAI_API_KEY'),
-    api_version=os.environ.get('OPENAI_API_VERSION'),
-)
-
-
-async def use_log(bot, request, message_length):
-    role = 'student'
-    role = 'employee' if request.g.get('employee', False) else role
-    role = 'admin' if request.g.get('admin', False) else role
-    log_line = models.UseLog()
-    log_line.role = role
-    if (levels := request.g.get('levels', None)) and role == 'student':
-        log_line.level =min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
-    else:
-        log_line.level = None
-    log_line.bot_id = bot.uuid
-    log_line.message_length = message_length
-    await log_line.asave()
-   
-    for school in request.g.get('schools', []):
-        await models.LogSchool(
-            school_id=school,
-            log_id=log_line
-        ).asave()
-
-
-def get_groups(request):
-    subjects = []
-    access_token = request.session.get('user.auth')['access_token']
-    groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + access_token
-    }
-    try:
-        groupinfo_response = requests.get(
-            groupinfo_endpoint, headers=headers)
-    except requests.exceptions.ConnectionError as e:
-        return []
-    else:
-        if groupinfo_response.status_code == 200:
-
-            for group in groupinfo_response.json():
-                if group.get('type') == "fc:gogroup":
-                    subjects.append({
-                        'id': group.get('id'),
-                        'display_name': group.get('displayName'),
-                        'go_type': group.get('go_type'),
-                    })
-        return subjects
 
 @api_view(["GET"])
 def page_text(request, page):
-
     try:
         text_line = models.PageText.objects.get(page_id=page)
     except models.PageText.DoesNotExist:
@@ -131,12 +56,13 @@ def menu_items(request):
     can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
 
     # Get default model
-    default_model_id = models.Setting.objects.get(setting_key='default_model').int_val
+    default_model_id = get_setting('default_model')
     default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
     default_model = {
         'model_id': default_model_obj.model_id,
         'display_name': default_model_obj.display_name,
         'model_description': default_model_obj.model_description,
+        'deployment_id': default_model_obj.deployment_id,
         'training_cutoff': default_model_obj.training_cutoff,
     }
 
@@ -206,8 +132,7 @@ def user_bots(request):
             'bots': None,
         })
 
-    open_for_distribution = (request.g['settings']['allow_groups'] 
-                            and request.g['dist_to_groups'])
+    open_for_distribution = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     tag_categories = []
     for category in models.TagCategory.objects.all():
@@ -253,14 +178,53 @@ def user_bots(request):
 
 
 @api_view(["GET"])
+def user_info(request):
+    # Roles
+    roles = []
+    role = 'student'
+    if request.g.get('employee', False):
+        role = 'employee'
+        roles.append(role)
+    if request.g.get('admin', False):
+        role = 'admin'
+        roles.append(role)
+    # Schools
+    schools = []
+    for school in request.g.get('schools', []):
+        schools.append({
+            'org_nr': school.org_nr,
+            'school_name': school.school_name,
+        })
+    # Levels
+    level = None
+    if (levels := request.g.get('levels', None)) and role == 'student':
+        level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+
+    return Response({
+        'user': {
+            'username': request.g.get('username', None),
+            'name': request.g.get('name', None),
+            'is_admin': request.g.get('admin', False),
+            'is_employee': request.g.get('employee', False),
+            'is_author': request.g.get('author', False),
+            'schools': schools,
+            'auth_school': request.g.get('auth_school', None),
+            'role': role,
+            'roles': roles,
+            'level': level,
+            'levels': request.g.get('levels', None),
+        }
+    })
+
+
+@api_view(["GET"])
 def empty_bot(request, bot_type):
 
     library = bot_type == 'library'
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    edit_groups = (request.g['settings']['allow_groups']
-                  and request.g['dist_to_groups'])
+    edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -315,12 +279,12 @@ def empty_bot(request, bot_type):
             'edit': True,
             'distribute': edit_groups,
             'choices': [],
-            'groups': get_groups(request) if edit_groups and not library else [],
+            'groups': get_groups_from_request(request) if edit_groups and not library else [],
             'schoolAccesses': school_access_list,
             'library': library,
             'tag_categories': tag_categories,
         },
-        'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        'lifespan': get_setting('lifespan'),
     })
 
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -329,8 +293,7 @@ def bot_info(request, bot_uuid=None):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    edit_groups = (request.g['settings']['allow_groups']
-                  and request.g['dist_to_groups'])
+    edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     new_bot = False if bot_uuid else True
 
@@ -371,14 +334,11 @@ def bot_info(request, bot_uuid=None):
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
         bot.bot_info = body.get('bot_info', bot.bot_info)
-        bot.prompt_visibility = body.get(
-            'prompt_visibility', bot.prompt_visibility)
-        bot.allow_distribution = body.get(
-            'allow_distribution', bot.allow_distribution)
-        bot.mandatory = body.get(
-            'mandatory', bot.mandatory)
-        bot.is_audio_enabled = body.get(
-            'is_audio_enabled', bot.is_audio_enabled)
+        bot.prompt_visibility = body.get('prompt_visibility', bot.prompt_visibility)
+        bot.allow_distribution = body.get('allow_distribution', bot.allow_distribution)
+        bot.mandatory = body.get('mandatory', bot.mandatory)
+        if is_admin:
+            bot.is_audio_enabled = body.get('is_audio_enabled', bot.is_audio_enabled)
         bot.avatar_scheme = ','.join([str(a) for a in body.get('avatar_scheme', bot.avatar_scheme)]) if body.get('avatar_scheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
@@ -513,14 +473,14 @@ def bot_info(request, bot_uuid=None):
     group_list = []
     if distribute:
         access_list = []
-        lifespan = models.Setting.objects.get(setting_key='lifespan').int_val
+        lifespan = get_setting('lifespan')
         for subj in bot.subjects.all():
             if (subj.created and
                     (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
                 subj.delete()
             else:
                 access_list.append(subj.subject_id)
-        groups = get_groups(request)
+        groups = get_groups_from_request(request)
         group_list = [dict(group, checked=group.get('id') in access_list)
                 for group in groups]
 
@@ -573,6 +533,7 @@ def bot_info(request, bot_uuid=None):
         'model_id': bot.model_id.model_id,
         'display_name': bot.model_id.display_name,
         'model_description': bot.model_id.model_description,
+        'deployment_id': bot.model_id.deployment_id,
         'training_cutoff': bot.model_id.training_cutoff,
     } if bot.model_id else None
 
@@ -600,7 +561,7 @@ def bot_info(request, bot_uuid=None):
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tag_categories': tag_categories,
         },
-        'lifespan': models.Setting.objects.get(setting_key='lifespan').int_val,
+        'lifespan': get_setting('lifespan'),
     })
 
 
@@ -613,8 +574,8 @@ def settings(request):
     if request.method == "PUT":
         body = json.loads(request.body)
         if setting_body := body.get('setting', False):
-            setting = models.Setting.objects.get(
-                setting_key=setting_body.get('setting_key'))
+            setting_key = setting_body.get('setting_key')
+            setting = models.Setting.objects.get(setting_key=setting_key)
             if setting.is_txt:
                 setting.txt_val = setting_body.get('value', setting.txt_val)
             else:
@@ -624,7 +585,7 @@ def settings(request):
         else:
             return Response(status=400)
 
-    settings = models.Setting.objects.all()
+    all_settings = models.Setting.objects.all()
     setting_response = [
         {
             'setting_key': setting.setting_key,
@@ -632,7 +593,7 @@ def settings(request):
             'value': setting.txt_val if setting.is_txt else setting.int_val,
             'type': 'text' if setting.is_txt else 'number',
         }
-        for setting in settings
+        for setting in all_settings
     ]
     return Response({'settings': setting_response})
 
@@ -658,11 +619,11 @@ def school_access(request):
     schools = models.School.objects.all()
     response = []
     for school in schools:
+        access_list = []
         if school.access == 'levels':
-            access_list = [
-                access.level for access in school.school_accesses.all()]
-        else:
-            access_list = []
+            for access in school.school_accesses.all():
+                access_list.append(access.level)
+
         response.append({
             'org_nr': school.org_nr,
             'school_name': school.school_name,
@@ -699,70 +660,29 @@ async def send_message(request):
         try:
             bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
         except models.BotModel.DoesNotExist:
-            default_model = await models.Setting.objects.aget(setting_key='default_model')
-            default_model_id = default_model.int_val
+            default_model_id = get_setting('default_model')
             bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
+    level, school_ids, role = get_user_data_from_request(request)
+    await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages), interaction_type='text')
+    return await chat_completion_azure_streamed(messages, bot_model, temperature=bot.temperature)
 
-    async def stream():
-        try:
-            completion = await azureClient.chat.completions.create(
-                model=bot_model,
-                messages=messages,
-                temperature=float(bot.temperature),
-                stream=True,
-            )
-        except openai.BadRequestError as e:
-            if e.code == "content_filter":
-                yield "Dette er ikke et passende emne. Start samtalen på nytt."
-            else:
-                yield "Noe gikk galt. Prøv igjen senere."
-            return
-        async for line in completion:
-            if line.choices:
-                chunk = line.choices[0].delta.content or ""
-                if line.choices[0].finish_reason == "content_filter":
-                    yield "Beklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
-                    break
-                if line.choices[0].finish_reason == "length":
-                    yield "Grensen for antall tegn i samtalen er nådd."
-                    break
-                if chunk:
-                    yield chunk
 
-    await use_log(bot, request, len(messages))
-    return StreamingHttpResponse(stream(), content_type='text/event-stream')
-
-# @api_view(["POST"])
 async def send_img_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
-    prompt = body.get('prompt')
+    messages = body.get('messages')
+    prompt = messages[-1].get('content')
     if not bot_uuid in request.g.get('bots', []):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
+        bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
+    level, school_ids, role = get_user_data_from_request(request)
+    await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages), interaction_type='text')
+    return await generate_image_azure(prompt, model=bot_model_obj.deployment_id)
 
-    try:
-        response = await azureClient.images.generate(
-            model='dall-e-3',
-            size='1024x1024',
-            quality='standard',
-            prompt=prompt,
-            response_format='url',
-            n=1,
-        )
-        json_response = json.loads(response.model_dump_json())
-        data = json_response['data'][0]
-    except openai.BadRequestError as e:
-        if e.code == "content_policy_violation":
-            data ={'msg': "Dette er ikke et passende emne. Velg noe annet å lage bilde av."}
-        else:
-            data ={'msg': "Noe gikk galt. Prøv igjen senere."}
-
-    await use_log(bot, request, 1)
-    return JsonResponse(data)

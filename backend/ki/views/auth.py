@@ -10,6 +10,8 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
+from ki.utils import get_setting
+
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
@@ -25,12 +27,10 @@ def get_user_bots(request, username):
     dist_to_groups = False
     employee = False
     bots = set()
-    allow_groups = bool(models.Setting.objects.get(
-        setting_key='allow_groups').int_val)
-    allow_personal = bool(models.Setting.objects.get(
-        setting_key='allow_personal').int_val)
-    lifespan = models.Setting.objects.get(
-        setting_key='lifespan').int_val
+    allow_groups = bool(get_setting('allow_groups'))
+    allow_personal = bool(get_setting('allow_personal'))
+    lifespan = get_setting('lifespan')
+
     if not (tokens := request.session.get('user.auth', False)):
         return [], False, False, [], []
     # get user's grups from dataporten
@@ -139,11 +139,12 @@ def auth_middleware(get_response):
 
         # load settings
         settings_dict = {}
-        for item in models.Setting.objects.all():
-            if item.int_val != None:
-                settings_dict[item.setting_key] = item.int_val
-            elif item.txt_val != None:
-                settings_dict[item.setting_key] = item.txt_val
+        all_settings = models.Setting.objects.all()
+        for setting in all_settings:
+            if setting.int_val != None:
+                settings_dict[setting.setting_key] = setting.int_val
+            elif setting.txt_val != None:
+                settings_dict[setting.setting_key] = setting.txt_val
 
         request.g['settings'] = settings_dict
 

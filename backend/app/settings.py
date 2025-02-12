@@ -32,7 +32,7 @@ print("DEBUG:", DEBUG)
 
 ADMIN_ENABLED = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskolen.no']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'ki.osloskolen.no', 'ki-dev.osloskolen.no', 'iz-ki-ap01t.oslo.int']
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS += [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'ki',
 ]
 
@@ -59,21 +60,32 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'ki.views.auth.auth_middleware'
 ]
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5000',
-                        'https://ki-dev.osloskolen.no', 
-                        'https://ki.osloskolen.no',
-                        'http://localhost:5173'
-                        ]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5000',
+    'https://ki-dev.osloskolen.no',
+    'https://ki.osloskolen.no',
+    'http://localhost:5173',
+    'http://iz-ki-ap01t.oslo.int'
+]
                         
+CORS_ALLOWED_ORIGINS = [
+    'https://ki.osloskolen.no',
+    'https://ki-dev.osloskolen.no',
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+    'http://iz-ki-ap01t.oslo.int'
+]
+
+#CORS_ALLOW_HEADERS = ['content-type']
 
 ROOT_URLCONF = 'app.urls'
-
 WSGI_APPLICATION = 'app.wsgi.application'
 ASGI_APPLICATION = "app.asgi.application"
 
@@ -121,21 +133,15 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
 STATIC_ROOT = 'public/'
-
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]

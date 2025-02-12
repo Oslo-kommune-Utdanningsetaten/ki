@@ -52,14 +52,12 @@ const initializeSpeechRecognition = () => {
     }
   } else {
     isBrowserSpeechEnabled.value = false
-    console.info('Speech recognition not supported in this browser.')
   }
 }
 
 const checkMicrophonePermissionStatus = async () => {
   const permission = await navigator.permissions.query({ name: 'microphone' })
   microphonePermissionStatus.value = permission.state
-  console.info('Microphone permission:', microphonePermissionStatus.value)
 }
 
 const toggleSpeechInput = () => {
@@ -98,7 +96,10 @@ onMounted(() => {
 
 <style scoped>
 .mic-button {
+  padding: 0;
   pointer-events: auto;
+  width: 42px;
+  height: 38px;
 }
 
 .mic-icon {
@@ -111,4 +112,3 @@ onMounted(() => {
   transform: scale(1.5);
 }
 </style>
-s

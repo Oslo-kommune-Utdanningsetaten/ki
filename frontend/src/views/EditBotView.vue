@@ -274,10 +274,6 @@ const optionsSorted = choice => {
   return choice.options.sort((a, b) => a.order - b.order)
 }
 
-const superuser = computed(() => {
-  return (store.isAdmin || store.isAuthor) && bot.value.library
-})
-
 const schoolAccessFiltered = computed(() => {
   let filtered_list = []
   if (filter_list.value.length > 0) {
@@ -521,7 +517,7 @@ watch(
         </div>
       </div>
     </div>
-    <div v-if="superuser">
+    <div v-if="store.isAdmin">
       <div class="row mb-3">
         <div class="col-sm-2">Kan bruke tale</div>
         <div class="col-sm-10">
@@ -539,15 +535,21 @@ watch(
       <div class="row mb-3">
         <div class="col-sm-2">Modell</div>
         <div class="col-sm-10">
-          <div v-for="model_item in models" :key="model_item.model_id" class="form-check form-check-inline">
+          <div
+            v-for="model_item in models"
+            :key="model_item.model_id"
+            class="form-check form-check-inline"
+          >
             <input
               class="form-check-input"
               type="radio"
-              :id="'m'+model_item.model_id"
+              :id="'m' + model_item.model_id"
               :value="model_item"
               v-model="bot.model"
             />
-            <label class="form-check-label" :for="'m'+model_item.model_id">{{ model_item.display_name }}</label>
+            <label class="form-check-label" :for="'m' + model_item.model_id">
+              {{ model_item.display_name }}
+            </label>
           </div>
           <div class="form-check form-check-inline">
             <input

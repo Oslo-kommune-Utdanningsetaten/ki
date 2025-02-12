@@ -1,5 +1,4 @@
 <script setup>
-import { ref, watchEffect, watch } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
 import { renderMessage } from '../utils/renderTools.js'
@@ -93,14 +92,7 @@ const editMessageAtIndex = index => {
               <span v-if="props.bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
             </div>
             <div v-else>
-              <div
-                v-html="
-                  renderMessage(
-                    `${bot.img_bot ? '<strong>Ledeteksten jeg brukte:</strong><br/> ' : ''}` +
-                      aMessage.content
-                  )
-                "
-              ></div>
+              <div v-html="renderMessage(aMessage.content)"></div>
               <span
                 v-if="isStreaming"
                 class="spinner-border spinner-border-sm me-2"
