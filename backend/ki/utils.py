@@ -1,5 +1,4 @@
 import requests
-from ki import models
 
 aarstrinn_codes = {
     'aarstrinn1': 1,
@@ -65,6 +64,7 @@ async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1,
 
 
 def get_setting(setting_key):
+    from ki import models # Avoid circular import
     setting = models.Setting.objects.get(setting_key=setting_key)
     if setting.is_txt:
         return setting.txt_val
