@@ -8,7 +8,7 @@
   </span>
 </template>
 
-<style>
+<style scoped>
 .audioWave {
   display: inline-flex;
   align-items: flex-end;
