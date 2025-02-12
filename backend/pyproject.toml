@@ -25,7 +25,16 @@ websockets = "^14.2"
 
 [tool.poetry.group.dev.dependencies]
 daphne = "^4.1.0"
+pytest = "^8.3.4"
+pytest-django = "^4.10.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "app.settings"
+python_files = ["test_*.py"]
+testpaths = ["ki/tests"]
+django_find_project = true
+pythonpath = ["."]
