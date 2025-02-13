@@ -297,6 +297,9 @@ def bot_info(request, bot_uuid=None):
 
     new_bot = False if bot_uuid else True
 
+    if not bot_uuid in request.g.get('bots', []):
+        return HttpResponseForbidden()
+
     # get bot
     if request.method == "POST":  # Make new bot on POST
         if not new_bot:
