@@ -72,4 +72,12 @@ def get_setting(setting_key):
         return setting.int_val
 
 
+async def get_setting_async(setting_key):
+    from ki import models # Avoid circular import
+    setting = await models.Setting.objects.aget(setting_key=setting_key)
+    if setting.is_txt:
+        return setting.txt_val
+    else:
+        return setting.int_val
+
 

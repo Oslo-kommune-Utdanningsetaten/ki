@@ -5,7 +5,7 @@ from django.http import HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta
 import json
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.utils import use_log, get_user_data_from_request, get_groups_from_request, aarstrinn_codes, get_setting
+from ki.utils import use_log, get_user_data_from_request, get_groups_from_request, aarstrinn_codes, get_setting, get_setting_async
 
 
 @api_view(["GET"])
@@ -660,7 +660,7 @@ async def send_message(request):
         try:
             bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
         except models.BotModel.DoesNotExist:
-            default_model_id = get_setting('default_model')
+            default_model_id = await get_setting_async('default_model')
             bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
