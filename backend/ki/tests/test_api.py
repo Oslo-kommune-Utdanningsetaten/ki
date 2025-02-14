@@ -1,14 +1,11 @@
 import pytest
 from django.test import RequestFactory
-from ki.utils import get_setting
 from ki.models import Setting, BotModel
-
 from ki.views.api import menu_items
 
+
 def decorate_request(request):
-    request.g = {}
-    request.g['settings'] = {}
-    request.g['settings']['allow_groups'] = True
+    request.g = {'settings': {'allow_groups': True}}
     request.session = {'user.username': 'testuser'}
 
 
