@@ -14,7 +14,7 @@ const errorInterceptor = error => {
       store.resetStore()
       window.location.href = '/auth/feidelogin'
     } else if (axiosError.response?.status === 403) {
-      store.addMessage('Du har ikke tilgang her', 'danger')
+      store.addMessage('Du har visst ikke tilgang her', 'danger', { isMessagePersistent: true })
     }
   }
 

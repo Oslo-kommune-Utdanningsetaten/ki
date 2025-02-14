@@ -87,14 +87,13 @@ def get_user_bots(request, username):
     # bots from subject
     if allow_groups and not employee:
         for group_id in groups:
-            subject_accesses = models.SubjectAccess.objects.filter(
-                subject_id=group_id)
-            for line in subject_accesses:
-                if (line.created and 
-                        (line.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
-                    line.delete()
+            subject_accesses = models.SubjectAccess.objects.filter(subject_id=group_id)
+            for subject_access in subject_accesses:
+                if (subject_access.created and
+                        (subject_access.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
+                    subject_access.delete()
                 else:
-                    bots.add(line.bot_id_id)
+                    bots.add(subject_access.bot_id_id)
 
     # bots from school
     for school in schools:
@@ -119,8 +118,8 @@ def get_user_bots(request, username):
     # bots from personal
     if allow_personal:
         personal_bots = models.Bot.objects.filter(owner=username)
-        for line in personal_bots:
-            bots.add(line.uuid)
+        for personal_bot in personal_bots:
+            bots.add(personal_bot.uuid)
 
     return bots, employee, dist_to_groups, schools, levels
 
