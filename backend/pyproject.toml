@@ -27,6 +27,7 @@ websockets = "^14.2"
 daphne = "^4.1.0"
 pytest = "^8.3.4"
 pytest-django = "^4.10.0"
+poethepoet = "^0.32.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -38,3 +39,7 @@ python_files = ["test_*.py"]
 testpaths = ["ki/tests"]
 django_find_project = true
 pythonpath = ["."]
+
+[tool.poe.tasks]
+run-tests = "pytest --verbose --nomigrations -s"
+run-server = "python manage.py runserver 5000"
