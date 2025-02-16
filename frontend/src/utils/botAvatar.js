@@ -25,12 +25,12 @@ export const createBotDescriptionFromScheme = (scheme) => {
   }
 
   // Translate the values to human readable descriptions for easier reference
-  bot.head.description = headValue === 0 ? 'low' : headValue === 1 ? 'high' : 'slanted'
-  bot.eyes.description = eyesValue === 0 ? 'round' : eyesValue === 1 ? 'square' : eyesValue === 2 ? 'rect' : 'wink'
-  bot.hair.description = hairValue === 0 ? 'absent' : hairValue === 1 ? 'flat' : 'scruffy'
-  bot.ears.description = earsValue === 1 ? 'present' : 'absent'
-  bot.arms.description = armsValue === 1 ? 'shoulder' : 'straight'
-  bot.neck.description = neckValue === 1 ? 'thin' : 'thick'
+  bot.head.description = headValue === 0 ? 'low' : headValue === 1 ? 'high' : headValue === 2 ? 'narrow-chin' : 'wide-chin'
+  bot.eyes.description = eyesValue === 0 ? 'round' : eyesValue === 1 ? 'square' : eyesValue === 2 ? 'rect' : eyesValue === 3 ? 'wink' : 'diamond'
+  bot.hair.description = hairValue === 0 ? 'absent' : hairValue === 1 ? 'flat' : hairValue === 2 ? 'scruffy' : 'slick'
+  bot.ears.description = earsValue === 0 ? 'absent' : earsValue === 1 ? 'large' : 'small'
+  bot.arms.description = armsValue === 0 ? 'straight' : armsValue === 1 ? 'shoulder' : 'up'
+  bot.neck.description = neckValue === 0 ? 'thick' : neckValue === 1 ? 'thin' : 'accordion'
 
   // Hair
   if (bot.hair.description === 'flat') {
@@ -48,13 +48,25 @@ export const createBotDescriptionFromScheme = (scheme) => {
       points: '2,0 10,0 10,2 9,2 9,1 8,1 8,2 6,2 6,1 5,1 5,2 4,2 4,1 3,1 3,2 2,2 2,0',
       color: colors[colorValue][1]
     })
+  } else if (bot.hair.description === 'slick') {
+    bot.hair.shapes.push({
+      type: 'polygon',
+      points: '2,0 10,0 10,2 9,1 8,1 7.8,0.2 7,1 3,1 2,2 2,0',
+      color: colors[colorValue][1]
+    })
   }
 
   // Head
-  if (bot.head.description === 'slanted') {
+  if (bot.head.description === 'narrow-chin') {
     bot.head.shapes.push({
       type: 'polygon',
       points: '2,0 10,0 10,6 6,8 2,6',
+      color: colors[colorValue][0]
+    })
+  } else if (bot.head.description === 'wide-chin') {
+    bot.head.shapes.push({
+      type: 'polygon',
+      points: '2,0 10,0 10,6 8,8 4,8 2,6',
       color: colors[colorValue][0]
     })
   } else {
@@ -104,6 +116,17 @@ export const createBotDescriptionFromScheme = (scheme) => {
       type: 'rect',
       color: colors[colorValue][1]
     })
+  } else if (bot.eyes.description === 'diamond') {
+    bot.eyes.shapes.push({
+      type: 'polygon',
+      points: bot.head.description === 'high' ? '3,2 4,1 5,2 4,3' : '3,4 4,3 5,4 4,5',
+      color: colors[colorValue][1]
+    })
+    bot.eyes.shapes.push({
+      type: 'polygon',
+      points: bot.head.description === 'high' ? '7,2 8,1 9,2 8,3' : '7,4 8,3 9,4 8,5',
+      color: colors[colorValue][1]
+    })
   } else if (bot.eyes.description === 'rect') {
     bot.eyes.shapes.push({
       x: 3,
@@ -139,12 +162,12 @@ export const createBotDescriptionFromScheme = (scheme) => {
   }
 
   // Ears, same Y position as eyes
-  if (bot.ears.description === 'present') {
+  if (bot.ears.description !== 'absent') {
     bot.ears.shapes.push({
       x: 1,
       y: eyePositionY,
       width: 1,
-      height: 2,
+      height: bot.ears.description === 'large' ? 2 : 1,
       type: 'rect',
       color: colors[colorValue][1]
     })
@@ -152,21 +175,30 @@ export const createBotDescriptionFromScheme = (scheme) => {
       x: 10,
       y: eyePositionY,
       width: 1,
-      height: 2,
+      height: bot.ears.description === 'large' ? 2 : 1,
       type: 'rect',
       color: colors[colorValue][1]
     })
   }
 
   // Neck
-  bot.neck.shapes.push({
-    x: bot.neck.description === 'thin' ? 5 : 4,
-    y: 4,
-    width: bot.neck.description === 'thin' ? 2 : 4,
-    height: 6,
-    type: 'rect',
-    color: colors[colorValue][1]
-  })
+  if (bot.neck.description === 'accordion') {
+    bot.neck.shapes.push({
+      type: 'polygon',
+      inverted_points: '4,10 5,9 4,8 5,7 4,6 5,5 4,4 8,4 7,5 8,6 7,7 8,8 7,9 8,10', // do these look better?
+      points: '5,10 4,9 5,8 4,7 5,6 4,5 5,4 7,4 8,5 7,6 8,7 7,8 8,9 7,10',
+      color: colors[colorValue][1]
+    })
+  } else {
+    bot.neck.shapes.push({
+      x: bot.neck.description === 'thin' ? 5 : 4,
+      y: 4,
+      width: bot.neck.description === 'thin' ? 2 : 4,
+      height: 6,
+      type: 'rect',
+      color: colors[colorValue][1]
+    })
+  }
 
   // Body is hard-coded so far
   bot.body.shapes.push({
@@ -196,7 +228,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
       type: 'rect',
       color: colors[colorValue][1]
     })
-  } else {
+  } else if (bot.arms.description === 'straight') {
     bot.arms.shapes.push({
       type: 'polygon',
       points: '0,10 0,14 2,14 2,12 4,12 4,10 0,10',
@@ -205,6 +237,17 @@ export const createBotDescriptionFromScheme = (scheme) => {
     bot.arms.shapes.push({
       type: 'polygon',
       points: '8,10 8,12 10,12 10,14 12,14 12,10 8,10',
+      color: colors[colorValue][1]
+    })
+  } else {
+    bot.arms.shapes.push({
+      type: 'polygon',
+      points: '4,10 2,6 0,7 2,11 3,11',
+      color: colors[colorValue][1]
+    })
+    bot.arms.shapes.push({
+      type: 'polygon',
+      points: '8,10 10,6 12,7 10,11 9,11',
       color: colors[colorValue][1]
     })
   }

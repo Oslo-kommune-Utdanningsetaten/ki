@@ -75,6 +75,7 @@ const botAttrs = [
       { id: 0, text: 'Firkant' },
       { id: 1, text: 'Høy' },
       { id: 2, text: 'Smal hake' },
+      { id: 3, text: 'Bred hake' },
     ],
   },
   {
@@ -85,6 +86,7 @@ const botAttrs = [
       { id: 1, text: 'Firkant' },
       { id: 2, text: 'Rektangel' },
       { id: 3, text: 'Glimt' },
+      { id: 4, text: 'Diamant' },
     ],
   },
   {
@@ -93,7 +95,8 @@ const botAttrs = [
     values: [
       { id: 0, text: 'Ingen' },
       { id: 1, text: 'Caps' },
-      { id: 2, text: 'Hår' },
+      { id: 2, text: 'Pannelugg' },
+      { id: 3, text: 'Sideskill' },
     ],
   },
   {
@@ -101,7 +104,8 @@ const botAttrs = [
     text: 'Ører',
     values: [
       { id: 0, text: 'Nei' },
-      { id: 1, text: 'Ja' },
+      { id: 1, text: 'Store' },
+      { id: 2, text: 'Små' },
     ],
   },
   {
@@ -110,6 +114,7 @@ const botAttrs = [
     values: [
       { id: 0, text: 'Skulder' },
       { id: 1, text: 'Rett' },
+      { id: 2, text: 'Opp' },
     ],
   },
   {
@@ -118,6 +123,7 @@ const botAttrs = [
     values: [
       { id: 0, text: 'Tykk' },
       { id: 1, text: 'Tynn' },
+      { id: 2, text: 'Trekkspill' },
     ],
   },
 ]
