@@ -5,6 +5,7 @@ import { ref, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
 import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
+import { bodyColors, hairColors, defaultAvatarScheme } from '@/utils/botAvatar.js'
 
 const route = useRoute()
 const $router = useRouter()
@@ -13,7 +14,7 @@ const bot = ref({
   ingress: '',
   prompt: '',
   prompt_visibility: false,
-  avatar_scheme: [0, 0, 0, 0, 0, 0, 0],
+  avatar_scheme: defaultAvatarScheme,
   temperature: 1,
   model: null,
   mandatory: false,
@@ -58,20 +59,9 @@ const levels = [
 
 const botAttrs = [
   {
-    id: 0,
-    text: 'Farge',
-    values: [
-      { id: 0, text: 'Blå' },
-      { id: 1, text: 'Gul' },
-      { id: 2, text: 'Grønn' },
-      { id: 3, text: 'Rød' },
-      { id: 4, text: 'Grå' },
-    ],
-  },
-  {
     id: 1,
     text: 'Hode',
-    values: [
+    options: [
       { id: 0, text: 'Firkant' },
       { id: 1, text: 'Høy' },
       { id: 2, text: 'Smal hake' },
@@ -81,7 +71,7 @@ const botAttrs = [
   {
     id: 2,
     text: 'Øyne',
-    values: [
+    options: [
       { id: 0, text: 'Sirkel' },
       { id: 1, text: 'Firkant' },
       { id: 2, text: 'Rektangel' },
@@ -92,7 +82,7 @@ const botAttrs = [
   {
     id: 3,
     text: 'Hår',
-    values: [
+    options: [
       { id: 0, text: 'Ingen' },
       { id: 1, text: 'Caps' },
       { id: 2, text: 'Pannelugg' },
@@ -102,7 +92,7 @@ const botAttrs = [
   {
     id: 4,
     text: 'Ører',
-    values: [
+    options: [
       { id: 0, text: 'Nei' },
       { id: 1, text: 'Store' },
       { id: 2, text: 'Små' },
@@ -111,7 +101,7 @@ const botAttrs = [
   {
     id: 5,
     text: 'Armer',
-    values: [
+    options: [
       { id: 0, text: 'Skulder' },
       { id: 1, text: 'Rett' },
       { id: 2, text: 'Opp' },
@@ -120,11 +110,21 @@ const botAttrs = [
   {
     id: 6,
     text: 'Nakke',
-    values: [
+    options: [
       { id: 0, text: 'Tykk' },
       { id: 1, text: 'Tynn' },
       { id: 2, text: 'Trekkspill' },
     ],
+  },
+  {
+    id: 0,
+    text: 'Farge, kropp',
+    options: bodyColors,
+  },
+  {
+    id: 7,
+    text: 'Farge, hår',
+    options: hairColors,
   },
 ]
 
@@ -304,7 +304,7 @@ const schoolAccessFiltered = computed(() => {
 const randomizeAttributes = () => {
   const randomAttributes = []
   Object.values(botAttrs).forEach(attr => {
-    randomAttributes.push(Math.floor(Math.random() * attr.values.length))
+    randomAttributes.push(Math.floor(Math.random() * attr.options.length))
   })
   bot.value.avatar_scheme = randomAttributes
 }
@@ -352,7 +352,7 @@ watch(
     aria-labelledby="gen_bot_img_label"
     aria-hidden="true"
   >
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-custom-width">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="gen_bot_img_label">Bot avatar</h1>
@@ -381,17 +381,19 @@ watch(
                   <strong>{{ attr.text }}</strong>
                 </div>
                 <div class="row">
-                  <div v-for="value in attr.values" class="col-md-6 align-items-center">
+                  <div v-for="option in attr.options" class="col-md-6 align-items-center">
                     <input
                       class="me-2"
                       type="radio"
                       :name="attr.id"
-                      :id="`${attr.id}:${value.id}`"
-                      :value="value.id"
+                      :id="`${attr.id}:${option.id}`"
+                      :value="option.id"
+                      :disabled="attr.id == 7 && bot.avatar_scheme[3] == 0"
+                      :text="option.text"
                       v-model="bot.avatar_scheme[attr.id]"
                     />
-                    <label :for="`${attr.id}:${value.id}`" class="form-check-label">
-                      {{ value.text }}
+                    <label :for="`${attr.id}:${option.id}`" class="form-check-label">
+                      {{ option.text }}
                     </label>
                   </div>
                 </div>
@@ -893,4 +895,9 @@ watch(
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.modal-custom-width {
+  width: 600px;
+  max-width: none;
+}
+</style>
