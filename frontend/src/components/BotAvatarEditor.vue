@@ -28,10 +28,11 @@ const botAttributes = [
     text: 'Øyne',
     options: [
       { id: 0, text: 'Sirkel' },
-      { id: 1, text: 'Firkant' },
+      { id: 1, text: 'Kvadrat' },
       { id: 2, text: 'Rektangel' },
       { id: 3, text: 'Glimt' },
       { id: 4, text: 'Diamant' },
+      { id: 5, text: 'Trekant' },
     ],
   },
   {
