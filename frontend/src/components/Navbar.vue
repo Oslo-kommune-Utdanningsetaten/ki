@@ -51,9 +51,15 @@ watchEffect(() => {
       <a class="nav-link p-3" href="/auth/logout">Logg ut</a>
     </div>
     <div v-for="item in menuItems" :key="item.id" class="nav-item">
-      <RouterLink active-class="active" class="nav-link p-3" :class="item.class" :to="item.url">
+      <RouterLink activeClass="active" class="nav-link p-3" :to="item.url">
         {{ item.title }}
       </RouterLink>
     </div>
   </nav>
 </template>
+
+<style scoped>
+.active {
+  font-weight: bold;
+}
+</style>
