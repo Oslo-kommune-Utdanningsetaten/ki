@@ -56,7 +56,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
   bot.hair.description = hairIndex === 0 ? 'absent' : hairIndex === 1 ? 'flat' : hairIndex === 2 ? 'scruffy' : 'slick'
   bot.ears.description = earsIndex === 0 ? 'absent' : earsIndex === 1 ? 'large' : 'small'
   bot.arms.description = armsIndex === 0 ? 'straight' : armsIndex === 1 ? 'shoulder' : 'up'
-  bot.neck.description = neckIndex === 0 ? 'thick' : neckIndex === 1 ? 'thin' : 'accordion'
+  bot.neck.description = neckIndex === 0 ? 'thick' : neckIndex === 1 ? 'thin' : neckIndex === 2 ? 'accordion' : 'slanted'
 
   const primaryBodyColor = bodyColorCombinations[bodyColorCombinationIdex][0]
   const secondaryBodyColor = bodyColorCombinations[bodyColorCombinationIdex][1]
@@ -226,8 +226,13 @@ export const createBotDescriptionFromScheme = (scheme) => {
   if (bot.neck.description === 'accordion') {
     bot.neck.shapes.push({
       type: 'polygon',
-      inverted_points: '4,10 5,9 4,8 5,7 4,6 5,5 4,4 8,4 7,5 8,6 7,7 8,8 7,9 8,10', // do these look better?
       points: '5,10 4,9 5,8 4,7 5,6 4,5 5,4 7,4 8,5 7,6 8,7 7,8 8,9 7,10',
+      color: secondaryBodyColor
+    })
+  } else if (bot.neck.description === 'slanted') {
+    bot.neck.shapes.push({
+      type: 'polygon',
+      points: Math.random() > 0.5 ? '5,10 6,4 8,4 7,10' : '5,10 4,4 6,4 7,10',
       color: secondaryBodyColor
     })
   } else {
