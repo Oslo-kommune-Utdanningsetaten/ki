@@ -52,7 +52,7 @@ export const createBotDescriptionFromScheme = (scheme) => {
 
   // Translate the values to human readable descriptions for easier reference
   bot.head.description = headIndex === 0 ? 'low' : headIndex === 1 ? 'high' : headIndex === 2 ? 'narrow-chin' : 'wide-chin'
-  bot.eyes.description = eyesIndex === 0 ? 'round' : eyesIndex === 1 ? 'square' : eyesIndex === 2 ? 'rect' : eyesIndex === 3 ? 'wink' : 'diamond'
+  bot.eyes.description = eyesIndex === 0 ? 'round' : eyesIndex === 1 ? 'square' : eyesIndex === 2 ? 'rect' : eyesIndex === 3 ? 'wink' : eyesIndex === 4 ? 'diamond' : 'triangle'
   bot.hair.description = hairIndex === 0 ? 'absent' : hairIndex === 1 ? 'flat' : hairIndex === 2 ? 'scruffy' : 'slick'
   bot.ears.description = earsIndex === 0 ? 'absent' : earsIndex === 1 ? 'large' : 'small'
   bot.arms.description = armsIndex === 0 ? 'straight' : armsIndex === 1 ? 'shoulder' : 'up'
@@ -155,6 +155,17 @@ export const createBotDescriptionFromScheme = (scheme) => {
     bot.eyes.shapes.push({
       type: 'polygon',
       points: bot.head.description === 'high' ? '7,2 8,1 9,2 8,3' : '7,4 8,3 9,4 8,5',
+      color: secondaryBodyColor
+    })
+  } else if (bot.eyes.description === 'triangle') {
+    bot.eyes.shapes.push({
+      type: 'polygon',
+      points: bot.head.description === 'high' ? '3,2 4,1 5,2' : '3,4 4,3 5,4',
+      color: secondaryBodyColor
+    })
+    bot.eyes.shapes.push({
+      type: 'polygon',
+      points: bot.head.description === 'high' ? '7,2 8,1 9,2' : '7,4 8,3 9,4',
       color: secondaryBodyColor
     })
   } else if (bot.eyes.description === 'rect') {
