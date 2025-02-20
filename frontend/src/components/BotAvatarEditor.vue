@@ -70,6 +70,7 @@ const botAttributes = [
       { id: 0, text: 'Tykk' },
       { id: 1, text: 'Tynn' },
       { id: 2, text: 'Trekkspill' },
+      { id: 3, text: 'Skrå' },
     ],
   },
   {
