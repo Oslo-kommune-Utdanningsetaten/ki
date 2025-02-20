@@ -32,7 +32,7 @@ const expectedAvatarSchemeLength = defaultAvatarScheme.length
 // Takes an array of values, where each describes a body part of the bot avatar
 // Returns an object where the various parts are described in detail
 export const createBotDescriptionFromScheme = (scheme) => {
-  const avatarScheme = scheme || defaultScheme
+  const avatarScheme = scheme || defaultAvatarScheme
   // Pad the array if it's too short
   while (avatarScheme.length < expectedAvatarSchemeLength) {
     avatarScheme.push(0)
