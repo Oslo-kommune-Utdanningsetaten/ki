@@ -5,6 +5,8 @@ import { ref, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
 import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
+import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
+import { defaultAvatarScheme } from '@/utils/botAvatar.js'
 
 const route = useRoute()
 const $router = useRouter()
@@ -13,7 +15,7 @@ const bot = ref({
   ingress: '',
   prompt: '',
   prompt_visibility: false,
-  avatar_scheme: [0, 0, 0, 0, 0, 0, 0],
+  avatar_scheme: defaultAvatarScheme,
   temperature: 1,
   model: null,
   mandatory: false,
@@ -54,72 +56,6 @@ const levels = [
   { id: 'vg1', name: 'Vg1' },
   { id: 'vg2', name: 'Vg2' },
   { id: 'vg3', name: 'Vg3' },
-]
-
-const botAttrs = [
-  {
-    id: 0,
-    text: 'Farge',
-    values: [
-      { id: 0, text: 'Blå' },
-      { id: 1, text: 'Gul' },
-      { id: 2, text: 'Grønn' },
-      { id: 3, text: 'Rød' },
-      { id: 4, text: 'Grå' },
-    ],
-  },
-  {
-    id: 1,
-    text: 'Hode',
-    values: [
-      { id: 0, text: 'Firkant' },
-      { id: 1, text: 'Høy' },
-      { id: 2, text: 'Smal hake' },
-    ],
-  },
-  {
-    id: 2,
-    text: 'Øyne',
-    values: [
-      { id: 0, text: 'Sirkel' },
-      { id: 1, text: 'Firkant' },
-      { id: 2, text: 'Rektangel' },
-      { id: 3, text: 'Glimt' },
-    ],
-  },
-  {
-    id: 3,
-    text: 'Hår',
-    values: [
-      { id: 0, text: 'Ingen' },
-      { id: 1, text: 'Caps' },
-      { id: 2, text: 'Hår' },
-    ],
-  },
-  {
-    id: 4,
-    text: 'Ører',
-    values: [
-      { id: 0, text: 'Nei' },
-      { id: 1, text: 'Ja' },
-    ],
-  },
-  {
-    id: 5,
-    text: 'Armer',
-    values: [
-      { id: 0, text: 'Skulder' },
-      { id: 1, text: 'Rett' },
-    ],
-  },
-  {
-    id: 6,
-    text: 'Nakke',
-    values: [
-      { id: 0, text: 'Tykk' },
-      { id: 1, text: 'Tynn' },
-    ],
-  },
 ]
 
 const getBotInfo = async () => {
@@ -295,12 +231,8 @@ const schoolAccessFiltered = computed(() => {
   })
 })
 
-const randomizeAttributes = () => {
-  const randomAttributes = []
-  Object.values(botAttrs).forEach(attr => {
-    randomAttributes.push(Math.floor(Math.random() * attr.values.length))
-  })
-  bot.value.avatar_scheme = randomAttributes
+const updateAvatarScheme = newAvatarScheme => {
+  bot.value.avatar_scheme = newAvatarScheme
 }
 
 watchEffect(() => {
@@ -346,7 +278,7 @@ watch(
     aria-labelledby="gen_bot_img_label"
     aria-hidden="true"
   >
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-custom-width">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="gen_bot_img_label">Bot avatar</h1>
@@ -357,45 +289,12 @@ watch(
             aria-label="Close"
           ></button>
         </div>
-        <div class="modal-body">
-          Her kan du bestemme utseendet på din bot. Eller
-          <button
-            class="btn oslo-btn-secondary ms-0"
-            @click="randomizeAttributes"
-            title="La tilfeldighetene avgjøre"
-          >
-            La tilfeldighetene avgjøre
-          </button>
-        </div>
-        <div class="modal-body row">
-          <div class="col-6">
-            <div>
-              <div v-for="attr in botAttrs">
-                <div class="mt-2 border-bottom">
-                  <strong>{{ attr.text }}</strong>
-                </div>
-                <div class="row">
-                  <div v-for="value in attr.values" class="col-md-6 align-items-center">
-                    <input
-                      class="me-2"
-                      type="radio"
-                      :name="attr.id"
-                      :id="`${attr.id}:${value.id}`"
-                      :value="value.id"
-                      v-model="bot.avatar_scheme[attr.id]"
-                    />
-                    <label :for="`${attr.id}:${value.id}`" class="form-check-label">
-                      {{ value.text }}
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-6">
-            <BotAvatar :avatar_scheme="bot.avatar_scheme" />
-          </div>
-        </div>
+
+        <BotAvatarEditor
+          :avatarScheme="bot.avatar_scheme"
+          @update:avatarScheme="updateAvatarScheme"
+        />
+
         <div class="modal-footer">
           <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
         </div>
@@ -887,4 +786,9 @@ watch(
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.modal-custom-width {
+  width: 600px;
+  max-width: none;
+}
+</style>

@@ -1,5 +1,5 @@
 <script setup>
-import {  useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect } from 'vue'
 
@@ -14,7 +14,6 @@ async function getcontent() {
   try {
     const { data } = await axios.get('/api/page_text/' + route.params.page)
     contentText.value = data.content_text
-    version.value = data.version
   } catch (error) {
     console.log(error)
   }
