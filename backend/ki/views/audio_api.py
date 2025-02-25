@@ -24,7 +24,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
 
-
         # Initialize vars
         self.connection_id = str(uuid.uuid4())
         self.messages = []
