@@ -3,6 +3,7 @@ import asyncio
 import json
 import uuid
 import logging
+import datetime
 from azure.cognitiveservices.speech import SpeechConfig, AudioConfig, SpeechRecognizer, SpeechSynthesizer, AudioDataStream, SpeechSynthesisOutputFormat
 from azure.cognitiveservices.speech.audio import PushAudioInputStream
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -22,7 +23,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
     # Called when the WebSocket connection is opened
     async def connect(self):
         await self.accept()
-
 
         # Initialize vars
         self.connection_id = str(uuid.uuid4())
@@ -93,6 +93,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.user_role = data.get('user_info', {}).get('role', None)
                 self.user_level = data.get('user_info', {}).get('level', None)
                 self.user_schools = data.get('user_info', {}).get('schools', [])
+                self.log(f"User info: role: {self.user_role}, level: {self.user_level}, schools: {self.user_schools}")
 
             # Initialize speech recognizer if client made changes
             if self.selected_language != self.speech_config.speech_recognition_language:
@@ -138,7 +139,10 @@ class AudioConsumer(AsyncWebsocketConsumer):
         }))
 
         # Log usage
-        await use_log(self.bot_uuid, role=self.user_role, level=self.user_level, schools=self.user_schools, message_length=len(self.messages), interaction_type='audio')
+        try:
+            await use_log(self.bot_uuid, role=self.user_role, level=self.user_level, schools=self.user_schools, message_length=len(self.messages), interaction_type='audio')
+        except Exception as e:
+            self.log(f"Error while logging usage: {e}")
 
         await self.send_server_status("generatingChatResponse")
 
@@ -257,7 +261,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
     # Wrapper for easy logging with connection_id prefix
     def log(self, message):
-        logger.debug(f"{self.connection_id}: {message}")
+        utc_time = datetime.datetime.now()
+        logger.debug(f"{utc_time.strftime("%Y-%m-%dT%H:%M:%S")} :: {self.connection_id} :: {message}")
 
 
     # Speech recognizer callback which fires whenever Azure recognizes speech

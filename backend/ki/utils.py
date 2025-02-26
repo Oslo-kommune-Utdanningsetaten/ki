@@ -166,17 +166,21 @@ def get_user_data_from_request(request):
     level = None
     if (levels := request.g.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
-    # school_ids
-    school_ids = [school.org_nr for school in request.g.get('schools', [])]
-    return level, school_ids, role
+    # schools
+    schools = request.g.get('schools', [])
+    return level, schools, role
 
 
 async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1, interaction_type='text'):
     from ki import models # Avoid circular import
     log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
     await log_line.asave()
-    for school_id in schools:
-        await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
+
+    for school in schools:
+        # school can be of both type dict or models.School
+        school_id = school.get('org_nr') if isinstance(school, dict) else school.org_nr
+        if school_id:
+            await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
 
 
 def get_setting(setting_key):

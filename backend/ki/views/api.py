@@ -661,8 +661,8 @@ async def send_message(request):
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    level, school_ids, role = get_user_data_from_request(request)
-    await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages), interaction_type='text')
+    level, schools, role = get_user_data_from_request(request)
+    await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
     return await chat_completion_azure_streamed(messages, bot_model, temperature=bot.temperature)
 
 
@@ -678,7 +678,7 @@ async def send_img_message(request):
         bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    level, school_ids, role = get_user_data_from_request(request)
-    await use_log(bot_uuid, role=role, level=level, schools=school_ids, message_length=len(messages), interaction_type='text')
+    level, schools, role = get_user_data_from_request(request)
+    await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
     return await generate_image_azure(prompt, model=bot_model_obj.deployment_id)
 
