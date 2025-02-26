@@ -49,11 +49,6 @@ def menu_items(request):
             'class': '',
         })
 
-    # # Check if user can edit groups
-    # has_access_to_group_edit  = request.g['settings']['allow_groups']
-    # dist_to_groups = request.g.get('dist_to_groups', False)
-    # can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
-
     # Get default model
     default_model_id = get_setting('default_model')
     default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
@@ -130,8 +125,6 @@ def user_bots(request):
             'status': 'not_school',
             'bots': None,
         })
-
-    # open_for_distribution = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     tag_categories = []
     for category in models.TagCategory.objects.all():
@@ -223,7 +216,6 @@ def empty_bot(request, bot_type):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    # edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -292,7 +284,6 @@ def bot_info(request, bot_uuid=None):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    # edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     new_bot = False if bot_uuid else True
 
@@ -310,18 +301,14 @@ def bot_info(request, bot_uuid=None):
 
     # build access control
     edit = False
-    # distribute = False
     is_owner = bot.owner == request.g.get('username', None)
     if is_admin:
         edit = True
-        # distribute = False
     elif is_employee:
         if is_owner:
             edit = True
-            # distribute = edit_groups
         elif bot.allow_distribution and bot.library:
             edit = False
-            # distribute = edit_groups
 
     # save bot
     if request.method == "PUT" or request.method == "POST":
@@ -383,7 +370,6 @@ def bot_info(request, bot_uuid=None):
                     bot_id=bot,
                     label=choice.get('label'),
                     order=choice.get('order'),
-                    # text=choice.get('text')
             )
             prompt_choice.save()
 
@@ -456,7 +442,6 @@ def bot_info(request, bot_uuid=None):
         choices.append({
             'id': choice.id,
             'label': choice.label,
-            # 'text': choice.text,
             'options': options,
             'order': choice.order,
             'selected': {
@@ -550,7 +535,6 @@ def bot_info(request, bot_uuid=None):
             'temperature': bot.temperature,
             'model': bot_model,
             'edit': edit,
-            # 'distribute': distribute,
             'owner': bot.owner if is_admin else None,
             'choices': choices,
             'groups': group_list,
