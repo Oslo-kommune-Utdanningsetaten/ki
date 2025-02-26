@@ -49,10 +49,10 @@ def menu_items(request):
             'class': '',
         })
 
-    # Check if user can edit groups
-    has_access_to_group_edit  = request.g['settings']['allow_groups']
-    dist_to_groups = request.g.get('dist_to_groups', False)
-    can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
+    # # Check if user can edit groups
+    # has_access_to_group_edit  = request.g['settings']['allow_groups']
+    # dist_to_groups = request.g.get('dist_to_groups', False)
+    # can_user_edit_groups = bool(has_access_to_group_edit and dist_to_groups)
 
     # Get default model
     default_model_id = get_setting('default_model')
@@ -71,7 +71,7 @@ def menu_items(request):
             'is_admin': request.g.get('admin', False),
             'is_employee': request.g.get('employee', False),
             'is_author': request.g.get('author', False),
-            'can_user_edit_groups.': can_user_edit_groups,
+            # 'can_user_edit_groups.': can_user_edit_groups,
         },
         'default_model': default_model,
     })
@@ -131,7 +131,7 @@ def user_bots(request):
             'bots': None,
         })
 
-    open_for_distribution = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
+    # open_for_distribution = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     tag_categories = []
     for category in models.TagCategory.objects.all():
@@ -162,7 +162,7 @@ def user_bots(request):
             'img_bot': bot.img_bot,
             'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'personal': not bot.library,
-            'allow_distribution': bot.allow_distribution and open_for_distribution,
+            'allow_distribution': bot.allow_distribution,
             'bot_info': bot.bot_info or '',
             'tag': bot.tags.all().values_list('tag_value', flat=True) if bot.library else [],
         }
@@ -223,7 +223,7 @@ def empty_bot(request, bot_type):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
+    # edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -276,9 +276,9 @@ def empty_bot(request, bot_type):
             'temperature': '1',
             'model': None,
             'edit': True,
-            'distribute': edit_groups,
+            # 'distribute': edit_groups,
             'choices': [],
-            'groups': get_groups_from_request(request) if edit_groups and not library else [],
+            'groups': get_groups_from_request(request) if not library else [],
             'schoolAccesses': school_access_list,
             'library': library,
             'tag_categories': tag_categories,
@@ -292,7 +292,7 @@ def bot_info(request, bot_uuid=None):
     is_admin = request.g.get('admin', False)
     is_employee = request.g.get('employee', False)
     is_author = request.g.get('author', False)
-    edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
+    # edit_groups = (request.g['settings']['allow_groups'] and request.g['dist_to_groups'])
 
     new_bot = False if bot_uuid else True
 
@@ -310,18 +310,18 @@ def bot_info(request, bot_uuid=None):
 
     # build access control
     edit = False
-    distribute = False
+    # distribute = False
     is_owner = bot.owner == request.g.get('username', None)
     if is_admin:
         edit = True
-        distribute = False
+        # distribute = False
     elif is_employee:
         if is_owner:
             edit = True
-            distribute = edit_groups
+            # distribute = edit_groups
         elif bot.allow_distribution and bot.library:
             edit = False
-            distribute = edit_groups
+            # distribute = edit_groups
 
     # save bot
     if request.method == "PUT" or request.method == "POST":
@@ -421,19 +421,17 @@ def bot_info(request, bot_uuid=None):
 
     # save groups
     if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
-        if distribute:
-            if not is_owner and not distribute:
-                return Response(status=403)
 
-            for group in json.loads(request.body).get('groups', []):
-                if acl := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=group.get('id')).first():
+        for group in json.loads(request.body).get('groups', []):
+            if group.get('id') in request.g.get('groups', []):
+                if subject_access := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=group.get('id')).first():
                     if group.get('checked', False) == False:
-                        acl.delete()
+                        subject_access.delete()
                 else:
                     if group.get('checked', False) == True:
-                        acl = models.SubjectAccess(
+                        subject_access = models.SubjectAccess(
                             bot_id=bot, subject_id=group.get('id'))
-                        acl.save()
+                        subject_access.save()
 
         return Response({'bot': {'uuid': bot.uuid }})
 
@@ -470,18 +468,17 @@ def bot_info(request, bot_uuid=None):
         })
 
     group_list = []
-    if distribute:
-        access_list = []
-        lifespan = get_setting('lifespan')
-        for subj in bot.subjects.all():
-            if (subj.created and
-                    (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
-                subj.delete()
-            else:
-                access_list.append(subj.subject_id)
-        groups = get_groups_from_request(request)
-        group_list = [dict(group, checked=group.get('id') in access_list)
-                for group in groups]
+    access_list = []
+    lifespan = get_setting('lifespan')
+    for subj in bot.subjects.all():
+        if (subj.created and
+                (subj.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
+            subj.delete()
+        else:
+            access_list.append(subj.subject_id)
+    groups = get_groups_from_request(request)
+    group_list = [dict(group, checked=group.get('id') in access_list)
+            for group in groups]
 
     school_access_list = []
     school_list = []
@@ -553,10 +550,10 @@ def bot_info(request, bot_uuid=None):
             'temperature': bot.temperature,
             'model': bot_model,
             'edit': edit,
-            'distribute': distribute,
+            # 'distribute': distribute,
             'owner': bot.owner if is_admin else None,
             'choices': choices,
-            'groups': group_list if distribute else None,
+            'groups': group_list,
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tag_categories': tag_categories,
         },
