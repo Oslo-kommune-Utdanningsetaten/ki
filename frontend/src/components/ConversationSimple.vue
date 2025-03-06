@@ -1,11 +1,20 @@
 <script setup>
+import { ref } from 'vue'
+
 import BotAvatar from '@/components/BotAvatar.vue'
 import { renderMessage } from '../utils/renderTools.js'
 
 const props = defineProps({
   messages: Array,
   bot: Object,
+  onToggleReplay: Function,
+  isCurrentlyPlaying: Boolean,
 })
+
+const handleToggleReplay = messageIndex => {
+  // Add one to the index to account for the first message being sliced out
+  props.onToggleReplay(messageIndex + 1)
+}
 </script>
 
 <template>
@@ -31,11 +40,35 @@ const props = defineProps({
               v-html="renderMessage(aMessage.content)"
             ></div>
           </div>
-          <div v-else class="d-flex justify-content-start align-items-start">
+          <div
+            v-else
+            class="d-flex justify-content-start align-items-start position-relative message-container"
+          >
             <div
               class="w-60 position-relative bg-light p-2 bubble bubble-assistant speech-bubble-assistant"
               v-html="renderMessage(aMessage.content)"
             ></div>
+
+            <a
+              name="toggleReplay"
+              @click="() => handleToggleReplay(messageIndex)"
+              class="position-absolute replay-widget"
+            >
+              <img
+                v-if="props.isCurrentlyPlaying"
+                class="oslo-fill-dark-black replay-icon"
+                src="@/components/icons/pause.svg"
+                alt="Pause avspilling"
+                title="Pause avspilling"
+              />
+              <img
+                v-else
+                class="oslo-fill-dark-black replay-icon"
+                src="@/components/icons/play.svg"
+                alt="Spill av på nytt"
+                title="Spill av på nytt"
+              />
+            </a>
           </div>
         </div>
       </div>
@@ -65,5 +98,26 @@ const props = defineProps({
 
 .bubble p:last-child {
   margin-bottom: 0;
+}
+
+.replay-icon {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
+
+.replay-widget {
+  bottom: -20px;
+  left: 50%;
+}
+
+.message-container .replay-widget {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 10;
+}
+
+.message-container:hover .replay-widget {
+  opacity: 0.8;
 }
 </style>

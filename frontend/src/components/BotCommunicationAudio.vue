@@ -44,6 +44,7 @@ const isLanguageOptionsVisible = ref(false)
 const isRecordButtonOnCooldown = ref(false)
 const currentServerStatus = ref('')
 const messages = ref([])
+let messagesWithAudio = []
 
 // Debug history, we can get rid of this after a couple of weeks in production
 const isDebugHistoryVisible = ref(false)
@@ -125,6 +126,7 @@ const resetConversation = () => {
       content: props.systemPrompt,
     },
   ]
+  messagesWithAudio = messages.value
 }
 
 const getUserInfo = async () => {
@@ -210,6 +212,12 @@ const initializeWebsocket = async () => {
       } = JSON.parse(event.data)
       if (type === 'websocket.text' && updatedMessages) {
         messages.value = [...updatedMessages]
+        // add any new messages to messagesWithAudio
+        updatedMessages.forEach((message, index) => {
+          if (!messagesWithAudio[index]) {
+            messagesWithAudio[index] = message
+          }
+        })
         scrollToPageBottom()
       }
       if (serverStatus) {
@@ -233,6 +241,7 @@ const initializeWebsocket = async () => {
           // start of audio stream, clear any lingering audio data
           audioChunks.length = 0
         } else if (command === 'audio-stream-end') {
+          messagesWithAudio[messagesWithAudio.length - 1].audioChunks = audioChunks
           playAudioResponse(audioChunks)
         }
       }
@@ -293,13 +302,10 @@ const playAudioResponse = async audioChunks => {
   const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' })
   const arrayBuffer = await audioBlob.arrayBuffer()
 
-  if (audioContext.state === 'suspended') {
-    await audioContext.resume()
-  }
-
   audioContext.decodeAudioData(
     arrayBuffer,
     audioBuffer => {
+      setMic('off')
       setBotSpeaking('on')
       audioSource = audioContext.createBufferSource()
       audioSource.buffer = audioBuffer
@@ -318,6 +324,24 @@ const onAudioPlaybackFinished = () => {
   setBotSpeaking('off')
   if (websocket && websocket.readyState === WebSocket.OPEN) {
     setMic('on')
+  }
+}
+
+const toggleReplayAudio = messageIndex => {
+  const audioChunks = messagesWithAudio[messageIndex].audioChunks
+  if (!audioChunks) {
+    console.info('No audio available for this message')
+    return
+  }
+  if (isBotSpeaking.value) {
+    audioContext.suspend()
+    setBotSpeaking('off')
+  } else {
+    if (audioContext.state === 'suspended') {
+      audioContext.resume()
+    } else {
+      playAudioResponse(messagesWithAudio[messageIndex].audioChunks)
+    }
   }
 }
 
@@ -390,6 +414,8 @@ onBeforeUnmount(() => {
       v-if="messages.length > 1"
       :messages="messages"
       :bot="props.bot"
+      :onToggleReplay="toggleReplayAudio"
+      :isCurrentlyPlaying="isBotSpeaking"
       class="border-bottom"
     />
 

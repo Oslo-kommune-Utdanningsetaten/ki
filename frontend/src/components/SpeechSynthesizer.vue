@@ -74,12 +74,14 @@ onMounted(() => {
       class="oslo-fill-dark-black"
       src="@/components/icons/pause.svg"
       alt="Pause avspilling"
+      title="Pause avspilling"
     />
     <img
       v-else
       class="oslo-fill-dark-black"
       src="@/components/icons/play.svg"
       alt="Spill av denne meldingen"
+      title="Spill av denne meldingen"
     />
   </a>
 </template>
