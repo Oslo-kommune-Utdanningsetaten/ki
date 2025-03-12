@@ -32,8 +32,10 @@ const resetMessages = () => {
   message.value = ''
 }
 
-watch(() => props.systemPrompt, () => {
-  resetMessages()
+watch(
+  () => props.systemPrompt,
+  () => {
+    resetMessages()
   },
   { immediate: true }
 )
