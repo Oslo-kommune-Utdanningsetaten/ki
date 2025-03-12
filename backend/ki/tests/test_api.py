@@ -22,10 +22,16 @@ def set_up_database(db, request):
         int_val=1
     )
     Setting.objects.create(
-        setting_key='lifespan',
-        label='Levetid tildeling (timer)',
+        setting_key='default_lifespan',
+        label='Standard levetid for tildeling (dager)',
         is_txt=False,
-        int_val=24
+        int_val=2
+    )
+    Setting.objects.create(
+        setting_key='max_lifespan',
+        label='Maksimal levetid for tildeling (dager)',
+        is_txt=False,
+        int_val=7
     )
     BotModel.objects.create(
         model_id=1,

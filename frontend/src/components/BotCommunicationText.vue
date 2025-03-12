@@ -1,5 +1,5 @@
 <script setup>
-import { ref, useTemplateRef, onMounted } from 'vue'
+import { ref, useTemplateRef, onMounted, watch } from 'vue'
 import { store } from '../store.js'
 import Conversation from '@/components/Conversation.vue'
 import { submitTextPrompt } from '../utils/httpTools.js'
@@ -31,6 +31,12 @@ const resetMessages = () => {
   ]
   message.value = ''
 }
+
+watch(() => props.systemPrompt, () => {
+  resetMessages()
+  },
+  { immediate: true }
+)
 
 const handleMessageInput = messageContent => {
   message.value = message.value + ' ' + messageContent

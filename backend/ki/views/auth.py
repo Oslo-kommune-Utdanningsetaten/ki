@@ -10,7 +10,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ki.utils import load_feide_memberships_to_request, has_school_access, load_users_bots_to_request
+from ki.utils import load_feide_memberships_to_request, has_school_access, load_users_bots_to_g, admin_memberships_and_bots_to_g
 
 
 # OAuth 2 client setup
@@ -55,30 +55,24 @@ def auth_middleware(get_response):
             # TODO: author at multiple schools
             role_obj = models.Role.objects.filter(user_id=username).first()
             role = role_obj.role if role_obj else None
+            request.g['username'] = username
+            request.g['name'] = request.session.get('user.name')
+            request.g['groups'] = []
             if role == 'admin':
-                bots:set = set()
-                personal_bots = models.Bot.objects.filter(owner=username)
-                bots.update((bot.uuid for bot in personal_bots))
-                library_bots = models.Bot.objects.filter(library = True)
-                bots.update((bot.uuid for bot in library_bots))
-                request.g['bots'] = list(bots) if bots else []
-                request.g['admin'] = True
+                admin_memberships_and_bots_to_g(request)
                 request.g['has_access'] = True
             else:
                 load_feide_memberships_to_request(request)
                 if has_school_access(request):
-                    load_users_bots_to_request(request)
+                    load_users_bots_to_g(request)
                     request.g['has_access'] = True
                     if role == 'author':
                         request.g['author'] = True
                         request.g['auth_school'] = role_obj.school
-                        request.g['admin'] = False
-                # TODO: 
-                # else:
+                else:
+                    request.g['has_access'] = False
 
 
-            request.g['username'] = username
-            request.g['name'] = request.session.get('user.name')
 
         response = get_response(request)
         response['X-Is-Authenticated'] = str(is_authenticated).lower()
