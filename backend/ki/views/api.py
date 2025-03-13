@@ -299,17 +299,7 @@ def bot_info(request, bot_uuid=None):
             bot = models.Bot.objects.get(uuid=bot_uuid)
         except models.Bot.DoesNotExist:
             return Response(status=404)
-
-    # build access control
-    edit = False
     is_owner = bot.owner == request.g.get('username', None)
-    if is_admin:
-        edit = True
-    elif is_employee:
-        if is_owner:
-            edit = True
-        elif bot.allow_distribution and bot.library:
-            edit = False
 
     # save bot
     if request.method == "PUT" or request.method == "POST":
@@ -546,10 +536,10 @@ def bot_info(request, bot_uuid=None):
             'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
             'model': bot_model,
-            'edit': edit,
+            'edit': is_admin or (is_employee and is_owner),
             'owner': bot.owner if is_admin else None,
             'choices': choices,
-            'groups': get_groups_from_g(request, bot) if is_admin or is_employee else [],
+            'groups': get_groups_from_g(request, bot) if is_employee else [],
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tag_categories': tag_categories,
         },

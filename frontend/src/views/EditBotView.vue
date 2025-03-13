@@ -675,7 +675,7 @@ watch(
     </div>
   </div>
 
-  <div v-if="bot.allow_distribution && bot.groups" class="row mb-3">
+  <div v-if="bot.allow_distribution && bot.groups.length" class="row mb-3">
     <div>
       <hr />
       <p>
