@@ -10,118 +10,13 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ki.utils import get_setting
+from ki.utils import load_feide_memberships_to_request, has_school_access, load_users_bots_to_g, admin_memberships_and_bots_to_g
 
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
 
 message_redirect = 'http://localhost:5173/message' if DEBUG else '/message'
-
-def get_user_bots(request, username):
-    # bot_access = models.BotAccess.objects.all()
-    access = False
-    schools = []
-    levels = []
-    groups = []
-    dist_to_groups = False
-    employee = False
-    bots = set()
-    allow_groups = bool(get_setting('allow_groups'))
-    allow_personal = bool(get_setting('allow_personal'))
-    lifespan = get_setting('lifespan')
-
-    if not (tokens := request.session.get('user.auth', False)):
-        return [], False, False, [], []
-    # get user's grups from dataporten
-    groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
-    headers = {"Authorization": "Bearer " + tokens['access_token']}
-    groupinfo_response = requests.get(
-        groupinfo_endpoint, 
-        headers=headers
-        )
-    if groupinfo_response.status_code == 401:
-        request.session.clear()
-        return [], False, False, [], []
-    groupinfo_response = groupinfo_response.json()
-
-    # get user's schools and levels and groups
-    for group in groupinfo_response:
-        # role empoyee from parent org
-        if (group.get('id') == "fc:org:feide.osloskolen.no" and
-                group['membership']['primaryAffiliation'] == "employee"):
-            employee = True
-        # school org_nr(s) from child org(s)
-        if (group.get('type') == "fc:org" and
-                group.get("parent") == "fc:org:feide.osloskolen.no"):
-            # fifth part of id is org_nr
-            org_nr = group['id'].split(":")[4]
-            school = models.School.objects.get(org_nr=org_nr)
-            if school:
-                schools.append(school)
-        # level(s) from grep
-        if (group.get('type') == "fc:grep" and
-                group.get('grep_type') == "aarstrinn"):
-            levels.append(group['code'])
-        # education groups
-        if (group.get('type') == "fc:gogroup"):
-            groups.append(group.get('id'))
-
-    # has user's schools access?
-    for school in schools:
-        if employee:
-            if school.access in ['emp', 'all', 'levels']:
-                access = True
-                if school.access != 'emp':
-                    dist_to_groups = True
-        else:
-            if school.access == 'all':
-                access = True
-            elif school.access == 'levels':
-                for line in school.school_accesses.all():
-                    if line.level in levels:
-                        access = True
-    if not access:
-        return None, False, False, [], []
-    
-    # bots from subject
-    if allow_groups and not employee:
-        for group_id in groups:
-            subject_accesses = models.SubjectAccess.objects.filter(subject_id=group_id)
-            for subject_access in subject_accesses:
-                if (subject_access.created and
-                        (subject_access.created.replace(tzinfo=None) + timedelta(hours=lifespan) < datetime.now())):
-                    subject_access.delete()
-                else:
-                    bots.add(subject_access.bot_id_id)
-
-    # bots from school
-    for school in schools:
-        for bot_access in school.accesses.all():
-            access = False
-            match bot_access.access:
-                case 'all':
-                    access = True
-                case 'emp':
-                    if employee:
-                        access = True
-                case 'levels':
-                    if employee:
-                        access = True
-                    else:
-                        for level in bot_access.levels.all():
-                            if level.level in levels:
-                                access = True
-            if access:
-                bots.add(bot_access.bot_id_id)
-                                
-    # bots from personal
-    if allow_personal:
-        personal_bots = models.Bot.objects.filter(owner=username)
-        for personal_bot in personal_bots:
-            bots.add(personal_bot.uuid)
-
-    return bots, employee, dist_to_groups, schools, levels
 
 
 def auth_middleware(get_response):
@@ -130,12 +25,10 @@ def auth_middleware(get_response):
         request.g = {}
         bots = set()
         is_admin = False
-        has_access = False
 
         username = request.session.get('user.username', None)
         is_authenticated = username is not None
         request.g['isAuthenticated'] = is_authenticated
-
         # load settings
         settings_dict = {}
         all_settings = models.Setting.objects.all()
@@ -146,10 +39,7 @@ def auth_middleware(get_response):
                 settings_dict[setting.setting_key] = setting.txt_val
 
         request.g['settings'] = settings_dict
-
-
         if not is_authenticated:
-            has_access = False
             url_name = resolve(request.path_info).url_name
             if (url_name is None):
                 return get_response(request)
@@ -160,39 +50,29 @@ def auth_middleware(get_response):
                 return JsonResponse({'error': 'Not authenticated'}, status=401)
             else:
                 return get_response(request)
-            
         else:   
-            request.g['username'] = username    
-            request.g['name'] = request.session.get('user.name')
-            
             # get user's bots
+            # TODO: author at multiple schools
             role_obj = models.Role.objects.filter(user_id=username).first()
             role = role_obj.role if role_obj else None
-            if role == 'admin':
-                request.g['dist_to_groups'] = False
-                is_admin = True
-                has_access = True
-                personal_bots = models.Bot.objects.filter(owner=username)
-                bots.update((bot.uuid for bot in personal_bots))
-                library_bots = models.Bot.objects.filter(library = True)
-                bots.update((bot.uuid for bot in library_bots))
-            else:
-                bots, employee, dist_to_groups, schools, levels = get_user_bots(request, username)
-                request.g['employee'] = employee
-                request.g['dist_to_groups'] = dist_to_groups
-                request.g['schools'] = schools
-                request.g['levels'] = levels
-                if role == 'author':
-                    request.g['author'] = True
-                    request.g['auth_school'] = role_obj.school
-                if bots is not None:
-                    has_access = True
-
-            request.g['bots'] = list(bots) if bots else []
-            request.g['admin'] = is_admin
-            request.g['has_access'] = has_access
             request.g['username'] = username
             request.g['name'] = request.session.get('user.name')
+            request.g['groups'] = []
+            if role == 'admin':
+                admin_memberships_and_bots_to_g(request)
+                request.g['has_access'] = True
+            else:
+                load_feide_memberships_to_request(request)
+                if has_school_access(request):
+                    load_users_bots_to_g(request)
+                    request.g['has_access'] = True
+                    if role == 'author':
+                        request.g['author'] = True
+                        request.g['auth_school'] = role_obj.school
+                else:
+                    request.g['has_access'] = False
+
+
 
         response = get_response(request)
         response['X-Is-Authenticated'] = str(is_authenticated).lower()
@@ -273,7 +153,6 @@ def logout(request):
     request.g['username'] = None
     request.g['name'] = None
     request.g['bots'] = []
-    request.g['has_access'] = False
     if token:
         id_token = token['id_token']
         feide_provider_cfg = get_provider_cfg()

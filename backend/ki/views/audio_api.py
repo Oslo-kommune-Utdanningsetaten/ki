@@ -261,7 +261,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
     # Wrapper for easy logging with connection_id prefix
     def log(self, message):
-        utc_time = datetime.datetime.now()
+        utc_time = datetime.datetime.now(datetime.timezone.utc)
         logger.debug(f"{utc_time.strftime("%Y-%m-%dT%H:%M:%S")} :: {self.connection_id} :: {message}")
 
 
