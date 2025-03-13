@@ -92,7 +92,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div  class="d-flex justify-content-end">
+    <div class="d-flex justify-content-end">
       <RouterLink
         v-if="bot.allow_distribution && !bot.edit"
         class="btn oslo-btn-secondary"

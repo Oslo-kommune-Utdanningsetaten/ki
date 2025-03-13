@@ -7,11 +7,11 @@ import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
-import VueDatePicker from '@vuepic/vue-datepicker';
+import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-var last_go_type = ''
-const date = ref();
+let last_go_type = ''
+const date = ref()
 const route = useRoute()
 const $router = useRouter()
 const bot = ref({
@@ -205,7 +205,7 @@ const setAllAccesses = access => {
   })
 }
 
-const is_group_heading = (group) => {
+const is_group_heading = group => {
   if (last_go_type == group.go_type) {
     return false
   }
@@ -679,16 +679,15 @@ watch(
     <div>
       <hr />
       <p>
-        Elevene dine kan få tilgang til denne boten ved at du merker av ved klassen eller faggruppen som skal ha tilgang.
-        Du kan også endre perioden boten er tilgjengelig ved å klikke i datovelgeren ved siden av gruppa. 
-        Merk først fra-dato og deretter til-dato, og så klokkesymbolet om du ønsker å endre klokkeslettet.
-        Tilgangen slettes når til-datoen er passert.
-        Tilgangen til boten kan maksimalt vare i {{ maxLifeSpan }} dager.
+        Elevene dine kan få tilgang til denne boten ved at du merker av ved klassen eller faggruppen
+        som skal ha tilgang. Du kan også endre perioden boten er tilgjengelig ved å klikke i
+        datovelgeren ved siden av gruppa. Merk først fra-dato og deretter til-dato, og så
+        klokkesymbolet om du ønsker å endre klokkeslettet. Tilgangen slettes når til-datoen er
+        passert. Tilgangen til boten kan maksimalt vare i {{ maxLifeSpan }} dager.
       </p>
     </div>
     <div class="col-sm-2">Grupper som har tilgang</div>
     <div class="col-sm-10">
-
       <div v-for="group in groupsSorted" :key="group.id" class="align-items-center">
         <div v-if="is_group_heading(group)" class="row mb-1">
           {{ group.go_type == 'b' ? 'Klasser' : 'Faggrupper' }}
@@ -699,21 +698,21 @@ watch(
               <input
                 class="form-check-input"
                 type="checkbox"
-                role="switch" 
+                role="switch"
                 name="access"
                 v-model="group.checked"
                 :id="'check' + group.id"
-                />
-                <label class="form-check-label" :for="'check' + group.id">
-                  {{ group.display_name }}
+              />
+              <label class="form-check-label" :for="'check' + group.id">
+                {{ group.display_name }}
               </label>
             </div>
           </div>
           <div class="col-sm-1 date-picker">
-            <VueDatePicker 
-              v-show="group.checked" 
+            <VueDatePicker
+              v-show="group.checked"
               v-model="group.valid_range"
-              :range="{ 
+              :range="{
                 maxRange: maxLifeSpan,
                 partialRange: false,
               }"
@@ -722,8 +721,8 @@ watch(
               select-text="Velg"
               cancel-text="Avbryt"
               :clearable="false"
-            >
-            </VueDatePicker>
+              :min-date="new Date()"
+            ></VueDatePicker>
           </div>
         </div>
       </div>
@@ -840,5 +839,4 @@ watch(
 .date-picker {
   min-width: 300px;
 }
-
 </style>

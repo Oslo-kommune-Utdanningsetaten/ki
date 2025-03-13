@@ -165,8 +165,8 @@ class SubjectAccess(models.Model):
                                db_column='bot_id', to_field='uuid', related_name="subjects")
     subject_id = models.CharField(max_length=200, null=True) 
     created = models.DateTimeField(auto_now_add=True) 
-    valid_to = models.DateTimeField(null=True)
     valid_from = models.DateTimeField(null=True)
+    valid_to = models.DateTimeField(null=True)
 
     class Meta:
         db_table = 'subject_access'
