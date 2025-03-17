@@ -7,7 +7,11 @@ import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
+import VueDatePicker from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
 
+let last_go_type = ''
+const date = ref()
 const route = useRoute()
 const $router = useRouter()
 const bot = ref({
@@ -32,7 +36,8 @@ const edit = ref(false)
 const distribute = ref(false)
 const newBot = ref(false)
 const method = ref('edit')
-const lifeSpan = ref(0)
+const defaultLifeSpan = ref(0)
+const maxLifeSpan = ref(0)
 const botId = ref()
 const sort_by = ref('school_name')
 const filter_list = ref([])
@@ -73,7 +78,8 @@ const getBotInfo = async () => {
     if (!bot.value.model) {
       bot.value.model = 'none'
     }
-    lifeSpan.value = data.lifespan
+    defaultLifeSpan.value = data.default_lifespan
+    maxLifeSpan.value = data.max_lifespan
   } catch (error) {
     console.log(error)
   }
@@ -199,6 +205,14 @@ const setAllAccesses = access => {
   })
 }
 
+const is_group_heading = group => {
+  if (last_go_type == group.go_type) {
+    return false
+  }
+  last_go_type = group.go_type
+  return true
+}
+
 const choicesSorted = computed(() => {
   if (!bot.value.choices) {
     return []
@@ -229,6 +243,10 @@ const schoolAccessFiltered = computed(() => {
     }
     return 0
   })
+})
+
+const groupsSorted = computed(() => {
+  return bot.value.groups.sort((a, b) => a.display_name.localeCompare(b.display_name))
 })
 
 const updateAvatarScheme = newAvatarScheme => {
@@ -657,30 +675,56 @@ watch(
     </div>
   </div>
 
-  <div v-if="distribute && bot.groups" class="row mb-3">
+  <div v-if="bot.allow_distribution && bot.groups.length" class="row mb-3">
     <div>
       <hr />
       <p>
-        Elevene dine kan få tilgang til denne boten ved at du huker av for klasser eller faggrupper
-        nedenfor. Merk at dette gjelder kun for elever som har fått tilgang til ki.osloskolen.no.
-        <br />
-        Tilgangen til boten varer i {{ lifeSpan }} timer fra du lagrer.
+        Elevene dine kan få tilgang til denne boten ved at du merker av ved klassen eller faggruppen
+        som skal ha tilgang. Du kan også endre perioden boten er tilgjengelig ved å klikke i
+        datovelgeren ved siden av gruppa. Merk først fra-dato og deretter til-dato, og så
+        klokkesymbolet om du ønsker å endre klokkeslettet. Tilgangen slettes når til-datoen er
+        passert. Tilgangen til boten kan maksimalt vare i {{ maxLifeSpan }} dager.
       </p>
     </div>
     <div class="col-sm-2">Grupper som har tilgang</div>
     <div class="col-sm-10">
-      <div v-for="group in bot.groups" class="form-check">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          name="access"
-          v-model="group.checked"
-          :id="'check' + group.id"
-        />
-        <label class="form-check-label" :for="'check' + group.id">
-          {{ group.display_name }}
-          {{ group.go_type == 'b' ? '(klasse)' : '(faggruppe)' }}
-        </label>
+      <div v-for="group in groupsSorted" :key="group.id" class="align-items-center">
+        <div v-if="is_group_heading(group)" class="row mb-1">
+          {{ group.go_type == 'b' ? 'Klasser' : 'Faggrupper' }}
+        </div>
+        <div class="row mb-1">
+          <div class="col-sm-5">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                name="access"
+                v-model="group.checked"
+                :id="'check' + group.id"
+              />
+              <label class="form-check-label" :for="'check' + group.id">
+                {{ group.display_name }}
+              </label>
+            </div>
+          </div>
+          <div class="col-sm-1 date-picker">
+            <VueDatePicker
+              v-show="group.checked"
+              v-model="group.valid_range"
+              :range="{
+                maxRange: maxLifeSpan,
+                partialRange: false,
+              }"
+              locale="nb"
+              format="HH:mm dd.MM.yy"
+              select-text="Velg"
+              cancel-text="Avbryt"
+              :clearable="false"
+              :min-date="new Date()"
+            ></VueDatePicker>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -790,5 +834,9 @@ watch(
 .modal-custom-width {
   width: 600px;
   max-width: none;
+}
+
+.date-picker {
+  min-width: 300px;
 }
 </style>
