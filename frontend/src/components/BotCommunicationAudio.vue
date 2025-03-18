@@ -339,6 +339,7 @@ const toggleReplayAudio = messageIndex => {
     setBotSpeaking('off')
   } else {
     if (audioContext.state === 'suspended') {
+      setBotSpeaking('on')
       audioContext.resume()
     } else {
       playAudioResponse(messagesWithAudio[messageIndex].audioChunks)
