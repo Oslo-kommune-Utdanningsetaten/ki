@@ -60,6 +60,7 @@ const selectedSpeechRate = ref(getSelectedSpeechRate())
 let currentUser
 let audioContext
 let audioSource
+let microphoneStream
 let websocket
 
 const elapsedSeconds = () => {
@@ -255,8 +256,8 @@ const initializeWebsocket = async () => {
 const startRecording = async () => {
   setMic('on')
   // Get audio stream
-  const stream = await navigator.mediaDevices?.getUserMedia({ audio: true })
-  if (!stream) {
+  microphoneStream = await navigator.mediaDevices?.getUserMedia({ audio: true })
+  if (!microphoneStream) {
     recordEvent('No audio stream (from mic) available')
     setMic('off')
     return
@@ -272,7 +273,7 @@ const startRecording = async () => {
   await audioContext.audioWorklet.addModule(workletURL)
 
   // Create MediaStreamSource and AudioWorkletNode
-  const audioSourceNode = audioContext.createMediaStreamSource(stream)
+  const audioSourceNode = audioContext.createMediaStreamSource(microphoneStream)
   const workletNode = new AudioWorkletNode(audioContext, 'pcm-processor')
   // Connect the audioSourceNode to the worklet for processing
   audioSourceNode.connect(workletNode)
@@ -405,6 +406,30 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   websocket?.close()
+
+  // Stop active recordings and release microphone by stopping all tracks
+  if (microphoneStream) {
+    microphoneStream.getTracks().forEach(track => {
+      track.stop()
+      recordEvent(`Stopping media track: ${track.kind}`)
+    })
+  }
+
+  // Stop any playing audio
+  if (isBotSpeaking.value && audioSource) {
+    audioSource.stop()
+    setBotSpeaking('off')
+  }
+
+  // Clean up AudioContext to release audio resources
+  if (audioContext) {
+    audioContext.close().catch(err => console.error('Error closing AudioContext:', err))
+  }
+
+  // Force garbage collection of audio resources
+  microphoneStream = null
+  audioContext = null
+  audioSource = null
 })
 </script>
 
