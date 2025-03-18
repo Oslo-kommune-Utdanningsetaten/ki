@@ -42,7 +42,6 @@
 
 :root {
   --bs-border-radius: 0;
-  --dp-input-padding: 0, 0, 0, 35px !important;
 }
 
 [v-cloak] {

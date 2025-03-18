@@ -11,6 +11,13 @@ import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 let last_go_type = ''
+let dateFormat = Intl.DateTimeFormat('nb', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
 const date = ref()
 const route = useRoute()
 const $router = useRouter()
@@ -680,49 +687,80 @@ watch(
       <hr />
       <p>
         Elevene dine kan få tilgang til denne boten ved at du merker av ved klassen eller faggruppen
-        som skal ha tilgang. Du kan også endre perioden boten er tilgjengelig ved å klikke i
-        datovelgeren ved siden av gruppa. Merk først fra-dato og deretter til-dato, og så
-        klokkesymbolet om du ønsker å endre klokkeslettet. Tilgangen slettes når til-datoen er
-        passert. Tilgangen til boten kan maksimalt vare i {{ maxLifeSpan }} dager.
+        som skal ha tilgang. Du kan også endre perioden boten er tilgjengelig. Merk først fra-dato
+        og deretter til-dato, og så klokkesymbolet om du ønsker å endre klokkeslettet. Tilgangen
+        slettes når til-datoen er passert. Tilgangen til boten kan maksimalt vare i
+        {{ maxLifeSpan }} dager.
       </p>
     </div>
     <div class="col-sm-2">Grupper som har tilgang</div>
-    <div class="col-sm-10">
-      <div v-for="group in groupsSorted" :key="group.id" class="align-items-center">
-        <div v-if="is_group_heading(group)" class="row mb-1">
+    <div class="col-sm-8">
+      <div v-for="group in groupsSorted" :key="group.id" class="">
+        <div v-if="is_group_heading(group)" class="mb-1">
           {{ group.go_type == 'b' ? 'Klasser' : 'Faggrupper' }}
         </div>
-        <div class="row mb-1">
-          <div class="col-sm-5">
-            <div class="form-check form-switch">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                role="switch"
-                name="access"
-                v-model="group.checked"
-                :id="'check' + group.id"
-              />
-              <label class="form-check-label" :for="'check' + group.id">
-                {{ group.display_name }}
-              </label>
+        <div v-if="group.checked">
+          <div class="row justify-content-between align-items-center bg-light mb-2 pb-1 pt-1">
+            <div class="col-sm-8">
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  name="access"
+                  v-model="group.checked"
+                  :id="'check' + group.id"
+                />
+                <label class="form-check-label" :for="'check' + group.id">
+                  {{ group.display_name }}
+                </label>
+              </div>
+              <div class="ps-5">
+                Åpen fra
+                {{ dateFormat.format(new Date(group.valid_range[0])) }}
+              </div>
+              <div class="ps-5">
+                Åpen til
+                {{ dateFormat.format(new Date(group.valid_range[1])) }}
+              </div>
+            </div>
+            <div class="col">
+              <VueDatePicker
+                class="date-picker"
+                v-show="group.checked"
+                v-model="group.valid_range"
+                :range="{
+                  maxRange: maxLifeSpan,
+                  partialRange: false,
+                }"
+                locale="nb"
+                :format="
+                  dates => {
+                    return 'Endre tidspunkt'
+                  }
+                "
+                select-text="Velg"
+                cancel-text="Avbryt"
+                :clearable="false"
+                :min-date="new Date()"
+                preview-format="dd.MM HH:mm"
+              ></VueDatePicker>
             </div>
           </div>
-          <div class="col-sm-1 date-picker">
-            <VueDatePicker
-              v-show="group.checked"
-              v-model="group.valid_range"
-              :range="{
-                maxRange: maxLifeSpan,
-                partialRange: false,
-              }"
-              locale="nb"
-              format="HH:mm dd.MM.yy"
-              select-text="Velg"
-              cancel-text="Avbryt"
-              :clearable="false"
-              :min-date="new Date()"
-            ></VueDatePicker>
+        </div>
+        <div v-else>
+          <div class="form-check form-switch pt-1">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              role="switch"
+              name="access"
+              v-model="group.checked"
+              :id="'check' + group.id"
+            />
+            <label class="form-check-label" :for="'check' + group.id">
+              {{ group.display_name }}
+            </label>
           </div>
         </div>
       </div>
@@ -837,6 +875,9 @@ watch(
 }
 
 .date-picker {
-  min-width: 300px;
+  width: 180px;
+  --dp-background-color: #f8f0dd;
+  --dp-border-color: #f8f0dd;
+  --dp-border-radius: 0;
 }
 </style>
