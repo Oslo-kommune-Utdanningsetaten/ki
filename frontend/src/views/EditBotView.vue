@@ -434,10 +434,28 @@ watch(
           </div>
         </div>
       </div>
+    </div>
+    <div v-if="store.isAdmin">
       <div class="row mb-3">
         <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
         <div class="col-sm-10">
           <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner" />
+        </div>
+      </div>
+    </div>
+    <div v-if="store.isAdmin">
+      <div class="row mb-3">
+        <div class="col-sm-2">Biblioteksbot</div>
+        <div class="col-sm-10">
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="library"
+              v-model="bot.library"
+            />
+            <label class="form-check-label" for="library">Ja</label>
+          </div>
         </div>
       </div>
     </div>
@@ -456,6 +474,8 @@ watch(
           </div>
         </div>
       </div>
+    </div>
+    <div v-if="store.isAdmin || store.isAuthor">
       <div class="row mb-3">
         <div class="col-sm-2">Modell</div>
         <div class="col-sm-10">
@@ -493,6 +513,8 @@ watch(
           {{ bot.model.model_description }}
         </div>
       </div>
+    </div>
+    <div v-if="store.isAdmin || store.isAuthor">
       <div class="row mb-3">
         <div class="col-sm-2">Tillat distribusjon til elever</div>
         <div class="col-sm-10">
@@ -507,6 +529,8 @@ watch(
           </div>
         </div>
       </div>
+    </div>
+    <div v-if="store.isAdmin || store.isAuthor">
       <div class="row mb-3">
         <label for="bot_info" class="col-sm-2 col-form-label">
           Informasjon (vises på startsiden)
@@ -521,6 +545,8 @@ watch(
           ></textarea>
         </div>
       </div>
+    </div>
+    <div v-if="store.isAdmin || store.isAuthor">
       <div class="row mb-3">
         <div class="col-sm-2">Filtertag for</div>
         <div class="col-sm-10">
