@@ -419,59 +419,41 @@ watch(
       </div>
     </div>
 
-    <div v-if="store.isAdmin" class="mb-3">
-      <div class="row mb-3">
-        <div class="col-sm-2">Tvungen visning</div>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="mandatory"
-              v-model="bot.mandatory"
-            />
-            <label class="form-check-label" for="mandatory">Ja</label>
-          </div>
+    <div v-if="store.isAdmin" class="row mb-3">
+      <div class="col-sm-2">Tvungen visning</div>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="mandatory" v-model="bot.mandatory" />
+          <label class="form-check-label" for="mandatory">Ja</label>
         </div>
       </div>
     </div>
-    <div v-if="store.isAdmin">
-      <div class="row mb-3">
-        <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
-        <div class="col-sm-10">
-          <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner" />
+    <div v-if="store.isAdmin" class="row mb-3">
+      <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
+      <div class="col-sm-10">
+        <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner" />
+      </div>
+    </div>
+    <div v-if="store.isAdmin" class="row mb-3">
+      <div class="col-sm-2">Biblioteksbot</div>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="library" v-model="bot.library" />
+          <label class="form-check-label" for="library">Ja</label>
         </div>
       </div>
     </div>
-    <div v-if="store.isAdmin">
-      <div class="row mb-3">
-        <div class="col-sm-2">Biblioteksbot</div>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="library"
-              v-model="bot.library"
-            />
-            <label class="form-check-label" for="library">Ja</label>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="store.isAdmin">
-      <div class="row mb-3">
-        <div class="col-sm-2">Kan bruke tale</div>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="is_audio_enabled"
-              v-model="bot.is_audio_enabled"
-            />
-            <label class="form-check-label" for="is_audio_enabled">Ja</label>
-          </div>
+    <div v-if="store.isAdmin" class="row mb-3">
+      <div class="col-sm-2">Kan bruke tale</div>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="is_audio_enabled"
+            v-model="bot.is_audio_enabled"
+          />
+          <label class="form-check-label" for="is_audio_enabled">Ja</label>
         </div>
       </div>
     </div>
@@ -514,55 +496,49 @@ watch(
         </div>
       </div>
     </div>
-    <div v-if="store.isAdmin || store.isAuthor">
-      <div class="row mb-3">
-        <div class="col-sm-2">Tillat distribusjon til elever</div>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline">
+    <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+      <div class="col-sm-2">Tillat distribusjon til elever</div>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="allow_distribution"
+            v-model="bot.allow_distribution"
+          />
+          <label class="form-check-label" for="allow_distribution">Ja</label>
+        </div>
+      </div>
+    </div>
+    <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+      <label for="bot_info" class="col-sm-2 col-form-label">
+        Informasjon (vises på startsiden)
+      </label>
+      <div class="col-sm-10">
+        <textarea
+          v-model="bot.bot_info"
+          class="form-control"
+          id="bot_info"
+          rows="5"
+          name="bot_info"
+        ></textarea>
+      </div>
+    </div>
+    <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+      <div class="col-sm-2">Filtertag for</div>
+      <div class="col-sm-10">
+        <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
+          <div>{{ tagCategory.label }}</div>
+          <div v-for="tag in tagCategory.tags" :key="tag.id" class="form-check form-check-inline">
             <input
               class="form-check-input"
               type="checkbox"
-              id="allow_distribution"
-              v-model="bot.allow_distribution"
+              v-model="tag.checked"
+              :id="`filterCheck${tagCategory.id}:${tag.id}`"
             />
-            <label class="form-check-label" for="allow_distribution">Ja</label>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div v-if="store.isAdmin || store.isAuthor">
-      <div class="row mb-3">
-        <label for="bot_info" class="col-sm-2 col-form-label">
-          Informasjon (vises på startsiden)
-        </label>
-        <div class="col-sm-10">
-          <textarea
-            v-model="bot.bot_info"
-            class="form-control"
-            id="bot_info"
-            rows="5"
-            name="bot_info"
-          ></textarea>
-        </div>
-      </div>
-    </div>
-    <div v-if="store.isAdmin || store.isAuthor">
-      <div class="row mb-3">
-        <div class="col-sm-2">Filtertag for</div>
-        <div class="col-sm-10">
-          <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
-            <div>{{ tagCategory.label }}</div>
-            <div v-for="tag in tagCategory.tags" :key="tag.id" class="form-check form-check-inline">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                v-model="tag.checked"
-                :id="`filterCheck${tagCategory.id}:${tag.id}`"
-              />
-              <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tag.id}`">
-                {{ tag.label }}
-              </label>
-            </div>
+            <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tag.id}`">
+              {{ tag.label }}
+            </label>
           </div>
         </div>
       </div>
@@ -725,69 +701,68 @@ watch(
         <div v-if="is_group_heading(group)" class="mb-1">
           {{ group.go_type == 'b' ? 'Klasser' : 'Faggrupper' }}
         </div>
-        <div v-if="group.checked">
-          <div class="row justify-content-between align-items-center bg-light mb-2 pb-1 pt-1">
-            <div class="col-sm-8">
-              <div class="form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  name="access"
-                  v-model="group.checked"
-                  :id="'check' + group.id"
-                />
-                <label class="form-check-label" :for="'check' + group.id">
-                  {{ group.display_name }}
-                </label>
-              </div>
-              <div class="ps-5">
-                Åpen fra
-                {{ dateFormat.format(new Date(group.valid_range[0])) }}
-              </div>
-              <div class="ps-5">
-                Åpen til
-                {{ dateFormat.format(new Date(group.valid_range[1])) }}
-              </div>
+        <div
+          v-if="group.checked"
+          class="row justify-content-between align-items-center bg-light mb-2 pb-1 pt-1"
+        >
+          <div class="col-sm-8">
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                name="access"
+                v-model="group.checked"
+                :id="'check' + group.id"
+              />
+              <label class="form-check-label" :for="'check' + group.id">
+                {{ group.display_name }}
+              </label>
             </div>
-            <div class="col">
-              <VueDatePicker
-                class="date-picker"
-                v-show="group.checked"
-                v-model="group.valid_range"
-                :range="{
-                  maxRange: maxLifeSpan,
-                  partialRange: false,
-                }"
-                locale="nb"
-                :format="
-                  dates => {
-                    return 'Endre tidspunkt'
-                  }
-                "
-                select-text="Velg"
-                cancel-text="Avbryt"
-                :clearable="false"
-                :min-date="new Date()"
-                preview-format="dd.MM HH:mm"
-              ></VueDatePicker>
+            <div class="ps-5">
+              Åpen fra
+              {{ dateFormat.format(new Date(group.valid_range[0])) }}
             </div>
+            <div class="ps-5">
+              Åpen til
+              {{ dateFormat.format(new Date(group.valid_range[1])) }}
+            </div>
+          </div>
+          <div class="col">
+            <VueDatePicker
+              class="date-picker"
+              v-show="group.checked"
+              v-model="group.valid_range"
+              :range="{
+                maxRange: maxLifeSpan,
+                partialRange: false,
+              }"
+              locale="nb"
+              :format="
+                dates => {
+                  return 'Endre tidspunkt'
+                }
+              "
+              select-text="Velg"
+              cancel-text="Avbryt"
+              :clearable="false"
+              :min-date="new Date()"
+              preview-format="dd.MM HH:mm"
+            ></VueDatePicker>
           </div>
         </div>
-        <div v-else>
-          <div class="form-check form-switch pt-1">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              role="switch"
-              name="access"
-              v-model="group.checked"
-              :id="'check' + group.id"
-            />
-            <label class="form-check-label" :for="'check' + group.id">
-              {{ group.display_name }}
-            </label>
-          </div>
+        <div v-else class="form-check form-switch pt-1">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            name="access"
+            v-model="group.checked"
+            :id="'check' + group.id"
+          />
+          <label class="form-check-label" :for="'check' + group.id">
+            {{ group.display_name }}
+          </label>
         </div>
       </div>
     </div>
