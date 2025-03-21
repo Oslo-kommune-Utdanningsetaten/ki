@@ -303,9 +303,9 @@ def bot_info(request, bot_uuid=None):
 
     # save bot
     if request.method == "PUT" or request.method == "POST":
-        if not is_owner and not is_author and not is_admin:
+        if not (is_owner or is_author or is_admin):
             return Response(status=403)
-        if not is_admin and not is_employee:
+        if not (is_employee or is_admin):
             return Response(status=403)
 
         body = json.loads(request.body)
