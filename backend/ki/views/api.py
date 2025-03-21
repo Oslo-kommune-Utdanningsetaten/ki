@@ -305,6 +305,8 @@ def bot_info(request, bot_uuid=None):
     if request.method == "PUT" or request.method == "POST":
         if not is_owner and not is_author and not is_admin:
             return Response(status=403)
+        if not is_admin and not is_employee:
+            return Response(status=403)
 
         body = json.loads(request.body)
         bot.title = body.get('title', bot.title)
@@ -314,8 +316,7 @@ def bot_info(request, bot_uuid=None):
         bot.prompt_visibility = body.get('prompt_visibility', bot.prompt_visibility)
         bot.allow_distribution = body.get('allow_distribution', bot.allow_distribution)
         bot.mandatory = body.get('mandatory', bot.mandatory)
-        if is_admin:
-            bot.is_audio_enabled = body.get('is_audio_enabled', bot.is_audio_enabled)
+        bot.is_audio_enabled = body.get('is_audio_enabled', bot.is_audio_enabled) if is_admin else False
         bot.avatar_scheme = ','.join([str(a) for a in body.get('avatar_scheme', bot.avatar_scheme)]) if body.get('avatar_scheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
