@@ -5,7 +5,6 @@ export const store = reactive({
   isAdmin: false,
   isEmployee: false,
   isAuthor: false,
-  editGroups: false,
   messages: [],
   isAuthenticated: null,
   defaultModel: {},
@@ -26,7 +25,6 @@ export const store = reactive({
     this.isAdmin = false
     this.isEmployee = false
     this.isAuthor = false
-    this.editGroups = false
     this.messages = []
     this.isAuthenticated = false
   },
