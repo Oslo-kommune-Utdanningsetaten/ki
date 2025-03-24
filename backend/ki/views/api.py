@@ -103,6 +103,7 @@ def bot_models(request):
     return Response({
         'models': [
             {
+                'deployment_id': model.deployment_id,
                 'model_id': model.model_id,
                 'display_name': model.display_name,
                 'model_description': model.model_description,
