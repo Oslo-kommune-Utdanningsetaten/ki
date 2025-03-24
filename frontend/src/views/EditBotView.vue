@@ -70,6 +70,20 @@ const levels = [
   { id: 'vg3', name: 'Vg3' },
 ]
 
+const initializeCopy = () => {
+  newBot.value = true
+  bot.value.uuid = null
+  bot.value.owner = null
+  bot.value.title = 'Kopi av ' + bot.value.title
+  bot.value.mandatory = false
+  bot.value.is_audio_enabled = false
+  bot.value.model = null
+  bot.value.edit = true
+  bot.value.library = false
+  bot.value.bot_info = ''
+  bot.value.schoolAccesses = []
+}
+
 const getBotInfo = async () => {
   var url = ''
   if (method.value == 'new') {
@@ -97,6 +111,9 @@ const getBotInfo = async () => {
     } catch (error) {
       console.log(error)
     }
+  }
+  if (method.value == 'copy') {
+    initializeCopy()
   }
 }
 
@@ -282,7 +299,7 @@ watchEffect(() => {
 watch(
   route,
   () => {
-    const legalMethods = ['edit', 'distribute', 'new', 'newlib']
+    const legalMethods = ['edit', 'distribute', 'new', 'newlib', 'copy']
     if (legalMethods.includes(route.params.method)) {
       method.value = route.params.method
     } else {

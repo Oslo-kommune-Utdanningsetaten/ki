@@ -94,6 +94,13 @@ onMounted(async () => {
 
     <div class="d-flex justify-content-end">
       <RouterLink
+        v-if="store.isEmployee || store.isAdmin"
+        class="btn oslo-btn-secondary"
+        :to="'/editbot/copy/' + bot.uuid"
+      >
+        Kopier bot
+      </RouterLink>
+      <RouterLink
         v-if="bot.allow_distribution && bot.groups.length && !bot.edit"
         class="btn oslo-btn-secondary"
         :to="'/editbot/distribute/' + bot.uuid"
