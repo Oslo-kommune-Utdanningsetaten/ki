@@ -80,6 +80,7 @@ const initializeCopy = () => {
   bot.value.model = null
   bot.value.edit = true
   bot.value.library = false
+  bot.value.bot_info = ''
   bot.value.schoolAccesses = []
 }
 
