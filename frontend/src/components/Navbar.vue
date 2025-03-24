@@ -14,7 +14,6 @@ const getMenuItems = async () => {
     store.isAdmin = data.role ? data.role.is_admin : false
     store.isEmployee = data.role ? data.role.is_employee : false
     store.isAuthor = data.role ? data.role.is_author : false
-    store.editGroups = data.role ? data.role.edit_g : false
     store.defaultModel = data.default_model
   } catch (error) {
     if (error.response && error.response.status === 401) {

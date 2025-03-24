@@ -66,7 +66,6 @@ def menu_items(request):
             'is_admin': request.g.get('admin', False),
             'is_employee': request.g.get('employee', False),
             'is_author': request.g.get('author', False),
-            # 'can_user_edit_groups.': can_user_edit_groups,
         },
         'default_model': default_model,
     })
