@@ -81,6 +81,12 @@ const initializeCopy = () => {
   bot.value.edit = true
   bot.value.library = false
   bot.value.bot_info = ''
+  bot.value.choices.forEach(choice => {
+    choice.id = Math.random().toString(36).substring(7)
+    choice.options.forEach(option => {
+      option.id = Math.random().toString(36).substring(7)
+    })
+  });
   bot.value.schoolAccesses = []
 }
 
