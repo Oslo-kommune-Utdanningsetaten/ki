@@ -101,9 +101,9 @@ onMounted(async () => {
         Kopier bot
       </RouterLink>
       <RouterLink
-        v-if="bot.allow_distribution && bot.groups.length && !bot.edit"
+        v-if="bot.allow_distribution && bot.groups.length > 0"
         class="btn oslo-btn-secondary"
-        :to="'/editbot/distribute/' + bot.uuid"
+        :to="'/distribute/' + bot.uuid"
       >
         Gi tilgang
       </RouterLink>
@@ -124,12 +124,12 @@ onMounted(async () => {
       <h1 class="h2 mb-3">
         {{ bot.title || 'Navnløs chatbot' }}
         <button
-          v-if="bot.prompt_visibility"
+          v-if="bot.prompt_visibility || store.isAdmin || store.isEmployee"
           class="btn oslo-btn-secondary ms-3 me-auto ps-1 pe-1 pt-0 pb-0"
           @click="toggleStartPrompt"
           :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
         >
-          {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
+          {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
         </button>
 
         <span class="ms-3" v-if="bot.is_audio_enabled">

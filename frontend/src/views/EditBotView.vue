@@ -7,18 +7,9 @@ import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
-import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 let last_go_type = ''
-let dateFormat = Intl.DateTimeFormat('nb', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-})
-const date = ref()
 const route = useRoute()
 const $router = useRouter()
 const bot = ref({
@@ -48,11 +39,16 @@ const maxLifeSpan = ref(0)
 const botId = ref()
 const sort_by = ref('school_name')
 const filter_list = ref([])
-const access_options = [
+let access_options = []
+const access_options_admin = [
   { value: 'none', label: 'Ingen' },
   { value: 'emp', label: 'Ansatte' },
   { value: 'all', label: 'Alle' },
   { value: 'levels', label: 'Trinn' },
+]
+const access_options_author = [
+  { value: 'none', label: 'Ingen' },
+  { value: 'emp', label: 'Ansatte' },
 ]
 const levels = [
   { id: 'aarstrinn1', name: '1.' },
@@ -69,6 +65,16 @@ const levels = [
   { id: 'vg2', name: 'Vg2' },
   { id: 'vg3', name: 'Vg3' },
 ]
+
+const setAccessOptions = () => {
+  if (store.isAdmin) {
+    access_options = access_options_admin
+  } else if (store.isAuthor) {
+    access_options = access_options_author
+  } else {
+    access_options = []
+  }
+}
 
 const initializeCopy = () => {
   newBot.value = true
@@ -283,29 +289,19 @@ watchEffect(() => {
   } else {
     botId.value = route.params.id
   }
-  if (method.value == 'distribute') {
-    distribute.value = true
-    edit.value = false
-  } else {
-    edit.value = true
-    if (bot.value.library) {
-      distribute.value = false
-    } else {
-      distribute.value = true
-    }
-  }
 })
 
 watch(
   route,
   () => {
-    const legalMethods = ['edit', 'distribute', 'new', 'newlib', 'copy']
+    const legalMethods = ['edit', 'new', 'newlib', 'copy']
     if (legalMethods.includes(route.params.method)) {
       method.value = route.params.method
     } else {
       router.push('/')
     }
     getBotInfo()
+    setAccessOptions()
   },
   { immediate: true }
 )
@@ -350,453 +346,351 @@ watch(
       Avbryt
     </RouterLink>
   </div>
-  <h1 class="h2 mb-4">
-    {{ bot.title }}
-  </h1>
-  <div v-if="edit">
-    <div class="row mb-3">
-      <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
-      <div class="col-sm-10">
+  <div class="row mb-4">
+    <div class="col-sm-1">
+      <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+    </div>
+    <div class="col-sm-1"></div>
+      <h1 class="col align-self-center h2">
+      {{ bot.title }}
+      </h1>
+  </div>  
+  <div class="row mb-3">
+    <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
+    <div class="col-sm-10">
+      <input
+        v-model="bot.title"
+        type="text"
+        class="form-control"
+        id="bot_title"
+        name="title"
+        maxlength="40"
+      />
+    </div>
+  </div>
+  <div class="row mb-3">
+    <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
+    <div class="col-sm-10">
+      <input
+        v-model="bot.ingress"
+        type="text"
+        class="form-control"
+        id="bot_ingress"
+        name="ingress"
+      />
+    </div>
+  </div>
+  <div class="row mb-3">
+    <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
+    <div class="col-sm-10">
+      <textarea
+        v-model="bot.prompt"
+        class="form-control"
+        id="bot_promt"
+        rows="5"
+        name="prompt"
+      ></textarea>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
+    <div class="col-sm-10">
+      <div class="form-check form-switch">
         <input
-          v-model="bot.title"
-          type="text"
-          class="form-control"
-          id="bot_title"
-          name="title"
-          maxlength="40"
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="prompt_visibility"
+          v-model="bot.prompt_visibility"
         />
       </div>
     </div>
-    <div class="row mb-3">
-      <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
-      <div class="col-sm-10">
-        <input
-          v-model="bot.ingress"
-          type="text"
-          class="form-control"
-          id="bot_ingress"
-          name="ingress"
-        />
-      </div>
-    </div>
-    <div class="row mb-3">
-      <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
-      <div class="col-sm-10">
-        <textarea
-          v-model="bot.prompt"
-          class="form-control"
-          id="bot_promt"
-          rows="5"
-          name="prompt"
-        ></textarea>
-      </div>
-    </div>
-    <div class="row mb-3">
-      <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
-      <div class="col-sm-10">
-        <div class="form-check form-switch">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="prompt_visibility"
-            v-model="bot.prompt_visibility"
-          />
-        </div>
-      </div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-sm-2 col-form-label">Utseende på bot</div>
-      <div class="col-sm-1">
-        <BotAvatar :avatar_scheme="bot.avatar_scheme" />
-      </div>
-      <div class="col-sm-2">
-        <button class="btn oslo-btn-secondary" data-bs-toggle="modal" data-bs-target="#gen_bot_img">
-          Endre
-        </button>
-      </div>
-    </div>
-    <div class="row mb-3">
-      <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
-      <div class="col-sm-1">
-        <input
-          type="range"
-          class="form-range"
-          min="0.5"
-          max="1.5"
-          step="0.1"
-          id="temperature"
-          v-model="bot.temperature"
-        />
-      </div>
-      <div class="col-sm-1">
-        {{ bot.temperature * 10 - 5 }}
-      </div>
-      <div class="col">
-        Temperatur er et mål på hvor kreativ boten skal være. Høy temperatur gir mer kreative svar.
-      </div>
-    </div>
-
-    <div v-if="store.isAdmin" class="row mb-3">
-      <label for="mandatory" class="col-sm-2 col-form-label">Tvungen visning</label>
-      <div class="col-sm-10">
-        <div class="form-check form-switch">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="mandatory"
-            v-model="bot.mandatory"
-          />
-        </div>
-      </div>
-    </div>
-    <div v-if="store.isAdmin" class="row mb-3">
-      <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
-      <div class="col-sm-10">
-        <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner" />
-      </div>
-    </div>
-    <div v-if="store.isAdmin" class="row mb-3">
-      <label for="library" class="col-sm-2 col-form-label">Biblioteksbot</label>
-      <div class="col-sm-10">
-        <div class="form-check form-switch">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="library"
-            v-model="bot.library"
-          />
-        </div>
-      </div>
-    </div>
-    <div v-if="store.isAdmin" class="row mb-3">
-      <label for="is_audio_enabled" class="col-sm-2 col-form-label">Kan bruke tale</label>
-      <div class="col-sm-10">
-        <div class="form-check form-switch">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="is_audio_enabled"
-            v-model="bot.is_audio_enabled"
-          />
-        </div>
-      </div>
-    </div>
-    <fieldset v-if="store.isAdmin || store.isAuthor">
-      <div class="row mb-3">
-        <legend class="col-sm-2 col-form-label">Modell</legend>
-        <div class="col-sm-10">
-          <div
-            v-for="model_item in models"
-            :key="model_item.model_id"
-            class="form-check form-check-inline"
-          >
-            <input
-              class="form-check-input"
-              type="radio"
-              :id="'m' + model_item.model_id"
-              :value="model_item"
-              v-model="bot.model"
-            />
-            <label class="form-check-label" :for="'m' + model_item.model_id">
-              {{ model_item.display_name }}
-            </label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="radio"
-              id="no_model"
-              value="none"
-              v-model="bot.model"
-            />
-            <label class="form-check-label" for="no_model">Sentralt satt</label>
-          </div>
-        </div>
-      </div>
-      <div v-if="bot.model" class="row mb-3">
-        <div class="col-sm-2"></div>
-        <div class="col-sm-10">
-          {{ bot.model.model_description }}
-        </div>
-      </div>
-    </fieldset>
-    <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
-      <label for="allow_distribution" class="col-sm-2 col-form-label">
-        Tillat distribusjon til elever
-      </label>
-      <div class="col-sm-10">
-        <div class="form-check form-switch">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="allow_distribution"
-            v-model="bot.allow_distribution"
-          />
-        </div>
-      </div>
-    </div>
-    <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
-      <label for="bot_info" class="col-sm-2 col-form-label">
-        Informasjon (vises på startsiden)
-      </label>
-      <div class="col-sm-10">
-        <textarea
-          v-model="bot.bot_info"
-          class="form-control"
-          id="bot_info"
-          rows="5"
-          name="bot_info"
-        ></textarea>
-      </div>
-    </div>
-    <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
-      <div class="col-sm-2">Filtertag for</div>
-      <div class="col-sm-10">
-        <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
-          <div>{{ tagCategory.label }}</div>
-          <div v-for="tag in tagCategory.tags" :key="tag.id" class="form-check form-check-inline">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              v-model="tag.checked"
-              :id="`filterCheck${tagCategory.id}:${tag.id}`"
-            />
-            <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tag.id}`">
-              {{ tag.label }}
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <button
-        class="btn oslo-btn-primary"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#collapseAdvanced"
-        aria-expanded="false"
-        aria-controls="collapseAdvanced"
-      >
-        Avanserte innstillinger
+  </div>
+  <div class="row mb-3">
+    <div class="col-sm-2 col-form-label">Utseende på bot</div>
+    <div class="col">
+      <button class="btn oslo-btn-secondary ms-0" data-bs-toggle="modal" data-bs-target="#gen_bot_img">
+        Endre
       </button>
     </div>
-    <div class="mb-3">
-      <div class="collapse" id="collapseAdvanced">
-        <div class="row mb-3">
-          <div class="col-sm-2">Forhåndsvalg</div>
-          <div class="col-sm-10">
-            <div v-for="choice in choicesSorted" class="card mb-3 p-3">
-              <div class="row mb-1">
-                <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
-                  Spørsmål
-                </label>
-                <div class="col-sm-10">
-                  <input
-                    type="text"
-                    class="form-control"
-                    :id="`choice_label${choice.id}`"
-                    v-model="choice.label"
-                  />
-                </div>
+  </div>
+  <div class="row mb-3">
+    <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
+    <div class="col-sm-1">
+      <input
+        type="range"
+        class="form-range"
+        min="0.5"
+        max="1.5"
+        step="0.1"
+        id="temperature"
+        v-model="bot.temperature"
+      />
+    </div>
+    <div class="col-sm-1">
+      {{ bot.temperature * 10 - 5 }}
+    </div>
+    <div class="col">
+      Temperatur er et mål på hvor kreativ boten skal være. Høy temperatur gir mer kreative svar.
+    </div>
+  </div>
+
+  <div v-if="store.isAdmin" class="row mb-3">
+    <label for="mandatory" class="col-sm-2 col-form-label">Tvungen visning</label>
+    <div class="col-sm-10">
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="mandatory"
+          v-model="bot.mandatory"
+        />
+      </div>
+    </div>
+  </div>
+  <div v-if="store.isAdmin" class="row mb-3">
+    <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
+    <div class="col-sm-10">
+      <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner" />
+    </div>
+  </div>
+  <div v-if="store.isAdmin" class="row mb-3">
+    <label for="library" class="col-sm-2 col-form-label">Biblioteksbot</label>
+    <div class="col-sm-10">
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="library"
+          v-model="bot.library"
+        />
+      </div>
+    </div>
+  </div>
+  <div v-if="store.isAdmin" class="row mb-3">
+    <label for="is_audio_enabled" class="col-sm-2 col-form-label">Kan bruke tale</label>
+    <div class="col-sm-10">
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="is_audio_enabled"
+          v-model="bot.is_audio_enabled"
+        />
+      </div>
+    </div>
+  </div>
+  <fieldset v-if="store.isAdmin || store.isAuthor">
+    <div class="row mb-3">
+      <legend class="col-sm-2 col-form-label">Modell</legend>
+      <div class="col-sm-10">
+        <div
+          v-for="model_item in models"
+          :key="model_item.model_id"
+          class="form-check form-check-inline"
+        >
+          <input
+            class="form-check-input"
+            type="radio"
+            :id="'m' + model_item.model_id"
+            :value="model_item"
+            v-model="bot.model"
+          />
+          <label class="form-check-label" :for="'m' + model_item.model_id">
+            {{ model_item.display_name }}
+          </label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="radio"
+            id="no_model"
+            value="none"
+            v-model="bot.model"
+          />
+          <label class="form-check-label" for="no_model">Sentralt satt</label>
+        </div>
+      </div>
+    </div>
+    <div v-if="bot.model" class="row mb-3">
+      <div class="col-sm-2"></div>
+      <div class="col-sm-10">
+        {{ bot.model.model_description }}
+      </div>
+    </div>
+  </fieldset>
+  <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+    <label for="allow_distribution" class="col-sm-2 col-form-label">
+      Tillat distribusjon til elever
+    </label>
+    <div class="col-sm-10">
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="allow_distribution"
+          v-model="bot.allow_distribution"
+        />
+      </div>
+    </div>
+  </div>
+  <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+    <label for="bot_info" class="col-sm-2 col-form-label">
+      Informasjon (vises på startsiden)
+    </label>
+    <div class="col-sm-10">
+      <textarea
+        v-model="bot.bot_info"
+        class="form-control"
+        id="bot_info"
+        rows="5"
+        name="bot_info"
+      ></textarea>
+    </div>
+  </div>
+  <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+    <div class="col-sm-2">Filtertag for</div>
+    <div class="col-sm-10">
+      <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
+        <div>{{ tagCategory.label }}</div>
+        <div v-for="tag in tagCategory.tags" :key="tag.id" class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            v-model="tag.checked"
+            :id="`filterCheck${tagCategory.id}:${tag.id}`"
+          />
+          <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tag.id}`">
+            {{ tag.label }}
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <button
+      class="btn oslo-btn-primary ms-0"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#collapseAdvanced"
+      aria-expanded="false"
+      aria-controls="collapseAdvanced"
+    >
+      Avanserte innstillinger
+    </button>
+  </div>
+  <div class="mb-3">
+    <div class="collapse" id="collapseAdvanced">
+      <div class="row mb-3">
+        <div class="col-sm-2">Forhåndsvalg</div>
+        <div class="col-sm-10">
+          <div v-for="choice in choicesSorted" class="card mb-3 p-3">
+            <div class="row mb-1">
+              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
+                Spørsmål
+              </label>
+              <div class="col-sm-10">
+                <input
+                  type="text"
+                  class="form-control"
+                  :id="`choice_label${choice.id}`"
+                  v-model="choice.label"
+                />
               </div>
-              <div class="row mb-1">
-                <div class="col-sm-2">Alternativer</div>
-                <div class="col-sm-10">
-                  <div v-for="option in optionsSorted(choice)">
-                    <div class="row mb-1">
-                      <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
-                        Knapp
-                      </label>
-                      <div class="col-sm-10">
-                        <input
-                          type="text"
-                          class="form-control"
-                          :id="`opt_label${option.id}`"
-                          v-model="option.label"
-                        />
-                      </div>
-                    </div>
-                    <div class="row mb-1">
-                      <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
-                        Ledetekst
-                      </label>
-                      <div class="col-sm-10">
-                        <textarea
-                          class="form-control"
-                          :id="`opt_text${option.id}`"
-                          rows="1"
-                          v-model="option.text"
-                        ></textarea>
-                      </div>
-                    </div>
-                    <input
-                      class="btn-check"
-                      type="radio"
-                      :id="`${choice.id}-${option.id}`"
-                      :value="option"
-                      v-model="choice.selected"
-                    />
-                    <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
-                      Valgt
+            </div>
+            <div class="row mb-1">
+              <div class="col-sm-2">Alternativer</div>
+              <div class="col-sm-10">
+                <div v-for="option in optionsSorted(choice)">
+                  <div class="row mb-1">
+                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
+                      Knapp
                     </label>
-                    <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
-                      Slett alternativ
-                    </button>
-                    <button
-                      v-if="notFirstOption(choice, option)"
-                      class="btn oslo-btn-secondary"
-                      @click="optionOrderUp(choice, option)"
-                    >
-                      <img src="@/components/icons/move_up.svg" alt="flytt opp" />
-                    </button>
-                    <button
-                      v-if="notLastOption(choice, option)"
-                      class="btn oslo-btn-secondary"
-                      @click="optionOrderDown(choice, option)"
-                    >
-                      <img src="@/components/icons/move_down.svg" alt="flytt ned" />
-                    </button>
-                    <!-- {{ option.order }} -->
-                    <hr />
+                    <div class="col-sm-10">
+                      <input
+                        type="text"
+                        class="form-control"
+                        :id="`opt_label${option.id}`"
+                        v-model="option.label"
+                      />
+                    </div>
                   </div>
-                  <button class="btn oslo-btn-primary" @click="addOption(choice)">
-                    Legg til alternativ
+                  <div class="row mb-1">
+                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
+                      Ledetekst
+                    </label>
+                    <div class="col-sm-10">
+                      <textarea
+                        class="form-control"
+                        :id="`opt_text${option.id}`"
+                        rows="1"
+                        v-model="option.text"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <input
+                    class="btn-check"
+                    type="radio"
+                    :id="`${choice.id}-${option.id}`"
+                    :value="option"
+                    v-model="choice.selected"
+                  />
+                  <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+                    Valgt
+                  </label>
+                  <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
+                    Slett alternativ
                   </button>
+                  <button
+                    v-if="notFirstOption(choice, option)"
+                    class="btn oslo-btn-secondary"
+                    @click="optionOrderUp(choice, option)"
+                  >
+                    <img src="@/components/icons/move_up.svg" alt="flytt opp" />
+                  </button>
+                  <button
+                    v-if="notLastOption(choice, option)"
+                    class="btn oslo-btn-secondary"
+                    @click="optionOrderDown(choice, option)"
+                  >
+                    <img src="@/components/icons/move_down.svg" alt="flytt ned" />
+                  </button>
+                  <!-- {{ option.order }} -->
+                  <hr />
                 </div>
-              </div>
-              <div class="mb-1">
-                <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
-                  Slett spørsmål
+                <button class="btn oslo-btn-primary" @click="addOption(choice)">
+                  Legg til alternativ
                 </button>
-                <button
-                  v-if="notFirstChoice(choice)"
-                  class="btn oslo-btn-secondary"
-                  @click="choiceOrderUp(choice)"
-                >
-                  <img src="@/components/icons/move_up.svg" alt="flytt opp" />
-                </button>
-                <button
-                  v-if="notLastChoice(choice)"
-                  class="btn oslo-btn-secondary"
-                  @click="choiceOrderDown(choice)"
-                >
-                  <img src="@/components/icons/move_down.svg" alt="flytt ned" />
-                </button>
-                <!-- {{ choice.order }} -->
               </div>
             </div>
             <div class="mb-1">
-              <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
+              <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
+                Slett spørsmål
+              </button>
+              <button
+                v-if="notFirstChoice(choice)"
+                class="btn oslo-btn-secondary"
+                @click="choiceOrderUp(choice)"
+              >
+                <img src="@/components/icons/move_up.svg" alt="flytt opp" />
+              </button>
+              <button
+                v-if="notLastChoice(choice)"
+                class="btn oslo-btn-secondary"
+                @click="choiceOrderDown(choice)"
+              >
+                <img src="@/components/icons/move_down.svg" alt="flytt ned" />
+              </button>
+              <!-- {{ choice.order }} -->
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div v-else>
-    <div class="row mb-3">
-      <div class="col-sm-2 col-form-label">Ingress</div>
-      <div class="col-sm-10">
-        {{ bot.ingress }}
-      </div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-sm-2 col-form-label">Ledetekst</div>
-      <div class="col-sm-10">
-        {{ bot.prompt }}
-      </div>
-    </div>
-  </div>
-
-  <div v-if="bot.allow_distribution && bot.groups.length">
-    <hr />
-    <div class="row">
-      <div class="col-sm-2"></div>
-      <div class="col">
-        <p>
-          Elevene dine kan få tilgang til denne boten ved at du merker av ved klassen eller
-          faggruppen som skal ha tilgang. Du kan også endre perioden boten er tilgjengelig. Merk
-          først fra-dato og deretter til-dato, og så klokkesymbolet hvis du ønsker å endre
-          klokkeslettet. Tilgangen slettes når til-datoen er passert. Lengden på tilgangen kan
-          maksimalt vare i {{ maxLifeSpan }} dager.
-        </p>
-      </div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-sm-2">Grupper som har tilgang</div>
-      <div class="col-sm-8">
-        <div v-for="group in groupsSorted" :key="group.id" class="">
-          <div v-if="is_group_heading(group)" class="fw-bold">
-            {{ group.go_type == 'b' ? 'Klasser' : 'Faggrupper' }}
-          </div>
-          <div
-            v-if="group.checked"
-            class="row justify-content-between align-items-center bg-light mb-2 pb-1 pt-1"
-          >
-            <div class="col-sm-8">
-              <div class="form-check form-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  role="switch"
-                  name="access"
-                  v-model="group.checked"
-                  :id="'check' + group.id"
-                />
-                <label class="form-check-label" :for="'check' + group.id">
-                  {{ group.display_name }}
-                </label>
-              </div>
-              <div class="ps-5">
-                Åpen fra
-                {{ dateFormat.format(new Date(group.valid_range[0])) }}
-              </div>
-              <div class="ps-5">
-                Åpen til
-                {{ dateFormat.format(new Date(group.valid_range[1])) }}
-              </div>
-            </div>
-            <div class="col">
-              <VueDatePicker
-                class="date-picker"
-                v-show="group.checked"
-                v-model="group.valid_range"
-                :range="{
-                  maxRange: maxLifeSpan,
-                  partialRange: false,
-                }"
-                locale="nb"
-                :format="
-                  dates => {
-                    return 'Endre tidspunkt'
-                  }
-                "
-                select-text="Velg"
-                cancel-text="Avbryt"
-                :clearable="false"
-                :min-date="new Date()"
-                preview-format="dd.MM HH:mm"
-              ></VueDatePicker>
-            </div>
-          </div>
-          <div v-else class="form-check form-switch pt-1">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              role="switch"
-              name="access"
-              v-model="group.checked"
-              :id="'check' + group.id"
-            />
-            <label class="form-check-label" :for="'check' + group.id">
-              {{ group.display_name }}
-            </label>
+          <div class="mb-1">
+            <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
           </div>
         </div>
       </div>
@@ -814,7 +708,7 @@ watch(
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
   </div>
 
-  <div v-if="(store.isAdmin || store.isAuthor) && bot.library && edit" class="mb-3">
+  <div v-if="(store.isAdmin || store.isAuthor) && bot.library && bot.edit" class="mb-3">
     <hr />
     <div class="row mb-3">
       <div class="col-sm-2">Tilgang</div>
@@ -910,10 +804,4 @@ watch(
   max-width: none;
 }
 
-.date-picker {
-  width: 180px;
-  --dp-background-color: #f8f0dd;
-  --dp-border-color: #f8f0dd;
-  --dp-border-radius: 0;
-}
 </style>

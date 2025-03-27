@@ -383,6 +383,8 @@ def bot_info(request, bot_uuid=None):
                 school_obj = models.School.objects.get(org_nr=school.get('org_nr'))
                 if is_author and school_obj != request.g.get('auth_school'):
                     continue
+                if is_author and not school.get('access', 'none') in ['none', 'emp']:
+                    continue
                 bot_access = school_obj.accesses.filter(bot_id=bot).first()
                 if bot_access:
                     bot_access.access = school.get('access', 'none')
