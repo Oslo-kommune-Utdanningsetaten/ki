@@ -3,15 +3,12 @@ import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
 import { ref, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
-import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
-import '@vuepic/vue-datepicker/dist/main.css'
 
-let last_go_type = ''
 const route = useRoute()
-const $router = useRouter()
+const router = useRouter()
 const bot = ref({
   title: '',
   ingress: '',
@@ -30,8 +27,6 @@ const bot = ref({
   library: false,
 })
 const models = ref([])
-const edit = ref(false)
-const distribute = ref(false)
 const newBot = ref(false)
 const method = ref('edit')
 const defaultLifeSpan = ref(0)
@@ -150,7 +145,7 @@ const update = async () => {
     }
   }
 
-  $router.push('/bot/' + botId.value)
+  router.push('/bot/' + botId.value)
 }
 
 const deleteChoice = choice => {
@@ -233,14 +228,6 @@ const setAllAccesses = access => {
   bot.value.schoolAccesses.forEach(school => {
     school.access = access
   })
-}
-
-const is_group_heading = group => {
-  if (last_go_type == group.go_type) {
-    return false
-  }
-  last_go_type = group.go_type
-  return true
 }
 
 const choicesSorted = computed(() => {
@@ -483,7 +470,7 @@ watch(
       </div>
     </div>
   </div>
-  <fieldset v-if="store.isAdmin || store.isAuthor">
+  <fieldset v-if="store.isAdmin || (store.isAuthor && bot.library)">
     <div class="row mb-3">
       <legend class="col-sm-2 col-form-label">Modell</legend>
       <div class="col-sm-10">
@@ -522,7 +509,7 @@ watch(
       </div>
     </div>
   </fieldset>
-  <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+  <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
     <label for="allow_distribution" class="col-sm-2 col-form-label">
       Tillat distribusjon til elever
     </label>
@@ -538,7 +525,7 @@ watch(
       </div>
     </div>
   </div>
-  <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+  <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
     <label for="bot_info" class="col-sm-2 col-form-label">
       Informasjon (vises på startsiden)
     </label>
@@ -552,7 +539,7 @@ watch(
       ></textarea>
     </div>
   </div>
-  <div v-if="store.isAdmin || store.isAuthor" class="row mb-3">
+  <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
     <div class="col-sm-2">Filtertag for</div>
     <div class="col-sm-10">
       <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
@@ -708,7 +695,7 @@ watch(
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
   </div>
 
-  <div v-if="(store.isAdmin || store.isAuthor) && bot.library && bot.edit" class="mb-3">
+  <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="mb-3">
     <hr />
     <div class="row mb-3">
       <div class="col-sm-2">Tilgang</div>

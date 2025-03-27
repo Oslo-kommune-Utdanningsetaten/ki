@@ -3,9 +3,7 @@ import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
 import { ref, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
-import router from '@/router/index.js'
 import BotAvatar from '@/components/BotAvatar.vue'
-import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -19,7 +17,7 @@ let dateFormat = Intl.DateTimeFormat('nb', {
   minute: '2-digit',
 })
 const route = useRoute()
-const $router = useRouter()
+const router = useRouter()
 const bot = ref({
   title: '',
   ingress: '',
@@ -40,7 +38,6 @@ const bot = ref({
 const defaultLifeSpan = ref(0)
 const maxLifeSpan = ref(0)
 const botId = ref()
-const choicePrompt = ref('')
 
 
 const getBotInfo = async () => {
@@ -64,7 +61,7 @@ const update = async () => {
   } catch (error) {
     console.log(error)
   }
-  $router.push('/bot/' + botId.value)
+  router.push('/bot/' + botId.value)
 }
 
 
@@ -206,11 +203,6 @@ watch(
 </template>
 
 <style scoped>
-.modal-custom-width {
-  width: 600px;
-  max-width: none;
-}
-
 .date-picker {
   width: 180px;
   --dp-background-color: #f8f0dd;
