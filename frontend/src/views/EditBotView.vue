@@ -78,7 +78,7 @@ const initializeCopy = () => {
   bot.value.title = 'Kopi av ' + bot.value.title
   bot.value.mandatory = false
   bot.value.is_audio_enabled = false
-  bot.value.model = null
+  bot.value.model = 'none'
   bot.value.edit = true
   bot.value.library = false
   bot.value.bot_info = ''
@@ -87,7 +87,7 @@ const initializeCopy = () => {
     choice.options.forEach(option => {
       option.id = Math.random().toString(36).substring(7)
     })
-  });
+  })
   bot.value.schoolAccesses = []
 }
 
@@ -344,10 +344,10 @@ watch(
       <BotAvatar :avatar_scheme="bot.avatar_scheme" />
     </div>
     <div class="col-sm-1"></div>
-      <h1 class="col align-self-center h2">
+    <h1 class="col align-self-center h2">
       {{ bot.title }}
-      </h1>
-  </div>  
+    </h1>
+  </div>
   <div class="row mb-3">
     <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
     <div class="col-sm-10">
@@ -402,7 +402,11 @@ watch(
   <div class="row mb-3">
     <div class="col-sm-2 col-form-label">Utseende på bot</div>
     <div class="col">
-      <button class="btn oslo-btn-secondary ms-0" data-bs-toggle="modal" data-bs-target="#gen_bot_img">
+      <button
+        class="btn oslo-btn-secondary ms-0"
+        data-bs-toggle="modal"
+        data-bs-target="#gen_bot_img"
+      >
         Endre
       </button>
     </div>
@@ -532,9 +536,7 @@ watch(
     </div>
   </div>
   <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
-    <label for="bot_info" class="col-sm-2 col-form-label">
-      Informasjon (vises på startsiden)
-    </label>
+    <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
     <div class="col-sm-10">
       <textarea
         v-model="bot.bot_info"
@@ -796,5 +798,4 @@ watch(
   width: 600px;
   max-width: none;
 }
-
 </style>
