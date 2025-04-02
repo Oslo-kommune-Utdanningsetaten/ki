@@ -39,7 +39,6 @@ const defaultLifeSpan = ref(0)
 const maxLifeSpan = ref(0)
 const botId = ref()
 
-
 const getBotInfo = async () => {
   var url = '/api/bot_info/' + botId.value
   try {
@@ -64,7 +63,6 @@ const update = async () => {
   router.push('/bot/' + botId.value)
 }
 
-
 const is_group_heading = group => {
   if (last_go_type == group.go_type) {
     return false
@@ -73,11 +71,9 @@ const is_group_heading = group => {
   return true
 }
 
-
 const groupsSorted = computed(() => {
   return bot.value.groups.sort((a, b) => a.display_name.localeCompare(b.display_name))
 })
-
 
 watch(
   route,
@@ -90,7 +86,6 @@ watch(
 </script>
 
 <template>
-
   
   <div class="d-flex justify-content-end">
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
@@ -198,7 +193,6 @@ watch(
     </RouterLink>
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
   </div>
-
 
 </template>
 
