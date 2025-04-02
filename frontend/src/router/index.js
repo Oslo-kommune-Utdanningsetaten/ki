@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import BotView from '../views/BotView.vue'
 import ImgBotView from '../views/ImgBotView.vue'
 import EditBotView from '../views/EditBotView.vue'
+import DistributeBotView from '../views/DistributeBotView.vue'
 import InfoView from '../views/InfoView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import MessageView from '../views/MessageView.vue'
@@ -36,6 +37,12 @@ const routes = [
     path: '/editbot/:method/:id?',
     name: 'editbot',
     component: EditBotView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/distribute/:id',
+    name: 'distribute',
+    component: DistributeBotView,
     meta: { requiresAuth: true },
   },
   {
