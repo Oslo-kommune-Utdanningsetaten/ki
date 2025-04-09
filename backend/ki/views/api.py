@@ -144,6 +144,11 @@ def user_bots(request):
 
     users_bots = [models.Bot.objects.get(uuid=bot_id)
                   for bot_id in request.g.get('bots', [])]
+
+    if request.g.get('admin', False):
+        for bot in users_bots:
+            bot.access_count = bot.accesses.exclude(access='none').count()
+
     return_bots = [
         {
             'uuid': bot.uuid,
@@ -158,6 +163,7 @@ def user_bots(request):
             'allow_distribution': bot.allow_distribution,
             'bot_info': bot.bot_info or '',
             'tag': bot.tags.all().values_list('tag_value', flat=True) if bot.library else [],
+            'access_count': bot.access_count if request.g.get('admin', False) else 0,
         }
         for bot in users_bots]
 
