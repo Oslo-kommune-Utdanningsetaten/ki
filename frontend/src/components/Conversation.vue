@@ -153,4 +153,8 @@ const editMessageAtIndex = index => {
 .message-container:hover .widget-container {
   opacity: 0.8;
 }
+
+.speech-bubble-assistant :deep(li:not(:first-child)) {
+  padding-top: 0.8rem;
+}
 </style>
