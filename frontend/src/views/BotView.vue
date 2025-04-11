@@ -13,6 +13,8 @@ const bot = ref(null)
 const showSystemPrompt = ref(false)
 const communicationMode = ref('text') // text, audio, maybe video?
 const systemPrompt = ref('')
+const botModelName = ref(null)
+const botModelTrainingCutoff = ref(null)
 
 const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
@@ -49,6 +51,15 @@ const handleDeleteBot = async botId => {
 
 onMounted(async () => {
   bot.value = await getBot(route.params.id)
+  if (bot.value) {
+    botModelName.value = bot.model ? bot.model.display_name : store.defaultModel.display_name
+    botModelTrainingCutoff.value = bot.model
+      ? bot.model.training_cutoff
+      : store.defaultModel.training_cutoff
+  } else {
+    router.push({ name: 'home' })
+    return
+  }
   updateSystemPrompt()
 })
 </script>
@@ -129,7 +140,8 @@ onMounted(async () => {
           @click="toggleStartPrompt"
           :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
         >
-          {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
+          {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
+          {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
         </button>
 
         <span class="ms-3" v-if="bot.is_audio_enabled">
@@ -198,7 +210,11 @@ onMounted(async () => {
           <strong>Dette er instruksene jeg har fått</strong>
           <p>{{ getSystemPrompt() }}</p>
           <strong>Jeg bruker modellen</strong>
-          <p>{{ bot.model ? bot.model.display_name : store.defaultModel.display_name }}</p>
+          <p>{{ botModelName }}</p>
+          <span v-if="botModelTrainingCutoff">
+            <strong>Jeg er trent på data fram til</strong>
+            <p>{{ botModelTrainingCutoff }}</p>
+          </span>
         </div>
       </div>
     </div>
