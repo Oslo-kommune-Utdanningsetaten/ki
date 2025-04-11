@@ -141,16 +141,19 @@ onMounted(async () => {
         ref="text-input"
         type="text"
         rows="5"
-        aria-label="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
+        aria-label="Skriv her. Ikke legg inn personlige eller sensitive opplysninger."
         v-model="message"
         class="form-control"
-        placeholder="Skriv her. Ikke legg inn personlige og sensitive opplysninger."
+        placeholder="Skriv her. Ikke legg inn personlige eller sensitive opplysninger."
         @paste="handlePaste()"
         @keypress.enter.exact="sendMessage()"
       ></textarea>
-      <div class="card">
-        <div class="card-body bg-body-tertiary">
-          <SpeechToText :onMessageReceived="handleMessageInput" />
+
+      <div class="card z-n1">
+        <div
+          class="card-body bg-body-tertiary d-flex flex-wrap align-items-center gap-1 button-container"
+        >
+          <SpeechToText v-if="!bot.is_audio_enabled" :onMessageReceived="handleMessageInput" />
 
           <button
             class="btn oslo-btn-primary"
@@ -160,6 +163,7 @@ onMounted(async () => {
           >
             Send!
           </button>
+
           <button
             class="btn oslo-btn-secondary"
             type="button"
@@ -168,6 +172,7 @@ onMounted(async () => {
           >
             Ny samtale
           </button>
+
           <button
             class="btn oslo-btn-secondary"
             type="button"
@@ -177,14 +182,20 @@ onMounted(async () => {
             <img src="@/components/icons/copy.svg" alt="" />
             Kopier samtalen
           </button>
-          <div>
-            <small>
-              Husk at en AI ikke er et menneske og kan skrive ting som ikke stemmer med
-              virkeligheten, og den gir ikke beskjed om når den gjør det.
-            </small>
-          </div>
+        </div>
+
+        <div class="card-body bg-body-tertiary pt-0">
+          <small>
+            Husk at en AI ikke er et menneske og kan gi svar som ikke stemmer med virkeligheten.
+          </small>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.button-container > *:first-child {
+  margin-left: 0 !important;
+}
+</style>
