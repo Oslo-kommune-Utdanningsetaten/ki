@@ -81,7 +81,7 @@ onMounted(() => {
   <button
     v-if="isBrowserSpeechEnabled"
     @click="toggleSpeechInput"
-    class="btn oslo-btn-secondary mic-button ms-0"
+    class="btn oslo-btn-secondary mic-button"
     :title="
       microphonePermissionStatus === 'denied'
         ? 'Nettleseren har ikke tilgang til mikrofonen'
