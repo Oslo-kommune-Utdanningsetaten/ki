@@ -249,6 +249,11 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
                       </a>
                     </div>
                   </div>
+                  <div v-if="store.isAdmin" class="col-2 px-0">
+                    <span class="badge text-bg-secondary">
+                      {{ bot.access_count }}
+                    </span>
+                  </div>
                   <div class="card-body row m-0">
                     <div class="col-10 ps-0">{{ bot.bot_title }}</div>
                     <a
