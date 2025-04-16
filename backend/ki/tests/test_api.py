@@ -34,9 +34,11 @@ def set_up_database(db, request):
         int_val=7
     )
     BotModel.objects.create(
+        deployment_id='gpt-4o-mini',
         model_id=1,
         display_name='GPT 4o mini',
-        provider='Azure'
+        model_description= None,
+        training_cutoff= None,
     )
 
 
@@ -58,7 +60,7 @@ def test_bot_models_endpoint(set_up_database):
     request = RequestFactory().get('/api/bot_models')
     response = bot_models(request)
     assert response.status_code == 200
-    expected_bot_models = {'models': [{'model_id': 1, 'display_name': 'GPT 4o mini', 'model_description': None, 'training_cutoff': None}]}
+    expected_bot_models = {'models': [{'model_id': 1, 'display_name': 'GPT 4o mini', 'model_description': None, 'training_cutoff': None, 'deployment_id': 'gpt-4o-mini'}]}       
     assert response.data == expected_bot_models
 
 

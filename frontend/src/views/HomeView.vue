@@ -10,9 +10,9 @@ const status = ref(null)
 const showLibrary = ref(false)
 const view_filter = ref(false)
 const active_bot = ref(null)
-const filter = ref([])
 const tagCategories = ref([])
 // const route = useRoute()
+
 
 watchEffect(() => {
   getBots()
@@ -25,7 +25,6 @@ async function getBots() {
     status.value = data.status || ''
     view_filter.value = data.view_filter || ''
     tagCategories.value = data.tag_categories || {}
-    filter.value = new Array(Object.keys(tagCategories.value).length).fill([])
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'
@@ -42,11 +41,16 @@ const filterBots = computed(() => {
   }
   if (showLibrary.value) {
     let botsFiltered = bots.value
-    filter.value.forEach((filterArray, i) => {
+    tagCategories.value.forEach(tagCategory => {
+      let filterArray = tagCategory.tag_items
+        .filter(tagItem => tagItem.checked)
+        .map(tagItem => tagItem.weight)
       if (filterArray.length > 0) {
         let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
-        console.log(i, binarySum)
-        botsFiltered = botsFiltered.filter(bot => (bot.tag[i] & binarySum) > 0)
+        botsFiltered = botsFiltered.filter(
+          bot =>
+            bot.tag.filter(tag => tag.category_id === tagCategory.id && tag.tag_value & binarySum).length > 0
+        )
       }
     })
     return botsFiltered.filter(bot => !bot.personal && !bot.mandatory)
@@ -119,6 +123,16 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         </div>
         <div class="modal-body">
           <span v-html="active_bot.bot_info"></span>
+        </div>
+        <div class="modal-body">
+          <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
+            <span class="fw-bold">{{ tagCategory.label }}:</span>
+            <span v-for="tagItem in tagItemSorted(tagCategory)">
+              <span v-if="active_bot.tag[tagCategory.id - 1] & Math.pow(2, tagItem.weight)">
+                {{ tagItem.label }}&nbsp;
+              </span>
+            </span>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
@@ -193,24 +207,16 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       <div v-if="showLibrary && view_filter" class="col-xxl-2 col-lg-3 col-md-3 col-4">
         <div class="card card-body">
           <div class="card-title">Filtrer:</div>
-          <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.order">
+          <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
             <div>{{ tagCategory.label }}</div>
-            <div
-              v-for="tagItem in tagItemSorted(tagCategory)"
-              :key="tagItem.order"
-              class="form-check form-check-inline"
-            >
+            <div v-for="tagItem in tagItemSorted(tagCategory)" :key="tagItem.id" class="form-check">
               <input
                 class="form-check-input"
                 type="checkbox"
-                v-model="filter[tagCategory.order]"
-                :value="tagItem.order"
-                :id="`filterCheck${tagCategory.order}:${tagItem.order}`"
+                v-model="tagItem.checked"
+                :id="`filterCheck${tagCategory.id}:${tagItem.id}`"
               />
-              <label
-                class="form-check-label"
-                :for="`filterCheck${tagCategory.order}:${tagItem.order}`"
-              >
+              <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tagItem.id}`">
                 {{ tagItem.label }}
               </label>
             </div>

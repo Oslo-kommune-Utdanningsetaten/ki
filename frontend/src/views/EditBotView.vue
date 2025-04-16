@@ -77,6 +77,7 @@ const initializeCopy = () => {
   bot.value.owner = null
   bot.value.title = 'Kopi av ' + bot.value.title
   bot.value.mandatory = false
+  bot.value.allow_distribution = true
   bot.value.is_audio_enabled = false
   bot.value.model = 'none'
   bot.value.edit = true
