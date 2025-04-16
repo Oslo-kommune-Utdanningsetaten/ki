@@ -13,7 +13,6 @@ const active_bot = ref(null)
 const tagCategories = ref([])
 // const route = useRoute()
 
-
 watchEffect(() => {
   getBots()
 })
@@ -49,7 +48,8 @@ const filterBots = computed(() => {
         let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
         botsFiltered = botsFiltered.filter(
           bot =>
-            bot.tag.filter(tag => tag.category_id === tagCategory.id && tag.tag_value & binarySum).length > 0
+            bot.tag.filter(tag => tag.category_id === tagCategory.id && tag.tag_value & binarySum)
+              .length > 0
         )
       }
     })
@@ -123,16 +123,6 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         </div>
         <div class="modal-body">
           <span v-html="active_bot.bot_info"></span>
-        </div>
-        <div class="modal-body">
-          <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
-            <span class="fw-bold">{{ tagCategory.label }}:</span>
-            <span v-for="tagItem in tagItemSorted(tagCategory)">
-              <span v-if="active_bot.tag[tagCategory.id - 1] & Math.pow(2, tagItem.weight)">
-                {{ tagItem.label }}&nbsp;
-              </span>
-            </span>
-          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
