@@ -137,6 +137,8 @@ def user_bots(request):
                     'id': tag.tag_label_id,
                     'label': tag.tag_label_name,
                     'order': tag.tag_label_order,
+                    'weight': tag.tag_label_weight,
+                    'checked': False,
                 }
                 for tag in category.tag_labels.all()
             ],
@@ -144,6 +146,11 @@ def user_bots(request):
 
     users_bots = [models.Bot.objects.get(uuid=bot_id)
                   for bot_id in request.g.get('bots', [])]
+
+    if request.g.get('admin', False):
+        for bot in users_bots:
+            bot.access_count = bot.accesses.exclude(access='none').count()
+
     return_bots = [
         {
             'uuid': bot.uuid,
@@ -157,7 +164,8 @@ def user_bots(request):
             'personal': not bot.library,
             'allow_distribution': bot.allow_distribution,
             'bot_info': bot.bot_info or '',
-            'tag': bot.tags.all().values_list('tag_value', flat=True) if bot.library else [],
+            'tag': bot.tags.all().values('category_id', 'tag_value') if bot.library else [],
+            'access_count': bot.access_count if request.g.get('admin', False) else 0,
         }
         for bot in users_bots]
 
@@ -339,13 +347,13 @@ def bot_info(request, bot_uuid=None):
         # save tags
         if body.get('tag_categories', False):
             def array_to_binary(arr):
-                return sum([1 << tag.get('order') for tag in arr if tag.get('checked', False)])
+                return sum([1 << tag.get('weight') for tag in arr if tag.get('checked', False)])
             for tag_category in body.get('tag_categories', []):
                 tag_obj = bot.tags.filter(category_id=tag_category.get('id')).first()
                 if not tag_obj:
                     tag_obj = models.Tag(bot_id=bot, category_id_id=tag_category.get('id'))
                 tag_obj.tag_value = array_to_binary([
-                        {'order': tag.get('order'), 'checked': tag.get('checked')} 
+                        {'weight': tag.get('weight'), 'checked': tag.get('checked')} 
                         for tag in tag_category.get('tags', [])])
                 tag_obj.save()
         
@@ -506,7 +514,8 @@ def bot_info(request, bot_uuid=None):
                 'id': tag_label.tag_label_id,
                 'label': tag_label.tag_label_name,
                 'order': tag_label.tag_label_order,
-                'checked': bool(tag_obj.tag_value >> tag_label.tag_label_order & 1) if tag_obj else False,
+                'weight': tag_label.tag_label_weight,
+                'checked': bool(tag_obj.tag_value >> tag_label.tag_label_weight & 1) if tag_obj else False,
             })
         tag_categories.append({
             'id': category.category_id,

@@ -112,16 +112,14 @@ def load_users_bots_to_g(request) -> None:
     from ki import models # Avoid circular import
 
     bots:set = set()
-    allow_groups = bool(get_setting('allow_groups'))
-    allow_personal = bool(get_setting('allow_personal'))
     employee = request.g['employee']
     schools = request.g['schools']
     levels = request.g['levels']
     groups = request.g['groups']
     username = request.session.get('user.username', None)
 
-    # bots from subject
-    if allow_groups and not employee:
+    # bots from subject (for students)
+    if not employee:
         for group in groups:
             subject_accesses = models.SubjectAccess.objects.filter(subject_id=group['id'])
             for subject_access in subject_accesses:
@@ -149,8 +147,8 @@ def load_users_bots_to_g(request) -> None:
             if access:
                 bots.add(bot_access.bot_id_id)
                                 
-    # bots from personal
-    if allow_personal:
+    # bots from personal bots (for employees)
+    if employee:
         personal_bots = models.Bot.objects.filter(owner=username)
         for personal_bot in personal_bots:
             bots.add(personal_bot.uuid)

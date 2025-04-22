@@ -243,6 +243,7 @@ class TagCategory(models.Model):
 class TagLabel(models.Model):
     tag_label_id = models.AutoField(primary_key=True)
     tag_label_name = models.CharField(max_length=50)
+    tag_label_weight = models.IntegerField(null=True)
     tag_label_order = models.IntegerField()
     category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id', related_name="tag_labels")
 
