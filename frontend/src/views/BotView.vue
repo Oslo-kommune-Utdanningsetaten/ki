@@ -141,7 +141,7 @@ onMounted(async () => {
           :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
         >
           {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
-          {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
+          {{ bot.prompt_visibility && '(kun ansatte)' }}
         </button>
 
         <span class="ms-3" v-if="bot.is_audio_enabled">
