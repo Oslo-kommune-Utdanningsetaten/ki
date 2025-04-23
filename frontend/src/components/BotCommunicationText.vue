@@ -136,59 +136,38 @@ onMounted(async () => {
       :handleEditMessageAtIndex="editMessageAtIndex"
     />
 
-    <div class="mt-3" :class="{ 'd-none': isProcessingInput }">
+    <div class="card mt-3" :class="{ 'd-none': isProcessingInput }">
       <textarea
         ref="text-input"
         type="text"
         rows="5"
         aria-label="Skriv her. Ikke legg inn personlige eller sensitive opplysninger."
         v-model="message"
-        class="form-control"
+        class="form-control z-1"
         placeholder="Skriv her. Ikke legg inn personlige eller sensitive opplysninger."
         @paste="handlePaste()"
         @keypress.enter.exact="sendMessage()"
       ></textarea>
 
-      <div class="card z-n1">
-        <div
-          class="card-body bg-body-tertiary d-flex flex-wrap align-items-center gap-1 button-container"
-        >
-          <SpeechToText v-if="!bot.is_audio_enabled" :onMessageReceived="handleMessageInput" />
+      <div class="card-body bg-body-tertiary d-flex flex-wrap align-items-center button-container">
+        <SpeechToText v-if="!bot.is_audio_enabled" :onMessageReceived="handleMessageInput" />
 
-          <button
-            class="btn oslo-btn-primary"
-            type="button"
-            id="button-send"
-            @click="sendMessage()"
-          >
-            Send!
-          </button>
+        <button class="btn oslo-btn-primary" type="button" @click="sendMessage()">Send!</button>
 
-          <button
-            class="btn oslo-btn-secondary"
-            type="button"
-            id="button-new"
-            @click="resetMessages()"
-          >
-            Ny samtale
-          </button>
+        <button class="btn oslo-btn-secondary" type="button" @click="resetMessages()">
+          Ny samtale
+        </button>
 
-          <button
-            class="btn oslo-btn-secondary"
-            type="button"
-            id="button-clipboard"
-            @click="clipboardAll(bot)"
-          >
-            <img src="@/components/icons/copy.svg" alt="" />
-            Kopier samtalen
-          </button>
-        </div>
+        <button class="btn oslo-btn-secondary" type="button" @click="clipboardAll(bot)">
+          <img src="@/components/icons/copy.svg" alt="kopier" />
+          Kopier samtalen
+        </button>
+      </div>
 
-        <div class="card-body bg-body-tertiary pt-0">
-          <small>
-            Husk at en AI ikke er et menneske og kan gi svar som ikke stemmer med virkeligheten.
-          </small>
-        </div>
+      <div class="card-body bg-body-tertiary pt-0">
+        <small>
+          Husk at en AI ikke er et menneske og kan gi svar som ikke stemmer med virkeligheten.
+        </small>
       </div>
     </div>
   </div>
