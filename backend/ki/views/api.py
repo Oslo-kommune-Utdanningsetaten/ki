@@ -173,7 +173,7 @@ def user_bots(request):
         'bots': return_bots,
         'tag_categories': tag_categories,
         'status': 'ok',
-        'view_filter': request.g['settings']['view_filter'],
+        'enable_filter': request.g['settings']['view_filter'],
     })
 
 

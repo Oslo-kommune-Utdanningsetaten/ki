@@ -8,8 +8,9 @@ import BotAvatar from '@/components/BotAvatar.vue'
 const bots = ref([])
 const status = ref(null)
 const showLibrary = ref(false)
-const view_filter = ref(false)
-const active_bot = ref(null)
+const enableFilter = ref(false)
+const showFilter = ref(false)
+const activeBot = ref(null)
 const tagCategories = ref([])
 // const route = useRoute()
 
@@ -22,7 +23,7 @@ async function getBots() {
     const { data } = await axios.get('/api/user_bots')
     bots.value = data.bots || []
     status.value = data.status || ''
-    view_filter.value = data.view_filter || ''
+    enableFilter.value = data.enable_filter || ''
     tagCategories.value = data.tag_categories || {}
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -40,19 +41,21 @@ const filterBots = computed(() => {
   }
   if (showLibrary.value) {
     let botsFiltered = bots.value
-    tagCategories.value.forEach(tagCategory => {
-      let filterArray = tagCategory.tag_items
+    if (showFilter.value) {
+      tagCategories.value.forEach(tagCategory => {
+        let filterArray = tagCategory.tag_items
         .filter(tagItem => tagItem.checked)
         .map(tagItem => tagItem.weight)
-      if (filterArray.length > 0) {
-        let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
-        botsFiltered = botsFiltered.filter(
-          bot =>
+        if (filterArray.length > 0) {
+          let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
+          botsFiltered = botsFiltered.filter(
+            bot =>
             bot.tag.filter(tag => tag.category_id === tagCategory.id && tag.tag_value & binarySum)
-              .length > 0
-        )
-      }
-    })
+            .length > 0
+          )
+        }
+      })
+    }
     return botsFiltered.filter(bot => !bot.personal && !bot.mandatory)
   } else {
     return bots.value.filter(bot => bot.mandatory || bot.personal || bot.favorite)
@@ -85,11 +88,11 @@ const toggle_favorite = async bot => {
 }
 
 const setActiveBot = bot => {
-  active_bot.value = bot
+  activeBot.value = bot
 }
 
 const botIconWidth = computed(() =>
-  showLibrary.value && view_filter.value
+  showLibrary.value && enableFilter.value && showFilter.value
     ? 'col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12'
     : 'col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6'
 )
@@ -109,10 +112,10 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
     aria-hidden="true"
   >
     <div class="modal-dialog">
-      <div v-if="active_bot" class="modal-content">
+      <div v-if="activeBot" class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="bot_info_label">
-            {{ active_bot.bot_title }}
+            {{ activeBot.bot_title }}
           </h1>
           <button
             type="button"
@@ -122,7 +125,7 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           ></button>
         </div>
         <div class="modal-body">
-          <span v-html="active_bot.bot_info"></span>
+          <span v-html="activeBot.bot_info"></span>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
@@ -191,12 +194,15 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary" />
         <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
       </div>
+      <div v-if="showLibrary && enableFilter" class="form-check form-switch  mb-2">
+        <input class="form-check-input" type="checkbox" id="showFilter" v-model="showFilter" />
+        <label class="form-check form-check-label" for="showFilter">Filtrer:</label>
+      </div>
     </div>
 
     <div class="row align-items-stretch">
-      <div v-if="showLibrary && view_filter" class="col-xxl-2 col-lg-3 col-md-3 col-4">
+      <div v-if="showLibrary && enableFilter && showFilter" class="col-xxl-2 col-lg-3 col-md-3 col-4">
         <div class="card card-body">
-          <div class="card-title">Filtrer:</div>
           <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
             <div>{{ tagCategory.label }}</div>
             <div v-for="tagItem in tagItemSorted(tagCategory)" :key="tagItem.id" class="form-check">
