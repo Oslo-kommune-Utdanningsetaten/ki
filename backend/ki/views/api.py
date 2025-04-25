@@ -541,7 +541,7 @@ def bot_info(request, bot_uuid=None):
             'bot_info': bot.bot_info,
             'img_bot': bot.img_bot,
             'prompt_visibility': bot.prompt_visibility,
-            'allow_distribution': bot.allow_distribution if is_employee else False,
+            'allow_distribution': bot.allow_distribution,
             'mandatory': bot.mandatory,
             'library': bot.library,
             'is_audio_enabled': bot.is_audio_enabled,
