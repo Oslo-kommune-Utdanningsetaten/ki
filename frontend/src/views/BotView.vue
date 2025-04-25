@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotCommunicationText from '@/components/BotCommunicationText.vue'
 import BotCommunicationAudio from '@/components/BotCommunicationAudio.vue'
@@ -13,7 +13,7 @@ const bot = ref(null)
 const showSystemPrompt = ref(false)
 const communicationMode = ref('text') // text, audio, maybe video?
 const systemPrompt = ref('')
-const botModelName = ref(null)
+// const botModelName = ref(null)
 const botModelTrainingCutoff = ref(null)
 
 const choicesSorted = () => {
@@ -49,14 +49,18 @@ const handleDeleteBot = async botId => {
   router.push({ name: 'home' })
 }
 
+const model = computed(() => {
+  if (bot.value.model) {
+    return bot.value.model
+  } else {
+    return store.defaultModel
+  }
+})
+
+
 onMounted(async () => {
   bot.value = await getBot(route.params.id)
-  if (bot.value) {
-    botModelName.value = bot.model ? bot.model.display_name : store.defaultModel.display_name
-    botModelTrainingCutoff.value = bot.model
-      ? bot.model.training_cutoff
-      : store.defaultModel.training_cutoff
-  } else {
+  if (!bot.value) {
     router.push({ name: 'home' })
     return
   }
@@ -206,10 +210,10 @@ onMounted(async () => {
           <strong>Dette er instruksene jeg har fått</strong>
           <p>{{ getSystemPrompt() }}</p>
           <strong>Jeg bruker modellen</strong>
-          <p>{{ botModelName }}</p>
-          <span v-if="botModelTrainingCutoff">
+          <p>{{ model.display_name }}</p>
+          <span v-if="model.training_cutoff">
             <strong>Jeg er trent på data fram til</strong>
-            <p>{{ botModelTrainingCutoff }}</p>
+            <p>{{ model.training_cutoff }}</p>
           </span>
         </div>
       </div>
