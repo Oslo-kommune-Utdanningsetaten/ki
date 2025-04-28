@@ -8,8 +8,8 @@ import BotAvatar from '@/components/BotAvatar.vue'
 const bots = ref([])
 const status = ref(null)
 const showLibrary = ref(false)
-const enableFilter = ref(false)
-const showFilter = ref(false)
+const isBotFilteringEnabled = ref(false)
+const isFilterWidgetVisible = ref(false)
 const activeBot = ref(null)
 const tagCategories = ref([])
 // const route = useRoute()
@@ -23,7 +23,7 @@ async function getBots() {
     const { data } = await axios.get('/api/user_bots')
     bots.value = data.bots || []
     status.value = data.status || ''
-    enableFilter.value = data.enable_filter || ''
+    isBotFilteringEnabled.value = data.is_bot_filtering_enabled || ''
     tagCategories.value = data.tag_categories || {}
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -41,7 +41,7 @@ const filterBots = computed(() => {
   }
   if (showLibrary.value) {
     let botsFiltered = bots.value
-    if (showFilter.value) {
+    if (isFilterWidgetVisible.value) {
       tagCategories.value.forEach(tagCategory => {
         let filterArray = tagCategory.tag_items
         .filter(tagItem => tagItem.checked)
@@ -92,7 +92,7 @@ const setActiveBot = bot => {
 }
 
 const botIconWidth = computed(() =>
-  showLibrary.value && enableFilter.value && showFilter.value
+  showLibrary.value && isBotFilteringEnabled.value && isFilterWidgetVisible.value
     ? 'col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12'
     : 'col-xxl-2 col-xl-2 col-lg-3 col-md-4 col-6'
 )
@@ -194,14 +194,14 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary" />
         <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
       </div>
-      <div v-if="showLibrary && enableFilter" class="form-check form-switch  mb-2">
-        <input class="form-check-input" type="checkbox" id="showFilter" v-model="showFilter" />
-        <label class="form-check form-check-label" for="showFilter">Filtrer:</label>
+      <div v-if="showLibrary && isBotFilteringEnabled" class="form-check form-switch  mb-2">
+        <input class="form-check-input" type="checkbox" id="showFilter" v-model="isFilterWidgetVisible" />
+        <label class="form-check form-check-label" for="showFilter">Filtrer</label>
       </div>
     </div>
 
     <div class="row align-items-stretch">
-      <div v-if="showLibrary && enableFilter && showFilter" class="col-xxl-2 col-lg-3 col-md-3 col-4">
+      <div v-if="showLibrary && isBotFilteringEnabled && isFilterWidgetVisible" class="col-xxl-2 col-lg-3 col-md-3 col-4">
         <div class="card card-body">
           <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
             <div>{{ tagCategory.label }}</div>
