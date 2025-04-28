@@ -28,7 +28,7 @@ class Bot(models.Model):
     library = models.BooleanField(default=False)
     is_audio_enabled = models.BooleanField(default=False)
     owner = models.CharField(max_length=50, null=True)
-    allow_distribution = models.BooleanField(default=False)
+    allow_distribution = models.BooleanField(default=True)
     mandatory = models.BooleanField(default=False)
     img_bot = models.BooleanField(default=False)
     bot_info = models.TextField(null=True)
