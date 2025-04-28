@@ -9,6 +9,10 @@
   "prettier.printWidth": 100,
   "vue.format.template.initialIndent": false,
   "prettier.bracketSameLine": true,
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["--nomigrations", "-vv", "-s"],
+  "python.testing.cwd": "${workspaceFolder}/backend",
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
