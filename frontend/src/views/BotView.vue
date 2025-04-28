@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotCommunicationText from '@/components/BotCommunicationText.vue'
 import BotCommunicationAudio from '@/components/BotCommunicationAudio.vue'
@@ -13,6 +13,8 @@ const bot = ref(null)
 const showSystemPrompt = ref(false)
 const communicationMode = ref('text') // text, audio, maybe video?
 const systemPrompt = ref('')
+// const botModelName = ref(null)
+const botModelTrainingCutoff = ref(null)
 
 const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
@@ -47,8 +49,21 @@ const handleDeleteBot = async botId => {
   router.push({ name: 'home' })
 }
 
+const model = computed(() => {
+  if (bot.value.model) {
+    return bot.value.model
+  } else {
+    return store.defaultModel
+  }
+})
+
+
 onMounted(async () => {
   bot.value = await getBot(route.params.id)
+  if (!bot.value) {
+    router.push({ name: 'home' })
+    return
+  }
   updateSystemPrompt()
 })
 </script>
@@ -92,12 +107,8 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="d-flex justify-content-end">
-      <RouterLink
-        v-if="store.isEmployee || store.isAdmin"
-        class="btn oslo-btn-secondary"
-        :to="'/editbot/copy/' + bot.uuid"
-      >
+    <div v-if="store.isEmployee || store.isAdmin" class="d-flex justify-content-end">
+      <RouterLink class="btn oslo-btn-secondary" :to="'/editbot/copy/' + bot.uuid">
         Kopier bot
       </RouterLink>
       <RouterLink
@@ -129,7 +140,8 @@ onMounted(async () => {
           @click="toggleStartPrompt"
           :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
         >
-          {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
+          {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
+          {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
         </button>
 
         <span class="ms-3" v-if="bot.is_audio_enabled">
@@ -198,7 +210,11 @@ onMounted(async () => {
           <strong>Dette er instruksene jeg har fått</strong>
           <p>{{ getSystemPrompt() }}</p>
           <strong>Jeg bruker modellen</strong>
-          <p>{{ bot.model ? bot.model.display_name : store.defaultModel.display_name }}</p>
+          <p>{{ model.display_name }}</p>
+          <span v-if="model.training_cutoff">
+            <strong>Jeg er trent på data fram til</strong>
+            <p>{{ model.training_cutoff }}</p>
+          </span>
         </div>
       </div>
     </div>

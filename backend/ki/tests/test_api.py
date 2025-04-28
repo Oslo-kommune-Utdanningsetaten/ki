@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 
 def decorate_request(request, user_roles=[], user_groups=[]):
-    request.g = {'settings': {'allow_groups': True}, 'dist_to_groups': True, 'groups': user_groups}
+    request.g = {'dist_to_groups': True, 'groups': user_groups}
     request.session = {'user.username': 'testuser'}
     for user_role in user_roles:
         request.g[user_role] = True

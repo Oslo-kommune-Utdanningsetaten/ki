@@ -28,7 +28,7 @@ class Bot(models.Model):
     library = models.BooleanField(default=False)
     is_audio_enabled = models.BooleanField(default=False)
     owner = models.CharField(max_length=50, null=True)
-    allow_distribution = models.BooleanField(default=False)
+    allow_distribution = models.BooleanField(default=True)
     mandatory = models.BooleanField(default=False)
     img_bot = models.BooleanField(default=False)
     bot_info = models.TextField(null=True)
@@ -243,6 +243,7 @@ class TagCategory(models.Model):
 class TagLabel(models.Model):
     tag_label_id = models.AutoField(primary_key=True)
     tag_label_name = models.CharField(max_length=50)
+    tag_label_weight = models.IntegerField(null=True)
     tag_label_order = models.IntegerField()
     category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id', related_name="tag_labels")
 

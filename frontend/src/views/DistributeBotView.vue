@@ -27,7 +27,7 @@ const bot = ref({
   temperature: 1,
   model: null,
   mandatory: false,
-  allow_distribution: false,
+  allow_distribution: true,
   bot_info: '',
   tag_categories: [],
   choices: [],

@@ -17,7 +17,7 @@ export const getCookie = name => {
   return cookieValue
 }
 
-export const getUser = async (botId) => {
+export const getUser = async () => {
   try {
     const { data } = await axios.get('/api/user_info/')
     return data.user
