@@ -173,7 +173,7 @@ def user_bots(request):
         'bots': return_bots,
         'tag_categories': tag_categories,
         'status': 'ok',
-        'is_bot_filtering_enabled': request.g['settings'].get('is_bot_filtering_enabled', False),
+        'is_bot_filtering_enabled': get_setting('is_bot_filtering_enabled'),
     })
 
 
