@@ -41,5 +41,5 @@ django_find_project = true
 pythonpath = ["."]
 
 [tool.poe.tasks]
-run-tests = "pytest --verbose --nomigrations -s"
+run-tests = "pytest -vv --nomigrations -s"
 run-server = "python manage.py runserver 5000"
