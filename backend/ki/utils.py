@@ -82,9 +82,9 @@ def load_feide_memberships_to_request(request) -> None:
 
 
 def has_school_access(request) -> bool:
-    schools = request.g['schools']
-    levels = request.g['levels']
-    employee = request.g['employee']
+    schools = request.g.get('schools', [])
+    levels = request.g.get('levels', [])
+    employee = request.g.get('employee', False)
     for school in schools:
         if employee:
             if school.access in ['emp', 'all', 'levels']:
@@ -112,10 +112,10 @@ def load_users_bots_to_g(request) -> None:
     from ki import models # Avoid circular import
 
     bots:set = set()
-    employee = request.g['employee']
-    schools = request.g['schools']
-    levels = request.g['levels']
-    groups = request.g['groups']
+    employee = request.g.get('employee', False)
+    schools = request.g.get('schools', [])
+    levels = request.g.get('levels', [])
+    groups = request.g.get('groups', [])
     username = request.session.get('user.username', None)
 
     # bots from subject (for students)
@@ -170,7 +170,7 @@ def get_groups_from_g(request, bot=None):
                 'valid_from': subj.valid_from,
                 'valid_to': subj.valid_to,
             }
-    groups = request.g['groups']
+    groups = request.g.get('groups', [])
     for group in groups:
         valid_from = None
         valid_to = None
