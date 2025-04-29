@@ -173,7 +173,7 @@ def user_bots(request):
         'bots': return_bots,
         'tag_categories': tag_categories,
         'status': 'ok',
-        'is_bot_filtering_enabled': request.g['settings']['is_bot_filtering_enabled'],
+        'is_bot_filtering_enabled': get_setting('is_bot_filtering_enabled'),
     })
 
 
@@ -426,7 +426,7 @@ def bot_info(request, bot_uuid=None):
                 return False
             return True
 
-        users_group_ids = [group['id'] for group in request.g['groups']]
+        users_group_ids = [group['id'] for group in request.g.get('groups', [])]
         for incoming_group in json.loads(request.body).get('groups', []):
             incoming_group_id = incoming_group.get('id')
             if not incoming_group_id in users_group_ids:
