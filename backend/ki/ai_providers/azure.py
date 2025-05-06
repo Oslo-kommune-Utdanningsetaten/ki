@@ -49,7 +49,9 @@ async def chat_completion_azure_streamed(messages, model, temperature=DEFAULT_TE
                 temperature=float(temperature),
                 stream=True,
             )
+            print(completion)
         except BadRequestError as e:
+            print(e)
             if e.code == "content_filter":
                 yield "Dette er ikke et passende emne. Start samtalen på nytt."
             else:
