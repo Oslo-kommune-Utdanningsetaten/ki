@@ -10,7 +10,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ki.utils import  get_memberships_from_feide, get_users_bots, has_school_access, get_admin_memberships_and_bots
+from ki.utils import load_feide_memberships_to_request, has_school_access, load_users_bots_to_g, admin_memberships_and_bots_to_g
 
 
 # OAuth 2 client setup
@@ -22,11 +22,23 @@ message_redirect = 'http://localhost:5173/message' if DEBUG else '/message'
 def auth_middleware(get_response):
     @ensure_csrf_cookie
     def load_logged_in_user(request):
-        request.userinfo = {}
+        request.g = {}
+        bots = set()
+        is_admin = False
 
         username = request.session.get('user.username', None)
         is_authenticated = username is not None
-        request.userinfo['isAuthenticated'] = is_authenticated
+        request.g['isAuthenticated'] = is_authenticated
+        # load settings
+        settings_dict = {}
+        all_settings = models.Setting.objects.all()
+        for setting in all_settings:
+            if setting.int_val != None:
+                settings_dict[setting.setting_key] = setting.int_val
+            elif setting.txt_val != None:
+                settings_dict[setting.setting_key] = setting.txt_val
+
+        request.g['settings'] = settings_dict
         if not is_authenticated:
             url_name = resolve(request.path_info).url_name
             if (url_name is None):
@@ -43,21 +55,24 @@ def auth_middleware(get_response):
             # TODO: author at multiple schools
             role_obj = models.Role.objects.filter(user_id=username).first()
             role = role_obj.role if role_obj else None
-            request.userinfo['username'] = username
-            request.userinfo['name'] = request.session.get('user.name')
-            request.userinfo['has_access'] = False
+            request.g['username'] = username
+            request.g['name'] = request.session.get('user.name')
+            request.g['groups'] = []
             if role == 'admin':
-                request.userinfo.update(get_admin_memberships_and_bots(username))
-                request.userinfo['has_access'] = True
+                admin_memberships_and_bots_to_g(request)
+                request.g['has_access'] = True
             else:
-                feide_memberships = get_memberships_from_feide(request.session.get('user.auth', False))
-                if has_school_access(feide_memberships):
-                    request.userinfo.update(feide_memberships)
-                    request.userinfo['bots'] = get_users_bots(username, feide_memberships)
-                    request.userinfo['has_access'] = True
+                load_feide_memberships_to_request(request)
+                if has_school_access(request):
+                    load_users_bots_to_g(request)
+                    request.g['has_access'] = True
                     if role == 'author':
-                        request.userinfo['author'] = True
-                        request.userinfo['auth_school'] = role_obj.school
+                        request.g['author'] = True
+                        request.g['auth_school'] = role_obj.school
+                else:
+                    request.g['has_access'] = False
+
+
 
         response = get_response(request)
         response['X-Is-Authenticated'] = str(is_authenticated).lower()
@@ -135,9 +150,9 @@ def feidecallback(request):
 def logout(request):
     token = request.session.get('user.auth', False)
     request.session.clear()
-    request.userinfo['username'] = None
-    request.userinfo['name'] = None
-    request.userinfo['bots'] = []
+    request.g['username'] = None
+    request.g['name'] = None
+    request.g['bots'] = []
     if token:
         id_token = token['id_token']
         feide_provider_cfg = get_provider_cfg()

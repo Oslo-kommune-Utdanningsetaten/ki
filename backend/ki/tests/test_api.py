@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 
 def decorate_request(request, user_roles=[], user_groups=[]):
-    request.userinfo = {'dist_to_groups': True, 'groups': user_groups}
+    request.g = {'dist_to_groups': True, 'groups': user_groups}
     request.session = {'user.username': 'testuser'}
     for user_role in user_roles:
-        request.userinfo[user_role] = True
+        request.g[user_role] = True
 
 
 @pytest.fixture

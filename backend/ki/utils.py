@@ -18,7 +18,7 @@ aarstrinn_codes = {
 }
 
 
-def get_memberships_from_feide(tokens):
+def load_feide_memberships_to_request(request) -> None:
     from ki import models # Avoid circular import
 
     schools = []
@@ -26,9 +26,10 @@ def get_memberships_from_feide(tokens):
     groups = []
     employee = False
 
-    if not (tokens):
-        return None
-
+    if not (tokens := request.session.get('user.auth', False)):
+        request.session.clear()
+        request.g.clear()
+        return
     # get user's grups from dataporten
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
@@ -37,7 +38,9 @@ def get_memberships_from_feide(tokens):
         headers=headers
         )
     if groupinfo_response.status_code == 401:
-        return None
+        request.session.clear()
+        request.g.clear()
+        return
     groupinfo_response = groupinfo_response.json()
 
     # get user's schools and levels and groups
@@ -70,20 +73,18 @@ def get_memberships_from_feide(tokens):
                     'go_type': group.get('go_type'),
                 })
 
-    return {
-        'employee': employee,
-        'schools': schools,
-        'levels': levels,
-        'groups': groups,
-    }
+    request.g['employee'] = employee
+    request.g['schools'] = schools
+    request.g['levels'] = levels
+    request.g['groups'] = groups
+    request.g['admin'] = False
+    return 
 
 
-def has_school_access(feide_memberships) -> bool:
-
-    employee = feide_memberships.get('employee', False)
-    schools = feide_memberships.get('schools', [])
-    levels = feide_memberships.get('levels', [])
-
+def has_school_access(request) -> bool:
+    schools = request.g.get('schools', [])
+    levels = request.g.get('levels', [])
+    employee = request.g.get('employee', False)
     for school in schools:
         if employee:
             if school.access in ['emp', 'all', 'levels']:
@@ -107,14 +108,15 @@ def is_subject_access_valid (subject_access) -> bool:
     return True
     
 
-def get_users_bots(username, feide_memberships):
+def load_users_bots_to_g(request) -> None:
     from ki import models # Avoid circular import
 
     bots:set = set()
-    employee = feide_memberships.get('employee', False)
-    schools = feide_memberships.get('schools', [])
-    levels = feide_memberships.get('levels', [])
-    groups = feide_memberships.get('groups', [])
+    employee = request.g.get('employee', False)
+    schools = request.g.get('schools', [])
+    levels = request.g.get('levels', [])
+    groups = request.g.get('groups', [])
+    username = request.session.get('user.username', None)
 
     # bots from subject (for students)
     if not employee:
@@ -151,10 +153,11 @@ def get_users_bots(username, feide_memberships):
         for personal_bot in personal_bots:
             bots.add(personal_bot.uuid)
 
-    return list(bots) if bots else []
+    request.g['bots'] = list(bots) if bots else []
+    return
 
 
-def generate_group_access_list(groups=None, bot=None):
+def get_groups_from_g(request, bot=None):
     group_list = []
     default_lifespan = get_setting('default_lifespan')
     access_dict = {}
@@ -167,7 +170,7 @@ def generate_group_access_list(groups=None, bot=None):
                 'valid_from': subj.valid_from,
                 'valid_to': subj.valid_to,
             }
-    # groups = request.userinfo.get('groups', [])
+    groups = request.g.get('groups', [])
     for group in groups:
         valid_from = None
         valid_to = None
@@ -191,35 +194,35 @@ def generate_group_access_list(groups=None, bot=None):
     return group_list
 
 
-def get_user_data_from_userinfo(request):
+def get_user_data_from_g(request):
     # role
     role = 'student'
-    role = 'employee' if request.userinfo.get('employee', False) else role
-    role = 'admin' if request.userinfo.get('admin', False) else role
+    role = 'employee' if request.g.get('employee', False) else role
+    role = 'admin' if request.g.get('admin', False) else role
     # level
     level = None
-    if (levels := request.userinfo.get('levels', None)) and role == 'student':
+    if (levels := request.g.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
     # schools
-    schools = request.userinfo.get('schools', [])
+    schools = request.g.get('schools', [])
     return level, schools, role
 
 
-def get_admin_memberships_and_bots(username) -> dict:
+def admin_memberships_and_bots_to_g(request) -> None:
     from ki import models # Avoid circular import
     bots:set = set()
+    username = request.session.get('user.username', None)
     personal_bots = models.Bot.objects.filter(owner=username)
     bots.update((bot.uuid for bot in personal_bots))
     library_bots = models.Bot.objects.filter(library = True)
     bots.update((bot.uuid for bot in library_bots))
-    return {
-        'admin': True,
-        'employee': False,
-        'schools': [],
-        'levels': [],
-        'groups': [],
-        'bots': list(bots) if bots else [],
-    }
+    request.g['bots'] = list(bots) if bots else []
+    request.g['admin'] = True
+    request.g['employee'] = False
+    request.g['schools'] = []
+    request.g['levels'] = []
+    request.g['groups'] = []
+    return
 
 
 async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1, interaction_type='text'):

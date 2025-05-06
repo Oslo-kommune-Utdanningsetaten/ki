@@ -6,7 +6,7 @@ from ki.models import Bot, BotAccess, BotLevel, School, SubjectAccess
 
 def decorate_request(request, is_employee=False, user_schools=[], user_groups=[], user_levels=[]):
     request.session = {'user.username': 'testuser'}
-    request.userinfo = {
+    request.g = {
         'employee': is_employee,
         'schools': user_schools,
         'groups': [{'id': group} for group in user_groups],
@@ -108,7 +108,7 @@ def set_up_database(db, request):
     (False, ['school-uuid'], [], ['1'], ['all-bot-uuid','levels-bot-uuid']),
 ])
 def test_load_users_bots_to_g(set_up_database, employee, schools, groups, levels, expected_bots):
-    """ Test loading user bots into request.userinfo
+    """ Test loading user bots into request.g
         Test cases:
         employee getting personal bot
         pupil not getting personal bot
@@ -118,11 +118,11 @@ def test_load_users_bots_to_g(set_up_database, employee, schools, groups, levels
         pupil getting group bots with access whitin time and not out of time
         pupil getting school bots with pupils level and not with another level
     """
-    request = RequestFactory().get('')
+    request = RequestFactory().get('/api/menu_items')
     decorate_request(request, is_employee=employee, user_schools=schools, user_groups=groups, user_levels=levels)
     load_users_bots_to_g(request)
 
-    assert isinstance(request.userinfo['bots'], list)
-    assert len(request.userinfo['bots']) == len(expected_bots)
-    for bot in request.userinfo['bots']:
+    assert isinstance(request.g['bots'], list)
+    assert len(request.g['bots']) == len(expected_bots)
+    for bot in request.g['bots']:
         assert bot in expected_bots
