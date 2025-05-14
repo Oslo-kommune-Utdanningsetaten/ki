@@ -6,6 +6,8 @@ import EditBotView from '../views/EditBotView.vue'
 import DistributeBotView from '../views/DistributeBotView.vue'
 import InfoView from '../views/InfoView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import SchoolAccessesView from '../views/SchoolAccessesView.vue'
+import AuthorsView from '../views/AuthorsView.vue'
 import MessageView from '../views/MessageView.vue'
 import { store } from '../store'
 import { axiosInstance as axios } from '../clients'
@@ -55,6 +57,18 @@ const routes = [
     path: '/settings',
     name: 'settings',
     component: SettingsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/school_accesses',
+    name: 'school_accesses',
+    component: SchoolAccessesView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/authors',
+    name: 'authors',
+    component: AuthorsView,
     meta: { requiresAuth: true },
   },
 ]

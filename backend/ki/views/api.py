@@ -25,29 +25,34 @@ def page_text(request, page):
         "content_text": text_line.page_text,
     })
 
+@api_view(["GET"])
+def school_list(request):
+    if not request.session.get('user.username', None):
+        return Response(status=403)
+    if not request.g.get('admin', False):
+        return Response(status=403)
+
+    schools = []
+    for school in models.School.objects.all():
+        schools.append({
+            'org_nr': school.org_nr,
+            'school_name': school.school_name,
+        })
+
+    return Response({'schools': schools})
 
 @api_view(["GET"])
 def menu_items(request):
-    menu_items = []
+    info_page_links = []
     info_pages = models.PageText.objects.all()
 
     if request.session.get('user.username', None):
-        if request.g.get('admin', False):
-            menu_items.append({
-                'title': 'Innstillinger',
-                'url': '/settings',
-            })
         for page in info_pages:
             if page.public or request.g.get('employee', False) or request.g.get('admin', False):
-                menu_items.append({
+                info_page_links.append({
                     'title': page.page_title,
                     'url': f'/info/{page.page_id}',
                 })
-        menu_items.append({
-            'title': 'Startside',
-            'url': '/',
-            'class': '',
-        })
 
     # Get default model
     default_model_id = get_setting('default_model')
@@ -61,7 +66,7 @@ def menu_items(request):
     }
 
     return Response({
-        'menuItems': menu_items,
+        'infoPages': info_page_links,
         'role': {
             'is_admin': request.g.get('admin', False),
             'is_employee': request.g.get('employee', False),
@@ -628,6 +633,42 @@ def school_access(request):
 
     return Response({'schools': response})
 
+@api_view(["GET", "PUT", "DELETE"])
+def authors(request):
+    if not request.g.get('admin', False):
+        return HttpResponseForbidden()
+
+    if request.method == "DELETE":
+        body = json.loads(request.body)
+        author_body = body.get('author', False)
+        full_id = author_body.get('user_id') + '@feide.osloskolen.no'
+        author = models.Role.objects.filter(user_id=full_id).first()
+        if author:
+            author.delete()
+
+    if request.method == "PUT":
+        body = json.loads(request.body)
+        author_body = body.get('author', False)
+        full_id = author_body.get('user_id') + '@feide.osloskolen.no'
+        author = models.Role.objects.filter(user_id=full_id).first()
+        if not author:
+            author = models.Role()
+            author.user_id = full_id
+            author.role = 'author'
+        author.user_name = author_body.get('name')
+        author.school = models.School.objects.get(org_nr=author_body.get('school_id'))
+        author.save()
+
+    authors = models.Role.objects.filter(role='author').all()
+    response = []
+    for author in authors:
+        response.append({
+            'user_id': author.user_id.split('@')[0],
+            'name': author.user_name or '',
+            'school_id': author.school.org_nr,
+        })
+
+    return Response({'authors': response})
 
 @api_view(["POST"])
 def start_message(request, uuid):

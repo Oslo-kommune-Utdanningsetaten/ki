@@ -190,6 +190,7 @@ class Role(models.Model):
         EMP = 'emp'
 
     user_id = models.CharField(max_length=50, primary_key=True)
+    user_name = models.CharField(max_length=50, null=True)
     role = models.CharField(max_length=10, choices=RoleEnum.choices, default=RoleEnum.EMP)
     school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school', to_field='org_nr', related_name="roles", null=True) 
 
