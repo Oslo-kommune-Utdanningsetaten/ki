@@ -5,7 +5,7 @@ from django.http import HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta, timezone
 import json
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.utils import use_log, get_user_data_from_g, get_groups_from_g, aarstrinn_codes, get_setting, get_setting_async
+from ki.utils import use_log, get_user_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async
 
 
 @api_view(["GET"])
@@ -15,8 +15,8 @@ def page_text(request, page):
     except models.PageText.DoesNotExist:
         return Response(status=404)
 
-    if (not request.g.get('employee', False)
-        and not request.g.get('admin', False)
+    if (not request.userinfo.get('employee', False)
+        and not request.userinfo.get('admin', False)
             and not text_line.public):
         return Response(status=403)
 
@@ -48,7 +48,7 @@ def app_config(request):
 
     if request.session.get('user.username', None):
         for page in info_pages:
-            if page.public or request.g.get('employee', False) or request.g.get('admin', False):
+            if page.public or request.userinfo.get('employee', False) or request.userinfo.get('admin', False):
                 info_page_links.append({
                     'title': page.page_title,
                     'url': f'/info/{page.page_id}',
@@ -68,9 +68,9 @@ def app_config(request):
     return Response({
         'info_pages': info_page_links,
         'role': {
-            'is_admin': request.g.get('admin', False),
-            'is_employee': request.g.get('employee', False),
-            'is_author': request.g.get('author', False),
+            'is_admin': request.userinfo.get('admin', False),
+            'is_employee': request.userinfo.get('employee', False),
+            'is_author': request.userinfo.get('author', False),
         },
         'default_model': default_model,
     })
@@ -80,10 +80,10 @@ def app_config(request):
 def favorite(request, bot_uuid):
     if not request.session.get('user.username', None):
         return Response(status=403)
-    if not request.g.get('employee', False):
+    if not request.userinfo.get('employee', False):
         return Response(status=403)
 
-    if not str(bot_uuid) in request.g.get('bots', []):
+    if not str(bot_uuid) in request.userinfo.get('bots', []):
         return Response(status=403)
 
     try:
@@ -92,12 +92,12 @@ def favorite(request, bot_uuid):
         return Response(status=404)
 
     if request.method == "PUT":
-        if favorite := bot.favorites.filter(user_id=request.g.get('username', '')).first():
+        if favorite := bot.favorites.filter(user_id=request.userinfo.get('username', '')).first():
             favorite.delete()
             return Response({'favorite': False})
         else:
             favorite = models.Favorite(
-                bot_id=bot, user_id=request.g.get('username', ''))
+                bot_id=bot, user_id=request.userinfo.get('username', ''))
             favorite.save()
             return Response({'favorite': True})
 
@@ -125,7 +125,7 @@ def user_bots(request):
             'bots': None,
         })
 
-    if not request.g.get('has_access', False):
+    if not request.userinfo.get('has_access', False):
         return Response({
             'status': 'not_school',
             'bots': None,
@@ -150,9 +150,9 @@ def user_bots(request):
         })
 
     users_bots = [models.Bot.objects.get(uuid=bot_id)
-                  for bot_id in request.g.get('bots', [])]
+                  for bot_id in request.userinfo.get('bots', [])]
 
-    if request.g.get('admin', False):
+    if request.userinfo.get('admin', False):
         for bot in users_bots:
             bot.access_count = bot.accesses.exclude(access='none').count()
 
@@ -161,7 +161,7 @@ def user_bots(request):
             'uuid': bot.uuid,
             'bot_title': bot.title,
             'favorite': True 
-                    if (bot.favorites.filter(user_id=request.g.get('username', '')).first())
+                    if (bot.favorites.filter(user_id=request.userinfo.get('username', '')).first())
                     else False,
             'mandatory': bot.mandatory,
             'img_bot': bot.img_bot,
@@ -170,7 +170,7 @@ def user_bots(request):
             'allow_distribution': bot.allow_distribution,
             'bot_info': bot.bot_info or '',
             'tag': bot.tags.all().values('category_id', 'tag_value') if bot.library else [],
-            'access_count': bot.access_count if request.g.get('admin', False) else 0,
+            'access_count': bot.access_count if request.userinfo.get('admin', False) else 0,
         }
         for bot in users_bots]
 
@@ -187,37 +187,37 @@ def user_info(request):
     # Roles
     roles = []
     role = 'student'
-    if request.g.get('employee', False):
+    if request.userinfo.get('employee', False):
         role = 'employee'
         roles.append(role)
-    if request.g.get('admin', False):
+    if request.userinfo.get('admin', False):
         role = 'admin'
         roles.append(role)
     # Schools
     schools = []
-    for school in request.g.get('schools', []):
+    for school in request.userinfo.get('schools', []):
         schools.append({
             'org_nr': school.org_nr,
             'school_name': school.school_name,
         })
     # Levels
     level = None
-    if (levels := request.g.get('levels', None)) and role == 'student':
+    if (levels := request.userinfo.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
 
     return Response({
         'user': {
-            'username': request.g.get('username', None),
-            'name': request.g.get('name', None),
-            'is_admin': request.g.get('admin', False),
-            'is_employee': request.g.get('employee', False),
-            'is_author': request.g.get('author', False),
+            'username': request.userinfo.get('username', None),
+            'name': request.userinfo.get('name', None),
+            'is_admin': request.userinfo.get('admin', False),
+            'is_employee': request.userinfo.get('employee', False),
+            'is_author': request.userinfo.get('author', False),
             'schools': schools,
-            'auth_school': request.g.get('auth_school', None),
+            'auth_school': request.userinfo.get('auth_school', None),
             'role': role,
             'roles': roles,
             'level': level,
-            'levels': request.g.get('levels', None),
+            'levels': request.userinfo.get('levels', None),
         }
     })
 
@@ -226,9 +226,9 @@ def user_info(request):
 def empty_bot(request, bot_type):
 
     library = bot_type == 'library'
-    is_admin = request.g.get('admin', False)
-    is_employee = request.g.get('employee', False)
-    is_author = request.g.get('author', False)
+    is_admin = request.userinfo.get('admin', False)
+    is_employee = request.userinfo.get('employee', False)
+    is_author = request.userinfo.get('author', False)
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -241,7 +241,7 @@ def empty_bot(request, bot_type):
         if is_admin:
             school_list = models.School.objects.all()
         elif is_author:
-            school_list = [request.g.get('auth_school')]
+            school_list = [request.userinfo.get('auth_school')]
         for school in school_list:
             school_access_list.append({
                 'org_nr': school.org_nr,
@@ -283,7 +283,7 @@ def empty_bot(request, bot_type):
             'edit': True,
             # 'distribute': edit_groups,
             'choices': [],
-            'groups': get_groups_from_g(request) if is_admin or is_employee else [],
+            'groups': generate_group_access_list(request) if is_admin or is_employee else [],
             'schoolAccesses': school_access_list,
             'library': library,
             'tag_categories': tag_categories,
@@ -295,9 +295,9 @@ def empty_bot(request, bot_type):
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def bot_info(request, bot_uuid=None):
 
-    is_admin = request.g.get('admin', False)
-    is_employee = request.g.get('employee', False)
-    is_author = request.g.get('author', False)
+    is_admin = request.userinfo.get('admin', False)
+    is_employee = request.userinfo.get('employee', False)
+    is_author = request.userinfo.get('author', False)
 
     new_bot = False if bot_uuid else True
 
@@ -306,13 +306,13 @@ def bot_info(request, bot_uuid=None):
         if not new_bot:
             return Response(status=409)
         bot = models.Bot()
-        bot.owner = request.g.get('username')
+        bot.owner = request.userinfo.get('username')
     else: # Get existing bot
         try:
             bot = models.Bot.objects.get(uuid=bot_uuid)
         except models.Bot.DoesNotExist:
             return Response(status=404)
-    is_owner = bot.owner == request.g.get('username', None)
+    is_owner = bot.owner == request.userinfo.get('username', None)
 
     # save bot
     if request.method == "PUT" or request.method == "POST":
@@ -394,7 +394,7 @@ def bot_info(request, bot_uuid=None):
         if is_admin or is_author:
             for school in body.get('schoolAccesses', []):
                 school_obj = models.School.objects.get(org_nr=school.get('org_nr'))
-                if is_author and school_obj != request.g.get('auth_school'):
+                if is_author and school_obj != request.userinfo.get('auth_school'):
                     continue
                 if is_author and not school.get('access', 'none') in ['none', 'emp']:
                     continue
@@ -431,7 +431,7 @@ def bot_info(request, bot_uuid=None):
                 return False
             return True
 
-        users_group_ids = [group['id'] for group in request.g.get('groups', [])]
+        users_group_ids = [group['id'] for group in request.userinfo.get('groups', [])]
         for incoming_group in json.loads(request.body).get('groups', []):
             incoming_group_id = incoming_group.get('id')
             if not incoming_group_id in users_group_ids:
@@ -488,7 +488,7 @@ def bot_info(request, bot_uuid=None):
     if is_admin:
         school_list = models.School.objects.all()
     elif is_author:
-        school_list = [request.g.get('auth_school')]
+        school_list = [request.userinfo.get('auth_school')]
     for school in school_list:
         if new_bot:
             school_access_list.append({
@@ -537,6 +537,10 @@ def bot_info(request, bot_uuid=None):
         'training_cutoff': bot.model_id.training_cutoff,
     } if bot.model_id else None
 
+    groups_access_list = []
+    if is_employee:
+        groups_access_list = generate_group_access_list(request.userinfo.get('groups', []), bot)
+
     return Response({
         'bot': {
             'uuid': bot.uuid,
@@ -556,7 +560,7 @@ def bot_info(request, bot_uuid=None):
             'edit': is_admin or (is_employee and is_owner),
             'owner': bot.owner if is_admin else None,
             'choices': choices,
-            'groups': get_groups_from_g(request, bot) if is_employee else [],
+            'groups': groups_access_list,
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tag_categories': tag_categories,
         },
@@ -568,7 +572,7 @@ def bot_info(request, bot_uuid=None):
 @api_view(["GET", "PUT"])
 def settings(request):
 
-    if not request.g.get('admin', False):
+    if not request.userinfo.get('admin', False):
         return HttpResponseForbidden()
 
     if request.method == "PUT":
@@ -600,7 +604,7 @@ def settings(request):
 
 @api_view(["GET", "PUT"])
 def school_access(request):
-    if not request.g.get('admin', False):
+    if not request.userinfo.get('admin', False):
         return HttpResponseForbidden()
 
     if request.method == "PUT":
@@ -689,7 +693,7 @@ async def send_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
-    if not bot_uuid in request.g.get('bots', []):
+    if not bot_uuid in request.userinfo.get('bots', []):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
@@ -701,7 +705,7 @@ async def send_message(request):
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    level, schools, role = get_user_data_from_g(request)
+    level, schools, role = get_user_data_from_userinfo(request)
     await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
     return await chat_completion_azure_streamed(messages, bot_model, temperature=bot.temperature)
 
@@ -711,14 +715,14 @@ async def send_img_message(request):
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
     prompt = messages[-1].get('content')
-    if not bot_uuid in request.g.get('bots', []):
+    if not bot_uuid in request.userinfo.get('bots', []):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
         bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    level, schools, role = get_user_data_from_g(request)
+    level, schools, role = get_user_data_from_userinfo(request)
     await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
     return await generate_image_azure(prompt, model=bot_model_obj.deployment_id)
 
