@@ -167,7 +167,6 @@ def generate_group_access_list(groups=None, bot=None):
                 'valid_from': subj.valid_from,
                 'valid_to': subj.valid_to,
             }
-    # groups = request.userinfo.get('groups', [])
     for group in groups:
         valid_from = None
         valid_to = None
