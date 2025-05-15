@@ -283,7 +283,6 @@ def empty_bot(request, bot_type):
             'edit': True,
             # 'distribute': edit_groups,
             'choices': [],
-            'groups': generate_group_access_list(request) if is_admin or is_employee else [],
             'schoolAccesses': school_access_list,
             'library': library,
             'tag_categories': tag_categories,
