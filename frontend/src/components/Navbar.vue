@@ -7,10 +7,10 @@ import { store } from '../store.js'
 
 const infoPages = ref([])
 
-const getMenuItems = async () => {
+const getAppConfig = async () => {
   try {
-    const { data } = await axios.get('/api/menu_items')
-    infoPages.value = data.infoPages
+    const { data } = await axios.get('/api/app_config')
+    infoPages.value = data.info_pages
     store.isAdmin = data.role ? data.role.is_admin : false
     store.isEmployee = data.role ? data.role.is_employee : false
     store.isAuthor = data.role ? data.role.is_author : false
@@ -26,7 +26,7 @@ const getMenuItems = async () => {
 
 watchEffect(() => {
   const route = useRoute()
-  getMenuItems()
+  getAppConfig()
 })
 </script>
 

@@ -42,7 +42,7 @@ def school_list(request):
     return Response({'schools': schools})
 
 @api_view(["GET"])
-def menu_items(request):
+def app_config(request):
     info_page_links = []
     info_pages = models.PageText.objects.all()
 
@@ -66,7 +66,7 @@ def menu_items(request):
     }
 
     return Response({
-        'infoPages': info_page_links,
+        'info_pages': info_page_links,
         'role': {
             'is_admin': request.g.get('admin', False),
             'is_employee': request.g.get('employee', False),

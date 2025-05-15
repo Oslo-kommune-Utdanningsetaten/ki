@@ -1,7 +1,7 @@
 import pytest
 from django.test import RequestFactory
 from ki.models import Setting, BotModel, PageText, TagCategory
-from ki.views.api import menu_items, bot_models, empty_bot
+from ki.views.api import app_config, bot_models, empty_bot
 from unittest.mock import patch
 
 
@@ -46,6 +46,12 @@ def set_up_database(db, request):
         page_text='test_text',
         public=False,
     )
+    PageText.objects.create(
+        page_id='test_p',
+        page_title='Test public title',
+        page_text='test_text',
+        public=True,
+    )
     TagCategory.objects.create(
         category_id=1,
         category_name='Test category',
@@ -55,25 +61,24 @@ def set_up_database(db, request):
 
 
 @pytest.mark.django_db(reset_sequences=True)
-@pytest.mark.parametrize("user_roles, expected_menu_items", [
-    ([], [{'class': '', 'title': 'Startside', 'url': '/'}]),
+@pytest.mark.parametrize("user_roles, expected_items", [
+    ([], [{'title': 'Test public title', 'url': '/info/test_p'}]),
     (['employee'], [
         {'title': 'Test title', 'url': '/info/test'}, 
-        {'class': '', 'title': 'Startside', 'url': '/'}
+        {'title': 'Test public title', 'url': '/info/test_p'}
         ]),
     (['admin'], [
-        {"title": "Innstillinger", "url": "/settings"},
-        {'title': 'Test title', 'url': '/info/test'},
-        {'class': '', 'title': 'Startside', 'url': '/'},
+        {'title': 'Test title', 'url': '/info/test'}, 
+        {'title': 'Test public title', 'url': '/info/test_p'}
         ]),
     ])
-def test_menu_items_endpoint(set_up_database, user_roles, expected_menu_items):
-    """menu_items endpoint returns items"""
-    request = RequestFactory().get('/api/menu_items')
+def test_info_page_links_endpoint(set_up_database, user_roles, expected_items):
+    """info_pages endpoint returns items"""
+    request = RequestFactory().get('/api/app_config')
     decorate_request(request, user_roles)
-    response = menu_items(request)
+    response = app_config(request)
     assert response.status_code == 200
-    assert response.data['menuItems'] == expected_menu_items
+    assert response.data['info_pages'] == expected_items
 
 
 @pytest.mark.django_db(reset_sequences=True)

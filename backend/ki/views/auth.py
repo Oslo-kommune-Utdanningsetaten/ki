@@ -45,7 +45,7 @@ def auth_middleware(get_response):
                 return get_response(request)
             elif (
                 url_name.split('.')[0] == 'api'
-                and url_name not in ['api.user_bots', 'api.menu_items']
+                and url_name not in ['api.user_bots', 'api.app_config']
             ):
                 return JsonResponse({'error': 'Not authenticated'}, status=401)
             else:

@@ -92,7 +92,7 @@ router.beforeEach(async (to, from) => {
     } else {
       // Authentication status unknown, check with the server
       try {
-        const response = await axios.get('/api/menu_items')
+        const response = await axios.get('/api/app_config')
         const isAuthenticatedHeader = response.headers['x-is-authenticated']
         if (isAuthenticatedHeader === 'true') {
           store.isAuthenticated = true

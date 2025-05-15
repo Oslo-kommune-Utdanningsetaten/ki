@@ -118,7 +118,7 @@ def test_load_users_bots_to_g(set_up_database, employee, schools, groups, levels
         pupil getting group bots with access whitin time and not out of time
         pupil getting school bots with pupils level and not with another level
     """
-    request = RequestFactory().get('/api/menu_items')
+    request = RequestFactory().get('/api/app_config')
     decorate_request(request, is_employee=employee, user_schools=schools, user_groups=groups, user_levels=levels)
     load_users_bots_to_g(request)
 
