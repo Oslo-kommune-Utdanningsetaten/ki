@@ -26,7 +26,6 @@ def auth_middleware(get_response):
 
         username = request.session.get('user.username', None)
         is_authenticated = username is not None
-        request.userinfo['isAuthenticated'] = is_authenticated
         if not is_authenticated:
             url_name = resolve(request.path_info).url_name
             if (url_name is None):

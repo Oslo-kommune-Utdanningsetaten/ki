@@ -29,7 +29,7 @@ def page_text(request, page):
 def school_list(request):
     if not request.session.get('user.username', None):
         return Response(status=403)
-    if not request.g.get('admin', False):
+    if not request.userinfo.get('admin', False):
         return Response(status=403)
 
     schools = []
@@ -638,7 +638,7 @@ def school_access(request):
 
 @api_view(["GET", "PUT", "DELETE"])
 def authors(request):
-    if not request.g.get('admin', False):
+    if not request.userinfo.get('admin', False):
         return HttpResponseForbidden()
 
     if request.method == "DELETE":
