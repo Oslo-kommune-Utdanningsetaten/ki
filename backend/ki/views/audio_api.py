@@ -77,22 +77,22 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 return
 
             # Record bot model, bot UUID, messages, language and voice
-            if data.get('botUuid'):
-                self.bot_uuid = data.get('botUuid')
+            if data.get('bot_uuid'):
+                self.bot_uuid = data.get('bot_uuid')
             if data.get('bot_model'):
-                self.bot_model = data.get('botModel')
+                self.bot_model = data.get('bot_model')
             if data.get('messages'):
                 self.messages = data.get('messages')
-            if data.get('selectedLanguage'):
-                self.selected_language = data.get('selectedLanguage')
+            if data.get('selected_language'):
+                self.selected_language = data.get('selected_language')
             if data.get('selected_voice'):
-                self.selected_voice = data.get('selectedVoice')
-            if data.get('selectedSpeechRate'):
-                self.selected_speech_rate = data.get('selectedSpeechRate')
-            if data.get('userInfo'):
-                self.user_role = data.get('userInfo', {}).get('role', None)
-                self.user_level = data.get('userInfo', {}).get('level', None)
-                self.user_schools = data.get('userInfo', {}).get('schools', [])
+                self.selected_voice = data.get('selected_voice')
+            if data.get('selected_speech_rate'):
+                self.selected_speech_rate = data.get('selected_speech_rate')
+            if data.get('user_info'):
+                self.user_role = data.get('user_info', {}).get('role', None)
+                self.user_level = data.get('user_info', {}).get('level', None)
+                self.user_schools = data.get('user_info', {}).get('schools', [])
                 self.log(f"User info: role: {self.user_role}, level: {self.user_level}, schools: {self.user_schools}")
 
             # Initialize speech recognizer if client made changes

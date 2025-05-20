@@ -352,12 +352,12 @@ const sendServerConfig = () => {
     websocket.send(
       JSON.stringify({
         type: 'websocket.text',
-        selectedLanguage: selectedLanguage.value,
-        selectedVoice: selectedVoice.value,
-        selectedSpeechRate: selectedSpeechRate.value.value,
-        botUuid: props.bot.uuid,
-        botModel: props.bot.model?.deploymentId || 'gpt-4o-mini',
-        userInfo: currentUser,
+        selected_language: selectedLanguage.value,
+        selected_voice: selectedVoice.value,
+        selected_speech_rate: selectedSpeechRate.value.value,
+        bot_uuid: props.bot.uuid,
+        bot_model: props.bot.model?.deployment_id || 'gpt-4o-mini',
+        user_info: currentUser,
       })
     )
   }
