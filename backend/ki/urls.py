@@ -22,7 +22,9 @@ apiurls = [
   path("api/user_info/", api.user_info, name="api.user_info"),
   path("api/settings", api.settings, name="api.settings"),
   path("api/school_access", api.school_access, name="api.school_access"),
-  path("api/menu_items", api.menu_items, name="api.menu_items"),
+  path("api/school_list", api.school_list, name="api.school_list"),
+  path("api/authors", api.authors, name="api.authors"),
+  path("api/app_config", api.app_config, name="api.app_config"),
   path("api/page_text/<str:page>", api.page_text, name="api.page_text"),
 ]
 
