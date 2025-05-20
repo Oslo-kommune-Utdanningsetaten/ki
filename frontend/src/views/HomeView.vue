@@ -23,8 +23,8 @@ async function getBots() {
     const { data } = await axios.get('/api/user_bots')
     bots.value = data.bots || []
     status.value = data.status || ''
-    isBotFilteringEnabled.value = data.is_bot_filtering_enabled || ''
-    tagCategories.value = data.tag_categories || {}
+    isBotFilteringEnabled.value = data.isBotFilteringEnabled || ''
+    tagCategories.value = data.tagCategories || {}
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'
@@ -35,7 +35,7 @@ async function getBots() {
 }
 
 const filterBots = computed(() => {
-  bots.value.sort((a, b) => b.mandatory - a.mandatory || a.bot_title.localeCompare(b.bot_title))
+  bots.value.sort((a, b) => b.mandatory - a.mandatory || a.botTitle.localeCompare(b.botTitle))
   if (!store.isEmployee && !store.isAdmin) {
     return bots.value // Show all bots for students
   }
@@ -43,15 +43,15 @@ const filterBots = computed(() => {
     let botsFiltered = bots.value
     if (isFilterWidgetVisible.value) {
       tagCategories.value.forEach(tagCategory => {
-        let filterArray = tagCategory.tag_items
-        .filter(tagItem => tagItem.checked)
-        .map(tagItem => tagItem.weight)
+        let filterArray = tagCategory.tagItems
+          .filter(tagItem => tagItem.checked)
+          .map(tagItem => tagItem.weight)
         if (filterArray.length > 0) {
           let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
           botsFiltered = botsFiltered.filter(
             bot =>
-            bot.tag.filter(tag => tag.category_id === tagCategory.id && tag.tag_value & binarySum)
-            .length > 0
+              bot.tag.filter(tag => tag.categoryId === tagCategory.id && tag.tagValue & binarySum)
+                .length > 0
           )
         }
       })
@@ -67,10 +67,10 @@ const tagCategoriesSorted = computed(() => {
 })
 
 const tagItemSorted = tagCategory => {
-  return tagCategory.tag_items.sort((a, b) => a.order - b.order)
+  return tagCategory.tagItems.sort((a, b) => a.order - b.order)
 }
 
-const bot_tile_bg = bot => {
+const botTileBg = bot => {
   if (bot.personal) {
     return 'oslo-bg-light'
   } else {
@@ -78,7 +78,7 @@ const bot_tile_bg = bot => {
   }
 }
 
-const toggle_favorite = async bot => {
+const toggleFavorite = async bot => {
   try {
     const { data } = await axios.put('/api/favorite/' + bot.uuid)
     bot.favorite = data.favorite
@@ -99,7 +99,7 @@ const botIconWidth = computed(() =>
 
 const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/new'))
 
-const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
+const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
 </script>
 
 <template>
@@ -108,14 +108,14 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
     class="modal fade"
     id="botinfo"
     tabindex="-1"
-    aria-labelledby="bot_info_label"
+    aria-labelledby="botInfoLabel"
     aria-hidden="true"
   >
     <div class="modal-dialog">
       <div v-if="activeBot" class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="bot_info_label">
-            {{ activeBot.bot_title }}
+          <h1 class="modal-title fs-5" id="botInfoLabel">
+            {{ activeBot.botTitle }}
           </h1>
           <button
             type="button"
@@ -125,7 +125,7 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           ></button>
         </div>
         <div class="modal-body">
-          <span v-html="activeBot.bot_info"></span>
+          <span v-html="activeBot.botInfo"></span>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
@@ -194,14 +194,22 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         <input class="form-check-input" type="checkbox" id="showAll" v-model="showLibrary" />
         <label class="form-check form-check-label" for="showAll">Vis bibliotek</label>
       </div>
-      <div v-if="showLibrary && isBotFilteringEnabled" class="form-check form-switch  mb-2">
-        <input class="form-check-input" type="checkbox" id="showFilter" v-model="isFilterWidgetVisible" />
+      <div v-if="showLibrary && isBotFilteringEnabled" class="form-check form-switch mb-2">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="showFilter"
+          v-model="isFilterWidgetVisible"
+        />
         <label class="form-check form-check-label" for="showFilter">Filtrer</label>
       </div>
     </div>
 
     <div class="row align-items-stretch">
-      <div v-if="showLibrary && isBotFilteringEnabled && isFilterWidgetVisible" class="col-xxl-2 col-lg-3 col-md-3 col-4">
+      <div
+        v-if="showLibrary && isBotFilteringEnabled && isFilterWidgetVisible"
+        class="col-xxl-2 col-lg-3 col-md-3 col-4"
+      >
         <div class="card card-body">
           <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
             <div>{{ tagCategory.label }}</div>
@@ -223,19 +231,19 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         <div class="row">
           <div v-for="bot in filterBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
             <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)">
-              <div class="card text-center h-100" :class="bot_tile_bg(bot)">
+              <div class="card text-center h-100" :class="botTileBg(bot)">
                 <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
                 <div class="row text-center m-0 pt-3">
                   <div class="col-2"></div>
                   <div class="col-8 p-0">
-                    <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+                    <BotAvatar :avatarScheme="bot.avatarScheme" />
                   </div>
 
                   <div v-if="store.isEmployee" class="col-2 px-0">
                     <div v-if="bot.mandatory"></div>
                     <div v-if="bot.personal"></div>
                     <div v-if="!bot.mandatory && !bot.personal">
-                      <a href="#" @click.prevent="toggle_favorite(bot)">
+                      <a href="#" @click.prevent="toggleFavorite(bot)">
                         <img
                           v-if="bot.favorite"
                           src="@/components/icons/star_solid.svg"
@@ -247,13 +255,13 @@ const botLink = bot => (bot.img_bot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
                   </div>
                   <div v-if="store.isAdmin" class="col-2 px-0">
                     <span class="badge text-bg-secondary">
-                      {{ bot.access_count }}
+                      {{ bot.accessCount }}
                     </span>
                   </div>
                   <div class="card-body row m-0">
-                    <div class="col-10 ps-0">{{ bot.bot_title }}</div>
+                    <div class="col-10 ps-0">{{ bot.botTitle }}</div>
                     <a
-                      v-if="bot.bot_info"
+                      v-if="bot.botInfo"
                       class="col px-0"
                       href="#"
                       data-bs-toggle="modal"

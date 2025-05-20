@@ -5,8 +5,8 @@ import { ref, onMounted, computed } from 'vue'
 
 const route = useRoute()
 const schoolAccess = ref([])
-const filter_list = ref([])
-const access_options = [
+const filterList = ref([])
+const accessOptions = [
   { value: 'none', label: 'Ingen' },
   { value: 'emp', label: 'Ansatte' },
   { value: 'all', label: 'Alle' },
@@ -51,8 +51,8 @@ const schoolAccessChange = async school => {
 }
 
 const schoolAccessFiltered = computed(() => {
-  if (filter_list.value.length > 0) {
-    return schoolAccess.value.filter(school => filter_list.value.includes(school.access))
+  if (filterList.value.length > 0) {
+    return schoolAccess.value.filter(school => filterList.value.includes(school.access))
   }
   return schoolAccess.value
 })
@@ -67,7 +67,7 @@ const schoolAccessFiltered = computed(() => {
           <div class="row">
             <div class="col-4">Filter (viser {{ schoolAccessFiltered.length }} skoler)</div>
             <div
-              v-for="option in access_options"
+              v-for="option in accessOptions"
               :key="option.value"
               class="form-check form-check-inline col-1"
             >
@@ -76,7 +76,7 @@ const schoolAccessFiltered = computed(() => {
                 :id="'filter' + option.value"
                 :value="option.value"
                 type="checkbox"
-                v-model="filter_list"
+                v-model="filterList"
               />
               <label class="form-check-label" :for="'filter' + option.value">
                 {{ option.label }}
@@ -87,16 +87,16 @@ const schoolAccessFiltered = computed(() => {
         <li v-for="school in schoolAccessFiltered" class="list-group-item">
           <div class="row">
             <div class="col-4">
-              {{ school.school_name }}
+              {{ school.schoolName }}
             </div>
             <div
-              v-for="option in access_options"
+              v-for="option in accessOptions"
               :key="option.value"
               class="form-check form-check-inline col-1"
             >
               <input
                 class="form-check-input"
-                :id="school.org_nr + option.value"
+                :id="school.orgNr + option.value"
                 :value="option.value"
                 type="radio"
                 v-model="school.access"
@@ -112,12 +112,12 @@ const schoolAccessFiltered = computed(() => {
                 <input
                   class="form-check-input"
                   type="checkbox"
-                  :id="'level' + school.org_nr + level.id"
+                  :id="'level' + school.orgNr + level.id"
                   :value="level.id"
-                  v-model="school.access_list"
+                  v-model="school.accessList"
                   @change="schoolAccessChange(school)"
                 />
-                <label class="form-check-label" :for="'level' + school.org_nr + level.id">
+                <label class="form-check-label" :for="'level' + school.orgNr + level.id">
                   {{ level.name }}
                 </label>
               </span>

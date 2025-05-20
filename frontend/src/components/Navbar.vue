@@ -10,11 +10,11 @@ const infoPages = ref([])
 const getAppConfig = async () => {
   try {
     const { data } = await axios.get('/api/app_config')
-    infoPages.value = data.info_pages
-    store.isAdmin = data.role ? data.role.is_admin : false
-    store.isEmployee = data.role ? data.role.is_employee : false
-    store.isAuthor = data.role ? data.role.is_author : false
-    store.defaultModel = data.default_model
+    infoPages.value = data.infoPages
+    store.isAdmin = data.role ? data.role.isAdmin : false
+    store.isEmployee = data.role ? data.role.isEmployee : false
+    store.isAuthor = data.role ? data.role.isAuthor : false
+    store.defaultModel = data.defaultModel
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'

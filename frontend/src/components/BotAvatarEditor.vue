@@ -139,7 +139,7 @@ const handleOptionChange = event => {
       </div>
     </div>
     <div class="col-6">
-      <BotAvatar :avatar_scheme="avatarScheme" />
+      <BotAvatar :avatarScheme="avatarScheme" />
     </div>
   </div>
 </template>

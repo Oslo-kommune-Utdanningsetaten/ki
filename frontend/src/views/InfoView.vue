@@ -13,7 +13,7 @@ watchEffect(() => {
 async function getcontent() {
   try {
     const { data } = await axios.get('/api/page_text/' + route.params.page)
-    contentText.value = data.content_text
+    contentText.value = data.contentText
   } catch (error) {
     console.log(error)
   }

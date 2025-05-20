@@ -22,7 +22,7 @@ const handleToggleReplay = messageIndex => {
     <div class="row g-0">
       <div class="col-md-1 d-flex align-items-end justify-content-center">
         <div class="simple-conversation-avatar">
-          <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+          <BotAvatar :avatarScheme="props.bot.avatarScheme" />
         </div>
       </div>
       <div class="col-md-10">

@@ -57,7 +57,6 @@ const model = computed(() => {
   }
 })
 
-
 onMounted(async () => {
   bot.value = await getBot(route.params.id)
   if (!bot.value) {
@@ -73,15 +72,15 @@ onMounted(async () => {
     <!-- Modal -->
     <div
       class="modal fade"
-      id="delete_bot"
+      id="deleteBot"
       tabindex="-1"
-      aria-labelledby="delete_bot_label"
+      aria-labelledby="deleteBotLabel"
       aria-hidden="true"
     >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="delete_bot_label">Slette bot</h1>
+            <h1 class="modal-title fs-5" id="deleteBotLabel">Slette bot</h1>
             <button
               type="button"
               class="btn-close"
@@ -112,7 +111,7 @@ onMounted(async () => {
         Kopier bot
       </RouterLink>
       <RouterLink
-        v-if="bot.allow_distribution && bot.groups.length > 0"
+        v-if="bot.allowDistribution && bot.groups.length > 0"
         class="btn oslo-btn-secondary"
         :to="'/distribute/' + bot.uuid"
       >
@@ -125,7 +124,7 @@ onMounted(async () => {
         v-if="bot.edit"
         class="btn oslo-btn-warning"
         data-bs-toggle="modal"
-        data-bs-target="#delete_bot"
+        data-bs-target="#deleteBot"
       >
         Slett bot
       </button>
@@ -135,16 +134,16 @@ onMounted(async () => {
       <h1 class="h2 mb-3">
         {{ bot.title || 'Navnløs chatbot' }}
         <button
-          v-if="bot.prompt_visibility || store.isAdmin || store.isEmployee"
+          v-if="bot.promptVisibility || store.isAdmin || store.isEmployee"
           class="btn oslo-btn-secondary ms-3 me-auto ps-1 pe-1 pt-0 pb-0"
           @click="toggleStartPrompt"
           :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
         >
           {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
-          {{ bot.prompt_visibility ? '' : '(kun ansatte)' }}
+          {{ bot.promptVisibility ? '' : '(kun ansatte)' }}
         </button>
 
-        <span class="ms-3" v-if="bot.is_audio_enabled">
+        <span class="ms-3" v-if="bot.isAudioEnabled">
           <input
             type="radio"
             class="btn-check"
@@ -204,16 +203,16 @@ onMounted(async () => {
       <!-- Show bot info-->
       <div v-if="showSystemPrompt" class="d-flex justify-content-start align-items-end mt-3 mb-2">
         <div class="avatar p-2 me-3">
-          <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+          <BotAvatar :avatarScheme="bot.avatarScheme" />
         </div>
         <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
           <strong>Dette er instruksene jeg har fått</strong>
           <p>{{ getSystemPrompt() }}</p>
           <strong>Jeg bruker modellen</strong>
-          <p>{{ model.display_name }}</p>
-          <span v-if="model.training_cutoff">
+          <p>{{ model.displayName }}</p>
+          <span v-if="model.trainingCutoff">
             <strong>Jeg er trent på data fram til</strong>
-            <p>{{ model.training_cutoff }}</p>
+            <p>{{ model.trainingCutoff }}</p>
           </span>
         </div>
       </div>

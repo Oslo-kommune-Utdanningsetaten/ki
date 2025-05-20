@@ -8,7 +8,7 @@ import { defaultAvatarScheme } from '@/utils/botAvatar.js'
 import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
-let last_go_type = ''
+let lastGoType = ''
 let dateFormat = Intl.DateTimeFormat('nb', {
   weekday: 'long',
   month: 'long',
@@ -22,14 +22,14 @@ const bot = ref({
   title: '',
   ingress: '',
   prompt: '',
-  prompt_visibility: false,
-  avatar_scheme: defaultAvatarScheme,
+  promptVisibility: false,
+  avatarScheme: defaultAvatarScheme,
   temperature: 1,
   model: null,
   mandatory: false,
-  allow_distribution: true,
-  bot_info: '',
-  tag_categories: [],
+  allowDistribution: true,
+  botInfo: '',
+  tagCategories: [],
   choices: [],
   schoolAccesses: [],
   groups: [],
@@ -44,8 +44,8 @@ const getBotInfo = async () => {
   try {
     const { data } = await axios.get(url)
     bot.value = data.bot
-    defaultLifeSpan.value = data.default_lifespan
-    maxLifeSpan.value = data.max_lifespan
+    defaultLifeSpan.value = data.defaultLifespan
+    maxLifeSpan.value = data.maxLifespan
   } catch (error) {
     console.log(error)
   }
@@ -63,16 +63,16 @@ const update = async () => {
   router.push('/bot/' + botId.value)
 }
 
-const is_group_heading = group => {
-  if (last_go_type == group.go_type) {
+const isGroupHeading = group => {
+  if (lastGoType == group.goType) {
     return false
   }
-  last_go_type = group.go_type
+  lastGoType = group.goType
   return true
 }
 
 const groupsSorted = computed(() => {
-  return bot.value.groups.sort((a, b) => a.display_name.localeCompare(b.display_name))
+  return bot.value.groups.sort((a, b) => a.displayName.localeCompare(b.displayName))
 })
 
 watch(
@@ -86,35 +86,33 @@ watch(
 </script>
 
 <template>
-  
   <div class="d-flex justify-content-end">
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
     <RouterLink class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/' + bot.uuid : '/'">
       Avbryt
-    </RouterLink>  
+    </RouterLink>
   </div>
-  
+
   <div class="row mb-4">
     <div class="col-sm-1">
-      <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+      <BotAvatar :avatarScheme="bot.avatarScheme" />
     </div>
     <div class="col-sm-1"></div>
-      <h1 class="col align-self-center h2">
+    <h1 class="col align-self-center h2">
       {{ bot.title }}
-      </h1>
-  </div>  
+    </h1>
+  </div>
 
   <div class="row">
     <div class="col-sm-2"></div>
-    <div class="col">
-    </div>
+    <div class="col"></div>
   </div>
   <div class="row mb-3">
     <div class="col-sm-2">Grupper som har tilgang</div>
     <div class="col-sm-8">
       <div v-for="group in groupsSorted" :key="group.id" class="">
-        <div v-if="is_group_heading(group)" class="fw-bold">
-          {{ group.go_type == 'b' ? 'Klasser' : 'Faggrupper' }}
+        <div v-if="isGroupHeading(group)" class="fw-bold">
+          {{ group.goType == 'b' ? 'Klasser' : 'Faggrupper' }}
         </div>
         <div
           v-if="group.checked"
@@ -131,23 +129,23 @@ watch(
                 :id="'check' + group.id"
               />
               <label class="form-check-label" :for="'check' + group.id">
-                {{ group.display_name }}
+                {{ group.displayName }}
               </label>
             </div>
             <div class="ps-5">
               Åpen fra
-              {{ dateFormat.format(new Date(group.valid_range[0])) }}
+              {{ dateFormat.format(new Date(group.validRange[0])) }}
             </div>
             <div class="ps-5">
               Åpen til
-              {{ dateFormat.format(new Date(group.valid_range[1])) }}
+              {{ dateFormat.format(new Date(group.validRange[1])) }}
             </div>
           </div>
           <div class="col">
             <VueDatePicker
               class="date-picker"
               v-show="group.checked"
-              v-model="group.valid_range"
+              v-model="group.validRange"
               :range="{
                 maxRange: maxLifeSpan,
                 partialRange: false,
@@ -176,7 +174,7 @@ watch(
             :id="'check' + group.id"
           />
           <label class="form-check-label" :for="'check' + group.id">
-            {{ group.display_name }}
+            {{ group.displayName }}
           </label>
         </div>
       </div>
@@ -193,7 +191,6 @@ watch(
     </RouterLink>
     <button @click="update" class="btn oslo-btn-primary">Lagre</button>
   </div>
-
 </template>
 
 <style scoped>

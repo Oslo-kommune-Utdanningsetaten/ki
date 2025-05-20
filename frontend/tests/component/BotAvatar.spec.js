@@ -5,7 +5,7 @@ import { sanitizeHtml } from '../testUtils.js'
 test('renders a bot avatar correctly based on scheme', () => {
   const avatarScheme = [3, 1, 0, 0, 0, 1, 1]
 
-  const wrapper = mount(BotAvatar, { props: { avatar_scheme: avatarScheme } })
+  const wrapper = mount(BotAvatar, { props: { avatarScheme: avatarScheme } })
   const expected = `
   <div hidden="">[3,1,0,0,0,1,1,0]</div>
   <svg viewBox="0 0 12 18">
@@ -15,4 +15,3 @@ test('renders a bot avatar correctly based on scheme', () => {
   const result = sanitizeHtml(wrapper.html())
   expect(result).toContain(sanitizeHtml(expected))
 })
-

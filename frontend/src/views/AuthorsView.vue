@@ -56,14 +56,14 @@ const setActiveAuthor = author => {
 const addAuthor = () => {
   activeAuthor.value = {
     name: '',
-    user_id: '',
+    userId: '',
     school: '',
   }
 }
 
 const schoolName = schoolId => {
-  const school = schools.value.find(s => s.org_nr === schoolId)
-  return school ? school.school_name : ''
+  const school = schools.value.find(s => s.orgNr === schoolId)
+  return school ? school.schoolName : ''
 }
 </script>
 
@@ -91,12 +91,12 @@ const schoolName = schoolId => {
         <div v-if="activeAuthor" class="modal-body">
           <label for="name" class="form-label">Navn</label>
           <input type="text" class="form-control" id="name" v-model="activeAuthor.name" />
-          <label for="user_id" class="form-label">Bruker ID</label>
-          <input type="text" class="form-control" id="user_id" v-model="activeAuthor.user_id" />
+          <label for="userId" class="form-label">Bruker ID</label>
+          <input type="text" class="form-control" id="userId" v-model="activeAuthor.userId" />
           <label for="school" class="form-label">Skole</label>
-          <select class="form-select" id="school" v-model="activeAuthor.school_id">
-            <option v-for="school in schools" :key="school.org_nr" :value="school.org_nr">
-              {{ school.school_name }}
+          <select class="form-select" id="school" v-model="activeAuthor.schoolId">
+            <option v-for="school in schools" :key="school.orgNr" :value="school.orgNr">
+              {{ school.schoolName }}
             </option>
           </select>
         </div>
@@ -159,8 +159,8 @@ const schoolName = schoolId => {
         <li v-for="author in authors" class="list-group-item">
           <div class="row">
             <div class="col-4">{{ author.name }}</div>
-            <div class="col-2">{{ author.user_id }}</div>
-            <div class="col-4">{{ schoolName(author.school_id) }}</div>
+            <div class="col-2">{{ author.userId }}</div>
+            <div class="col-4">{{ schoolName(author.schoolId) }}</div>
             <div class="col-2">
               <button
                 type="button"
