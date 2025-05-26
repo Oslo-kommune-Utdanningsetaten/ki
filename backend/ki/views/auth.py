@@ -26,18 +26,7 @@ def auth_middleware(get_response):
 
         username = request.session.get('user.username', None)
         is_authenticated = username is not None
-        if not is_authenticated:
-            url_name = resolve(request.path_info).url_name
-            if (url_name is None):
-                return get_response(request)
-            elif (
-                url_name.split('.')[0] == 'api'
-                and url_name not in ['api.user_bots', 'api.app_config']
-            ):
-                return JsonResponse({'error': 'Not authenticated'}, status=401)
-            else:
-                return get_response(request)
-        else:   
+        if is_authenticated:
             # get user's bots
             # TODO: author at multiple schools
             role_obj = models.Role.objects.filter(user_id=username).first()
@@ -57,6 +46,17 @@ def auth_middleware(get_response):
                     if role == 'author':
                         request.userinfo['author'] = True
                         request.userinfo['auth_school'] = role_obj.school
+        else:
+            url_name = resolve(request.path_info).url_name
+            if (url_name is None):
+                return get_response(request)
+            elif (
+                url_name.split('.')[0] == 'api'
+                and url_name not in ['api.user_bots', 'api.app_config']
+            ):
+                return JsonResponse({'error': 'Not authenticated'}, status=401)
+            else:
+                return get_response(request)
 
         response = get_response(request)
         response['X-Is-Authenticated'] = str(is_authenticated).lower()

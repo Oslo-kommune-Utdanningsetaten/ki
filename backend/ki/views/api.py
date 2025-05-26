@@ -216,8 +216,6 @@ def user_info(request):
     if (levels := request.userinfo.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
 
-    # return Response(schools)
-    print(request.userinfo.get('auth_school', None))
     return Response({
         'user': {
             'username': request.userinfo.get('username', None),

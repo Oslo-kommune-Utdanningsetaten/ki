@@ -43,12 +43,12 @@ const getBotInfo = async () => {
   var url = '/api/bot_info/' + botId.value
   try {
     const { data } = await axios.get(url)
-    bot.value = data.bot
-    defaultLifeSpan.value = data.defaultLifespan
-    maxLifeSpan.value = data.maxLifespan
   } catch (error) {
     console.log(error)
   }
+  bot.value = data.bot
+  defaultLifeSpan.value = data.defaultLifespan
+  maxLifeSpan.value = data.maxLifespan
 }
 
 const update = async () => {
@@ -64,11 +64,9 @@ const update = async () => {
 }
 
 const isGroupHeading = group => {
-  if (lastGoType == group.goType) {
-    return false
-  }
+  const isNewGroupType = lastGoType !== group.goType
   lastGoType = group.goType
-  return true
+  return isNewGroupType
 }
 
 const groupsSorted = computed(() => {

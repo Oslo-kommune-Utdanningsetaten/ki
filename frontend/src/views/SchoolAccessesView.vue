@@ -5,7 +5,7 @@ import { ref, onMounted, computed } from 'vue'
 
 const route = useRoute()
 const schoolAccess = ref([])
-const filterList = ref([])
+const selectedAccessFilters = ref([])
 const accessOptions = [
   { value: 'none', label: 'Ingen' },
   { value: 'emp', label: 'Ansatte' },
@@ -51,8 +51,8 @@ const schoolAccessChange = async school => {
 }
 
 const schoolAccessFiltered = computed(() => {
-  if (filterList.value.length > 0) {
-    return schoolAccess.value.filter(school => filterList.value.includes(school.access))
+  if (selectedAccessFilters.value.length > 0) {
+    return schoolAccess.value.filter(school => selectedAccessFilters.value.includes(school.access))
   }
   return schoolAccess.value
 })
@@ -76,7 +76,7 @@ const schoolAccessFiltered = computed(() => {
                 :id="'filter' + option.value"
                 :value="option.value"
                 type="checkbox"
-                v-model="filterList"
+                v-model="selectedAccessFilters"
               />
               <label class="form-check-label" :for="'filter' + option.value">
                 {{ option.label }}

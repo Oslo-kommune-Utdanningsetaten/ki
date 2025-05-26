@@ -33,7 +33,7 @@ const defaultLifeSpan = ref(0)
 const maxLifeSpan = ref(0)
 const botId = ref()
 const sortBy = ref('schoolName')
-const filterList = ref([])
+const selectedAccessFilters = ref([])
 let accessOptions = []
 const accessOptionsAdmin = [
   { value: 'none', label: 'Ingen' },
@@ -249,16 +249,16 @@ const optionsSorted = choice => {
 }
 
 const schoolAccessFiltered = computed(() => {
-  let filteredList = []
-  if (filterList.value.length > 0) {
-    filteredList = bot.value.schoolAccesses.filter(school =>
-      filterList.value.includes(school.access)
+  let filteredSchoolAccesses = []
+  if (selectedAccessFilters.value.length > 0) {
+    filteredSchoolAccesses = bot.value.schoolAccesses.filter(school =>
+      selectedAccessFilters.value.includes(school.access)
     )
   } else {
-    filteredList = bot.value.schoolAccesses || []
+    filteredSchoolAccesses = bot.value.schoolAccesses || []
   }
 
-  return filteredList.sort((a, b) => {
+  return filteredSchoolAccesses.sort((a, b) => {
     if (a[sortBy.value] < b[sortBy.value]) {
       return -1
     }
@@ -731,7 +731,7 @@ watch(
                   :id="'filter' + option.value"
                   :value="option.value"
                   type="checkbox"
-                  v-model="filterList"
+                  v-model="selectedAccessFilters"
                 />
                 <label class="form-check-label" :for="'filter' + option.value">
                   {{ option.label }}
