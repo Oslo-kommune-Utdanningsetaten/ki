@@ -1,17 +1,6 @@
 import pytest
-from django.test import RequestFactory
-from ki.utils import load_users_bots_to_g
+from ki.utils import get_users_bots
 from ki.models import Bot, BotAccess, BotLevel, School, SubjectAccess
-
-
-def decorate_request(request, is_employee=False, user_schools=[], user_groups=[], user_levels=[]):
-    request.session = {'user.username': 'testuser'}
-    request.userinfo = {
-        'employee': is_employee,
-        'schools': user_schools,
-        'groups': [{'id': group} for group in user_groups],
-        'levels': user_levels,
-    }
 
 
 @pytest.fixture
@@ -107,7 +96,7 @@ def set_up_database(db, request):
     (False, [], ['group-uuid'], [], ['group-intime-bot-uuid']),
     (False, ['school-uuid'], [], ['1'], ['all-bot-uuid','levels-bot-uuid']),
 ])
-def test_load_users_bots_to_g(set_up_database, employee, schools, groups, levels, expected_bots):
+def test_get_users_bots(set_up_database, employee, schools, groups, levels, expected_bots):
     """ Test loading user bots into request.userinfo
         Test cases:
         employee getting personal bot
@@ -118,11 +107,14 @@ def test_load_users_bots_to_g(set_up_database, employee, schools, groups, levels
         pupil getting group bots with access whitin time and not out of time
         pupil getting school bots with pupils level and not with another level
     """
-    request = RequestFactory().get('/api/app_config')
-    decorate_request(request, is_employee=employee, user_schools=schools, user_groups=groups, user_levels=levels)
-    load_users_bots_to_g(request)
+    returned_bots = get_users_bots('testuser', {
+        'employee': employee,
+        'schools': schools,
+        'groups': [{'id': group} for group in groups],
+        'levels': levels,
+    })
 
-    assert isinstance(request.userinfo['bots'], list)
-    assert len(request.userinfo['bots']) == len(expected_bots)
-    for bot in request.userinfo['bots']:
+    assert isinstance(returned_bots, list)
+    assert len(returned_bots) == len(expected_bots)
+    for bot in returned_bots:
         assert bot in expected_bots
