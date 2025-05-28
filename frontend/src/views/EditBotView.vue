@@ -13,14 +13,14 @@ const bot = ref({
   title: '',
   ingress: '',
   prompt: '',
-  prompt_visibility: false,
-  avatar_scheme: defaultAvatarScheme,
+  promptVisibility: false,
+  avatarScheme: defaultAvatarScheme,
   temperature: 1,
   model: null,
   mandatory: false,
-  allow_distribution: true,
-  bot_info: '',
-  tag_categories: [],
+  allowDistribution: true,
+  botInfo: '',
+  tagCategories: [],
   choices: [],
   schoolAccesses: [],
   groups: [],
@@ -32,16 +32,16 @@ const method = ref('edit')
 const defaultLifeSpan = ref(0)
 const maxLifeSpan = ref(0)
 const botId = ref()
-const sort_by = ref('school_name')
-const filter_list = ref([])
-let access_options = []
-const access_options_admin = [
+const sortBy = ref('schoolName')
+const selectedAccessFilters = ref([])
+let accessOptions = []
+const accessOptionsAdmin = [
   { value: 'none', label: 'Ingen' },
   { value: 'emp', label: 'Ansatte' },
   { value: 'all', label: 'Alle' },
   { value: 'levels', label: 'Trinn' },
 ]
-const access_options_author = [
+const accessOptionsAuthor = [
   { value: 'none', label: 'Ingen' },
   { value: 'emp', label: 'Ansatte' },
 ]
@@ -63,11 +63,11 @@ const levels = [
 
 const setAccessOptions = () => {
   if (store.isAdmin) {
-    access_options = access_options_admin
+    accessOptions = accessOptionsAdmin
   } else if (store.isAuthor) {
-    access_options = access_options_author
+    accessOptions = accessOptionsAuthor
   } else {
-    access_options = []
+    accessOptions = []
   }
 }
 
@@ -77,12 +77,12 @@ const initializeCopy = () => {
   bot.value.owner = null
   bot.value.title = 'Kopi av ' + bot.value.title
   bot.value.mandatory = false
-  bot.value.allow_distribution = true
-  bot.value.is_audio_enabled = false
+  bot.value.allowDistribution = true
+  bot.value.isAudioEnabled = false
   bot.value.model = 'none'
   bot.value.edit = true
   bot.value.library = false
-  bot.value.bot_info = ''
+  bot.value.botInfo = ''
   bot.value.choices.forEach(choice => {
     choice.id = Math.random().toString(36).substring(7)
     choice.options.forEach(option => {
@@ -107,8 +107,8 @@ const getBotInfo = async () => {
     if (!bot.value.model) {
       bot.value.model = 'none'
     }
-    defaultLifeSpan.value = data.default_lifespan
-    maxLifeSpan.value = data.max_lifespan
+    defaultLifeSpan.value = data.defaultLifespan
+    maxLifeSpan.value = data.maxLifespan
   } catch (error) {
     console.log(error)
   }
@@ -249,20 +249,20 @@ const optionsSorted = choice => {
 }
 
 const schoolAccessFiltered = computed(() => {
-  let filtered_list = []
-  if (filter_list.value.length > 0) {
-    filtered_list = bot.value.schoolAccesses.filter(school =>
-      filter_list.value.includes(school.access)
+  let filteredSchoolAccesses = []
+  if (selectedAccessFilters.value.length > 0) {
+    filteredSchoolAccesses = bot.value.schoolAccesses.filter(school =>
+      selectedAccessFilters.value.includes(school.access)
     )
   } else {
-    filtered_list = bot.value.schoolAccesses || []
+    filteredSchoolAccesses = bot.value.schoolAccesses || []
   }
 
-  return filtered_list.sort((a, b) => {
-    if (a[sort_by.value] < b[sort_by.value]) {
+  return filteredSchoolAccesses.sort((a, b) => {
+    if (a[sortBy.value] < b[sortBy.value]) {
       return -1
     }
-    if (a[sort_by.value] > b[sort_by.value]) {
+    if (a[sortBy.value] > b[sortBy.value]) {
       return 1
     }
     return 0
@@ -270,11 +270,11 @@ const schoolAccessFiltered = computed(() => {
 })
 
 const groupsSorted = computed(() => {
-  return bot.value.groups.sort((a, b) => a.display_name.localeCompare(b.display_name))
+  return bot.value.groups.sort((a, b) => a.displayName.localeCompare(b.displayName))
 })
 
 const updateAvatarScheme = newAvatarScheme => {
-  bot.value.avatar_scheme = newAvatarScheme
+  bot.value.avatarScheme = newAvatarScheme
 }
 
 watchEffect(() => {
@@ -305,15 +305,15 @@ watch(
   <!-- modal -->
   <div
     class="modal fade"
-    id="gen_bot_img"
+    id="genBotImg"
     tabindex="-1"
-    aria-labelledby="gen_bot_img_label"
+    aria-labelledby="genBotImgLabel"
     aria-hidden="true"
   >
     <div class="modal-dialog modal-custom-width">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="gen_bot_img_label">Bot avatar</h1>
+          <h1 class="modal-title fs-5" id="genBotImgLabel">Bot avatar</h1>
           <button
             type="button"
             class="btn-close"
@@ -323,7 +323,7 @@ watch(
         </div>
 
         <BotAvatarEditor
-          :avatarScheme="bot.avatar_scheme"
+          :avatarScheme="bot.avatarScheme"
           @update:avatarScheme="updateAvatarScheme"
         />
 
@@ -342,7 +342,7 @@ watch(
   </div>
   <div class="row mb-4">
     <div class="col-sm-1">
-      <BotAvatar :avatar_scheme="bot.avatar_scheme" />
+      <BotAvatar :avatarScheme="bot.avatarScheme" />
     </div>
     <div class="col-sm-1"></div>
     <h1 class="col align-self-center h2">
@@ -350,52 +350,52 @@ watch(
     </h1>
   </div>
   <div class="row mb-3">
-    <label for="bot_title" class="col-sm-2 col-form-label">Tittel på boten</label>
+    <label for="botTitle" class="col-sm-2 col-form-label">Tittel på boten</label>
     <div class="col-sm-10">
       <input
         v-model="bot.title"
         type="text"
         class="form-control"
-        id="bot_title"
+        id="botTitle"
         name="title"
         maxlength="40"
       />
     </div>
   </div>
   <div class="row mb-3">
-    <label for="bot_ingress" class="col-sm-2 col-form-label">Ingress</label>
+    <label for="botIngress" class="col-sm-2 col-form-label">Ingress</label>
     <div class="col-sm-10">
       <input
         v-model="bot.ingress"
         type="text"
         class="form-control"
-        id="bot_ingress"
+        id="botIngress"
         name="ingress"
       />
     </div>
   </div>
   <div class="row mb-3">
-    <label for="bot_promt" class="col-sm-2 col-form-label">Ledetekst</label>
+    <label for="botPromt" class="col-sm-2 col-form-label">Ledetekst</label>
     <div class="col-sm-10">
       <textarea
         v-model="bot.prompt"
         class="form-control"
-        id="bot_promt"
+        id="botPromt"
         rows="5"
         name="prompt"
       ></textarea>
     </div>
   </div>
   <div class="row mb-3">
-    <label for="prompt_visibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
+    <label for="promptVisibility" class="col-sm-2 col-form-label">Ledetekst synlig</label>
     <div class="col-sm-10">
       <div class="form-check form-switch">
         <input
           class="form-check-input"
           type="checkbox"
           role="switch"
-          id="prompt_visibility"
-          v-model="bot.prompt_visibility"
+          id="promptVisibility"
+          v-model="bot.promptVisibility"
         />
       </div>
     </div>
@@ -406,7 +406,7 @@ watch(
       <button
         class="btn oslo-btn-secondary ms-0"
         data-bs-toggle="modal"
-        data-bs-target="#gen_bot_img"
+        data-bs-target="#genBotImg"
       >
         Endre
       </button>
@@ -448,9 +448,9 @@ watch(
     </div>
   </div>
   <div v-if="store.isAdmin" class="row mb-3">
-    <label for="bot_owner" class="col-sm-2 col-form-label">Eier</label>
+    <label for="botOwner" class="col-sm-2 col-form-label">Eier</label>
     <div class="col-sm-10">
-      <input v-model="bot.owner" type="text" class="form-control" id="bot_owner" name="owner" />
+      <input v-model="bot.owner" type="text" class="form-control" id="botOwner" name="owner" />
     </div>
   </div>
   <div v-if="store.isAdmin" class="row mb-3">
@@ -468,15 +468,15 @@ watch(
     </div>
   </div>
   <div v-if="store.isAdmin" class="row mb-3">
-    <label for="is_audio_enabled" class="col-sm-2 col-form-label">Kan bruke tale</label>
+    <label for="isAudioEnabled" class="col-sm-2 col-form-label">Kan bruke tale</label>
     <div class="col-sm-10">
       <div class="form-check form-switch">
         <input
           class="form-check-input"
           type="checkbox"
           role="switch"
-          id="is_audio_enabled"
-          v-model="bot.is_audio_enabled"
+          id="isAudioEnabled"
+          v-model="bot.isAudioEnabled"
         />
       </div>
     </div>
@@ -486,19 +486,19 @@ watch(
       <legend class="col-sm-2 col-form-label">Modell</legend>
       <div class="col-sm-10">
         <div
-          v-for="model_item in models"
-          :key="model_item.model_id"
+          v-for="modelItem in models"
+          :key="modelItem.modelId"
           class="form-check form-check-inline"
         >
           <input
             class="form-check-input"
             type="radio"
-            :id="'m' + model_item.model_id"
-            :value="model_item"
+            :id="'m' + modelItem.modelId"
+            :value="modelItem"
             v-model="bot.model"
           />
-          <label class="form-check-label" :for="'m' + model_item.model_id">
-            {{ model_item.display_name }}
+          <label class="form-check-label" :for="'m' + modelItem.modelId">
+            {{ modelItem.displayName }}
           </label>
         </div>
         <div class="form-check form-check-inline">
@@ -516,12 +516,12 @@ watch(
     <div v-if="bot.model" class="row mb-3">
       <div class="col-sm-2"></div>
       <div class="col-sm-10">
-        {{ bot.model.model_description }}
+        {{ bot.model.modelDescription }}
       </div>
     </div>
   </fieldset>
   <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
-    <label for="allow_distribution" class="col-sm-2 col-form-label">
+    <label for="allowDistribution" class="col-sm-2 col-form-label">
       Tillat distribusjon til elever
     </label>
     <div class="col-sm-10">
@@ -530,28 +530,28 @@ watch(
           class="form-check-input"
           type="checkbox"
           role="switch"
-          id="allow_distribution"
-          v-model="bot.allow_distribution"
+          id="allowDistribution"
+          v-model="bot.allowDistribution"
         />
       </div>
     </div>
   </div>
   <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
-    <label for="bot_info" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
+    <label for="botInfo" class="col-sm-2 col-form-label">Informasjon (vises på startsiden)</label>
     <div class="col-sm-10">
       <textarea
-        v-model="bot.bot_info"
+        v-model="bot.botInfo"
         class="form-control"
-        id="bot_info"
+        id="botInfo"
         rows="5"
-        name="bot_info"
+        name="botInfo"
       ></textarea>
     </div>
   </div>
   <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
     <div class="col-sm-2">Filtertag for</div>
     <div class="col-sm-10">
-      <div v-for="tagCategory in bot.tag_categories" :key="tagCategory.id">
+      <div v-for="tagCategory in bot.tagCategories" :key="tagCategory.id">
         <div>{{ tagCategory.label }}</div>
         <div v-for="tag in tagCategory.tags" :key="tag.id" class="form-check form-check-inline">
           <input
@@ -587,14 +587,14 @@ watch(
         <div class="col-sm-10">
           <div v-for="choice in choicesSorted" class="card mb-3 p-3">
             <div class="row mb-1">
-              <label :for="`choice_label${choice.id}`" class="col-sm-2 col-form-label">
+              <label :for="`choiceLabel${choice.id}`" class="col-sm-2 col-form-label">
                 Spørsmål
               </label>
               <div class="col-sm-10">
                 <input
                   type="text"
                   class="form-control"
-                  :id="`choice_label${choice.id}`"
+                  :id="`choiceLabel${choice.id}`"
                   v-model="choice.label"
                 />
               </div>
@@ -604,26 +604,26 @@ watch(
               <div class="col-sm-10">
                 <div v-for="option in optionsSorted(choice)">
                   <div class="row mb-1">
-                    <label :for="`opt_label${option.id}`" class="col-sm-2 col-form-label">
+                    <label :for="`optLabel{option.id}`" class="col-sm-2 col-form-label">
                       Knapp
                     </label>
                     <div class="col-sm-10">
                       <input
                         type="text"
                         class="form-control"
-                        :id="`opt_label${option.id}`"
+                        :id="`optLabel{option.id}`"
                         v-model="option.label"
                       />
                     </div>
                   </div>
                   <div class="row mb-1">
-                    <label :for="`opt_text${option.id}`" class="col-sm-2 col-form-label">
+                    <label :for="`optText{option.id}`" class="col-sm-2 col-form-label">
                       Ledetekst
                     </label>
                     <div class="col-sm-10">
                       <textarea
                         class="form-control"
-                        :id="`opt_text${option.id}`"
+                        :id="`optText{option.id}`"
                         rows="1"
                         v-model="option.text"
                       ></textarea>
@@ -713,7 +713,7 @@ watch(
           <li v-if="store.isAdmin" class="list-group-item">
             <div class="row">
               <div class="col-4">Sett alle skoler til:</div>
-              <div v-for="option in access_options" :key="option.value" class="e col-1">
+              <div v-for="option in accessOptions" :key="option.value" class="e col-1">
                 <button class="btn oslo-btn-secondary" @click="setAllAccesses(option.value)">
                   {{ option.label }}
                 </button>
@@ -722,7 +722,7 @@ watch(
             <div class="row">
               <div class="col-4">Filtrer på tilgang:</div>
               <div
-                v-for="option in access_options"
+                v-for="option in accessOptions"
                 :key="option.value"
                 class="form-check form-check-inline col-1"
               >
@@ -731,7 +731,7 @@ watch(
                   :id="'filter' + option.value"
                   :value="option.value"
                   type="checkbox"
-                  v-model="filter_list"
+                  v-model="selectedAccessFilters"
                 />
                 <label class="form-check-label" :for="'filter' + option.value">
                   {{ option.label }}
@@ -742,16 +742,16 @@ watch(
           <li v-for="school in schoolAccessFiltered" class="list-group-item">
             <div class="row">
               <div class="col-4">
-                {{ school.school_name }}
+                {{ school.schoolName }}
               </div>
               <div
-                v-for="option in access_options"
+                v-for="option in accessOptions"
                 :key="option.value"
                 class="form-check form-check-inline col-1"
               >
                 <input
                   class="form-check-input"
-                  :id="school.org_nr + option.value"
+                  :id="school.orgNr + option.value"
                   :value="option.value"
                   type="radio"
                   v-model="school.access"
@@ -766,11 +766,11 @@ watch(
                   <input
                     class="form-check-input"
                     type="checkbox"
-                    :id="'level' + school.org_nr + level.id"
+                    :id="'level' + school.orgNr + level.id"
                     :value="level.id"
-                    v-model="school.access_list"
+                    v-model="school.accessList"
                   />
-                  <label class="form-check-label" :for="'level' + school.org_nr + level.id">
+                  <label class="form-check-label" :for="'level' + school.orgNr + level.id">
                     {{ level.name }}
                   </label>
                 </span>

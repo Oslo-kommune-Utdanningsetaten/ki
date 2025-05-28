@@ -43,7 +43,7 @@ const editMessageAtIndex = index => {
           <div class="widget-container position-absolute d-flex">
             <!-- Edit widget -->
             <a
-              v-if="!props.bot.img_bot"
+              v-if="!props.bot.imgBot"
               class="message-widget"
               title="Rediger ledetekst"
               name="editMessageAtIndex"
@@ -79,7 +79,7 @@ const editMessageAtIndex = index => {
       <!-- Assistant -->
       <div v-else class="d-flex justify-content-start align-items-end">
         <div class="avatar me-3">
-          <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+          <BotAvatar :avatarScheme="props.bot.avatarScheme" />
         </div>
 
         <div class="w-60 position-relative">
@@ -89,7 +89,7 @@ const editMessageAtIndex = index => {
           >
             <div v-if="isProcessingInput && !isStreaming && messageIndex === messages.length - 1">
               <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              <span v-if="props.bot.img_bot">Vent litt mens jeg prøver å lage bildet</span>
+              <span v-if="props.bot.imgBot">Vent litt mens jeg prøver å lage bildet</span>
             </div>
             <div v-else>
               <div v-html="renderMessage(aMessage.content)"></div>
@@ -107,7 +107,7 @@ const editMessageAtIndex = index => {
           <div class="widget-container position-absolute d-flex">
             <!-- Image in new tab -->
             <a
-              v-if="props.bot.img_bot"
+              v-if="props.bot.imgBot"
               :href="aMessage.imageUrl"
               target="_blank"
               class="message-widget"

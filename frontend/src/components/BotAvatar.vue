@@ -3,19 +3,19 @@ import { watchEffect } from 'vue'
 import { createBotDescriptionFromScheme } from '../utils/botAvatar.js'
 import BotAvatarSvgBodyPart from '@/components/BotAvatarSvgBodyPart.vue'
 
-const attr = defineProps(['avatar_scheme'])
+const attr = defineProps(['avatarScheme'])
 
 let bot
 
 watchEffect(() => {
-  bot = createBotDescriptionFromScheme(attr.avatar_scheme)
+  bot = createBotDescriptionFromScheme(attr.avatarScheme)
 })
 </script>
 
 <template>
   <!-- Is used to trigger the watchEffect() function -->
   <div hidden>
-    {{ attr.avatar_scheme }}
+    {{ attr.avatarScheme }}
   </div>
 
   <!-- Body parts could have been drawn by iterating over bot key/values, but order (z-index) is important -->

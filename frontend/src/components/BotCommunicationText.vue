@@ -108,7 +108,7 @@ const clipboardAll = bot => {
     user: 'Du',
     assistant: 'Bot',
   }
-  const omitFirst = !bot.prompt_visibility && messages.value.length > 0
+  const omitFirst = !bot.promptVisibility && messages.value.length > 0
   const sourceMessages = omitFirst ? messages.value.slice(1) : messages.value
   const textToCopy = sourceMessages
     .map(message => `${roles[message.role]}: ${message.content}`)
@@ -150,7 +150,7 @@ onMounted(async () => {
       ></textarea>
 
       <div class="card-body bg-body-tertiary d-flex flex-wrap align-items-center button-container">
-        <SpeechToText v-if="!bot.is_audio_enabled" :onMessageReceived="handleMessageInput" />
+        <SpeechToText v-if="!bot.isAudioEnabled" :onMessageReceived="handleMessageInput" />
 
         <button class="btn oslo-btn-primary" type="button" @click="sendMessage()">Send!</button>
 

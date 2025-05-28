@@ -78,7 +78,7 @@ def test_info_page_links_endpoint(set_up_database, user_roles, expected_items):
     decorate_request(request, user_roles)
     response = app_config(request)
     assert response.status_code == 200
-    assert response.data['info_pages'] == expected_items
+    assert response.data['infoPages'] == expected_items
 
 
 @pytest.mark.django_db(reset_sequences=True)
@@ -87,7 +87,7 @@ def test_bot_models_endpoint(set_up_database):
     request = RequestFactory().get('/api/bot_models')
     response = bot_models(request)
     assert response.status_code == 200
-    expected_bot_models = {'models': [{'model_id': 1, 'display_name': 'GPT 4o mini', 'model_description': None, 'training_cutoff': None, 'deployment_id': 'gpt-4o-mini'}]}       
+    expected_bot_models = {'models': [{'modelId': 1, 'displayName': 'GPT 4o mini', 'modelDescription': None, 'trainingCutoff': None, 'deploymentId': 'gpt-4o-mini'}]}       
     assert response.data == expected_bot_models
 
 

@@ -33,13 +33,13 @@ const settingsChange = async setting => {
     <div class="card-body">
       <h3 class="h4">Globale innstillinger</h3>
       <div v-for="setting in settings" class="form-group row">
-        <label :for="setting.setting_key" class="col-sm-3 col-form-label">
+        <label :for="setting.settingKey" class="col-sm-3 col-form-label">
           {{ setting.label }}
         </label>
         <div class="col-sm-3">
           <input
             :type="setting.type"
-            :id="setting.setting_key"
+            :id="setting.settingKey"
             class="form-control"
             v-model="setting.value"
             @change="settingsChange(setting)"

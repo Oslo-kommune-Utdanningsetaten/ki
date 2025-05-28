@@ -22,21 +22,21 @@ def page_text(request, page):
 
     return Response({
         "page": page,
-        "content_text": text_line.page_text,
+        "contentText": text_line.page_text,
     })
 
 @api_view(["GET"])
 def school_list(request):
     if not request.session.get('user.username', None):
         return Response(status=403)
-    if not request.g.get('admin', False):
+    if not request.userinfo.get('admin', False):
         return Response(status=403)
 
     schools = []
     for school in models.School.objects.all():
         schools.append({
-            'org_nr': school.org_nr,
-            'school_name': school.school_name,
+            'orgNr': school.org_nr,
+            'schoolName': school.school_name,
         })
 
     return Response({'schools': schools})
@@ -58,21 +58,21 @@ def app_config(request):
     default_model_id = get_setting('default_model')
     default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
     default_model = {
-        'model_id': default_model_obj.model_id,
-        'display_name': default_model_obj.display_name,
-        'model_description': default_model_obj.model_description,
-        'deployment_id': default_model_obj.deployment_id,
-        'training_cutoff': default_model_obj.training_cutoff,
+        'modelId': default_model_obj.model_id,
+        'displayName': default_model_obj.display_name,
+        'modelDescription': default_model_obj.model_description,
+        'deploymentId': default_model_obj.deployment_id,
+        'trainingCutoff': default_model_obj.training_cutoff,
     }
 
     return Response({
-        'info_pages': info_page_links,
+        'infoPages': info_page_links,
         'role': {
-            'is_admin': request.userinfo.get('admin', False),
-            'is_employee': request.userinfo.get('employee', False),
-            'is_author': request.userinfo.get('author', False),
+            'isAdmin': request.userinfo.get('admin', False),
+            'isEmployee': request.userinfo.get('employee', False),
+            'isAuthor': request.userinfo.get('author', False),
         },
-        'default_model': default_model,
+        'defaultModel': default_model,
     })
 
 
@@ -107,11 +107,11 @@ def bot_models(request):
     return Response({
         'models': [
             {
-                'deployment_id': model.deployment_id,
-                'model_id': model.model_id,
-                'display_name': model.display_name,
-                'model_description': model.model_description,
-                'training_cutoff': model.training_cutoff,
+                'deploymentId': model.deployment_id,
+                'modelId': model.model_id,
+                'displayName': model.display_name,
+                'modelDescription': model.model_description,
+                'trainingCutoff': model.training_cutoff,
             }
             for model in bot_models
         ]
@@ -137,7 +137,7 @@ def user_bots(request):
             'id': category.category_id,
             'label': category.category_name,
             'order': category.category_order,
-            'tag_items': [
+            'tagItems': [
                 {
                     'id': tag.tag_label_id,
                     'label': tag.tag_label_name,
@@ -159,26 +159,26 @@ def user_bots(request):
     return_bots = [
         {
             'uuid': bot.uuid,
-            'bot_title': bot.title,
+            'botTitle': bot.title,
             'favorite': True 
                     if (bot.favorites.filter(user_id=request.userinfo.get('username', '')).first())
                     else False,
             'mandatory': bot.mandatory,
-            'img_bot': bot.img_bot,
-            'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
+            'imgBot': bot.img_bot,
+            'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'personal': not bot.library,
-            'allow_distribution': bot.allow_distribution,
-            'bot_info': bot.bot_info or '',
+            'allowDistribution': bot.allow_distribution,
+            'botInfo': bot.bot_info or '',
             'tag': bot.tags.all().values('category_id', 'tag_value') if bot.library else [],
-            'access_count': bot.access_count if request.userinfo.get('admin', False) else 0,
+            'accessCount': bot.access_count if request.userinfo.get('admin', False) else 0,
         }
         for bot in users_bots]
 
     return Response({
         'bots': return_bots,
-        'tag_categories': tag_categories,
+        'tagCategories': tag_categories,
         'status': 'ok',
-        'is_bot_filtering_enabled': get_setting('is_bot_filtering_enabled'),
+        'isBotFilteringEnabled': get_setting('is_bot_filtering_enabled'),
     })
 
 
@@ -197,9 +197,20 @@ def user_info(request):
     schools = []
     for school in request.userinfo.get('schools', []):
         schools.append({
-            'org_nr': school.org_nr,
-            'school_name': school.school_name,
+            'orgNr': school.org_nr,
+            'schoolName': school.school_name,
         })
+    
+    auth_school = {
+        'orgNr': None,
+        'schoolName': None,
+    }
+    if auth_school_obj := request.userinfo.get('auth_school', None):
+        auth_school = {
+            'orgNr': auth_school_obj.org_nr,
+            'schoolName': auth_school_obj.school_name,
+        }
+
     # Levels
     level = None
     if (levels := request.userinfo.get('levels', None)) and role == 'student':
@@ -209,11 +220,11 @@ def user_info(request):
         'user': {
             'username': request.userinfo.get('username', None),
             'name': request.userinfo.get('name', None),
-            'is_admin': request.userinfo.get('admin', False),
-            'is_employee': request.userinfo.get('employee', False),
-            'is_author': request.userinfo.get('author', False),
+            'isAdmin': request.userinfo.get('admin', False),
+            'isEmployee': request.userinfo.get('employee', False),
+            'isAuthor': request.userinfo.get('author', False),
             'schools': schools,
-            'auth_school': request.userinfo.get('auth_school', None),
+            'authSchool': auth_school,
             'role': role,
             'roles': roles,
             'level': level,
@@ -244,10 +255,10 @@ def empty_bot(request, bot_type):
             school_list = [request.userinfo.get('auth_school')]
         for school in school_list:
             school_access_list.append({
-                'org_nr': school.org_nr,
-                'school_name': school.school_name,
+                'orgNr': school.org_nr,
+                'schoolName': school.school_name,
                 'access': 'none',
-                'access_list': [],
+                'accessList': [],
             })
 
     tag_categories = []
@@ -272,12 +283,12 @@ def empty_bot(request, bot_type):
             'title': '',
             'ingress': '',
             'prompt': '',
-            'bot_info': '',
-            'prompt_visibility': True,
-            'allow_distribution': True,
+            'botInfo': '',
+            'promptVisibility': True,
+            'allowDistribution': True,
             'mandatory': False,
-            'is_audio_enabled': False,
-            'avatar_scheme': [0, 0, 0, 0, 0, 0, 0],
+            'isAudioEnabled': False,
+            'avatarScheme': [0, 0, 0, 0, 0, 0, 0],
             'temperature': '1',
             'model': None,
             'edit': True,
@@ -285,10 +296,10 @@ def empty_bot(request, bot_type):
             'choices': [],
             'schoolAccesses': school_access_list,
             'library': library,
-            'tag_categories': tag_categories,
+            'tagCategories': tag_categories,
         },
-        'default_lifespan': get_setting('default_lifespan'),
-        'max_lifespan': get_setting('max_lifespan'),
+        'defaultLifespan': get_setting('default_lifespan'),
+        'maxLifespan': get_setting('max_lifespan'),
     })
 
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
@@ -324,12 +335,12 @@ def bot_info(request, bot_uuid=None):
         bot.title = body.get('title', bot.title)
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
-        bot.bot_info = body.get('bot_info', bot.bot_info)
-        bot.prompt_visibility = body.get('prompt_visibility', bot.prompt_visibility)
-        bot.allow_distribution = body.get('allow_distribution', bot.allow_distribution)
+        bot.bot_info = body.get('botInfo', bot.bot_info)
+        bot.prompt_visibility = body.get('promptVisibility', bot.prompt_visibility)
+        bot.allow_distribution = body.get('allowDistribution', bot.allow_distribution)
         bot.mandatory = body.get('mandatory', bot.mandatory)
-        bot.is_audio_enabled = body.get('is_audio_enabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
-        bot.avatar_scheme = ','.join([str(a) for a in body.get('avatar_scheme', bot.avatar_scheme)]) if body.get('avatar_scheme', False) else bot.avatar_scheme
+        bot.is_audio_enabled = body.get('isAudioEnabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
+        bot.avatar_scheme = ','.join([str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get('avatarScheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
@@ -340,7 +351,7 @@ def bot_info(request, bot_uuid=None):
             (is_admin or (is_author and is_owner)) and
             model and
             model != "none" and
-            (model_id := model.get('model_id', False))
+            (model_id := model.get('modelId', False))
         ):
             bot.model_id = models.BotModel.objects.get(model_id=model_id)
         else:
@@ -349,10 +360,10 @@ def bot_info(request, bot_uuid=None):
         bot.save()
 
         # save tags
-        if body.get('tag_categories', False):
+        if body.get('tagCategories', False):
             def array_to_binary(arr):
                 return sum([1 << tag.get('weight') for tag in arr if tag.get('checked', False)])
-            for tag_category in body.get('tag_categories', []):
+            for tag_category in body.get('tagCategories', []):
                 tag_obj = bot.tags.filter(category_id=tag_category.get('id')).first()
                 if not tag_obj:
                     tag_obj = models.Tag(bot_id=bot, category_id_id=tag_category.get('id'))
@@ -392,8 +403,8 @@ def bot_info(request, bot_uuid=None):
         # save school access
         if is_admin or is_author:
             for school in body.get('schoolAccesses', []):
-                school_obj = models.School.objects.get(org_nr=school.get('org_nr'))
-                if is_author and school_obj != request.userinfo.get('auth_school'):
+                school_obj = models.School.objects.get(org_nr=school.get('orgNr'))
+                if is_author and school_obj != request.userinfo.get('authSchool'):
                     continue
                 if is_author and not school.get('access', 'none') in ['none', 'emp']:
                     continue
@@ -406,7 +417,7 @@ def bot_info(request, bot_uuid=None):
                 if bot_access.access == 'levels':
                     if not new_bot:
                         bot_access.levels.all().delete()
-                    for level in school.get('access_list', []):
+                    for level in school.get('accessList', []):
                         access = models.BotLevel(access_id=bot_access, level=level)
                         access.save()
                 bot_access.save() 
@@ -415,7 +426,7 @@ def bot_info(request, bot_uuid=None):
     if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
 
         def is_valid_dates(from_date_iso, to_date_iso):
-            max_lifespan = get_setting('max_lifespan')
+            max_lifespan = get_setting('maxLifespan')
             try:
                 from_date = datetime.fromisoformat(from_date_iso)
                 to_date = datetime.fromisoformat(to_date_iso)
@@ -436,7 +447,7 @@ def bot_info(request, bot_uuid=None):
             if not incoming_group_id in users_group_ids:
                 continue
             if incoming_group.get('checked', False):
-                valid_from, valid_to = incoming_group.get('valid_range', [None, None])
+                valid_from, valid_to = incoming_group.get('validRange', [None, None])
                 if not is_valid_dates(valid_from, valid_to):
                     continue
                 if not (subject_access := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=incoming_group_id).first()):
@@ -491,10 +502,10 @@ def bot_info(request, bot_uuid=None):
     for school in school_list:
         if new_bot:
             school_access_list.append({
-                'org_nr': school.org_nr,
-                'school_name': school.school_name,
+                'orgNr': school.org_nr,
+                'schoolName': school.school_name,
                 'access': 'none',
-                'access_list': [],
+                'accessList': [],
             })
         else:
             access_dict = []
@@ -503,10 +514,10 @@ def bot_info(request, bot_uuid=None):
                 access_dict = [
                     access.level for access in bot_access.levels.all()]
             school_access_list.append({
-                'org_nr': school.org_nr,
-                'school_name': school.school_name,
+                'orgNr': school.org_nr,
+                'schoolName': school.school_name,
                 'access': bot_access.access if bot_access else 'none',
-                'access_list': access_dict,
+                'accessList': access_dict,
             })
 
     tag_categories = []
@@ -529,11 +540,11 @@ def bot_info(request, bot_uuid=None):
         })
 
     bot_model = {
-        'model_id': bot.model_id.model_id,
-        'display_name': bot.model_id.display_name,
-        'model_description': bot.model_id.model_description,
-        'deployment_id': bot.model_id.deployment_id,
-        'training_cutoff': bot.model_id.training_cutoff,
+        'modelId': bot.model_id.model_id,
+        'displayName': bot.model_id.display_name,
+        'modelDescription': bot.model_id.model_description,
+        'deploymentId': bot.model_id.deployment_id,
+        'trainingCutoff': bot.model_id.training_cutoff,
     } if bot.model_id else None
 
     groups_access_list = []
@@ -546,14 +557,14 @@ def bot_info(request, bot_uuid=None):
             'title': bot.title,
             'ingress': bot.ingress,
             'prompt': bot.prompt,
-            'bot_info': bot.bot_info,
-            'img_bot': bot.img_bot,
-            'prompt_visibility': bot.prompt_visibility,
-            'allow_distribution': bot.allow_distribution,
+            'botInfo': bot.bot_info,
+            'imgBot': bot.img_bot,
+            'promptVisibility': bot.prompt_visibility,
+            'allowDistribution': bot.allow_distribution,
             'mandatory': bot.mandatory,
             'library': bot.library,
-            'is_audio_enabled': bot.is_audio_enabled,
-            'avatar_scheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
+            'isAudioEnabled': bot.is_audio_enabled,
+            'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
             'model': bot_model,
             'edit': is_admin or (is_employee and is_owner),
@@ -561,10 +572,10 @@ def bot_info(request, bot_uuid=None):
             'choices': choices,
             'groups': groups_access_list,
             'schoolAccesses': school_access_list if is_admin or is_author else None,
-            'tag_categories': tag_categories,
+            'tagCategories': tag_categories,
         },
-        'default_lifespan': get_setting('default_lifespan'),
-        'max_lifespan': get_setting('max_lifespan'),
+        'defaultLifespan': get_setting('default_lifespan'),
+        'maxLifespan': get_setting('max_lifespan'),
     })
 
 
@@ -577,7 +588,7 @@ def settings(request):
     if request.method == "PUT":
         body = json.loads(request.body)
         if setting_body := body.get('setting', False):
-            setting_key = setting_body.get('setting_key')
+            setting_key = setting_body.get('settingKey')
             setting = models.Setting.objects.get(setting_key=setting_key)
             if setting.is_txt:
                 setting.txt_val = setting_body.get('value', setting.txt_val)
@@ -591,7 +602,7 @@ def settings(request):
     all_settings = models.Setting.objects.all()
     setting_response = [
         {
-            'setting_key': setting.setting_key,
+            'settingKey': setting.setting_key,
             'label': setting.label,
             'value': setting.txt_val if setting.is_txt else setting.int_val,
             'type': 'text' if setting.is_txt else 'number',
@@ -609,11 +620,11 @@ def school_access(request):
     if request.method == "PUT":
         body = json.loads(request.body)
         school_body = body.get('school', False)
-        school = models.School.objects.get(org_nr=school_body.get('org_nr'))
+        school = models.School.objects.get(org_nr=school_body.get('orgNr'))
         school.access = school_body.get('access', 'none')
         school.school_accesses.all().delete()
         if school.access == 'levels':
-            for level in school_body.get('access_list', []):
+            for level in school_body.get('accessList', []):
                 access = models.SchoolAccess(school_id=school, level=level)
                 access.save()
         school.save()
@@ -628,17 +639,17 @@ def school_access(request):
                 access_list.append(access.level)
 
         response.append({
-            'org_nr': school.org_nr,
-            'school_name': school.school_name,
+            'orgNr': school.org_nr,
+            'schoolName': school.school_name,
             'access': school.access,
-            'access_list': access_list,
+            'accessList': access_list,
         })
 
     return Response({'schools': response})
 
 @api_view(["GET", "PUT", "DELETE"])
 def authors(request):
-    if not request.g.get('admin', False):
+    if not request.userinfo.get('admin', False):
         return HttpResponseForbidden()
 
     if request.method == "DELETE":
@@ -659,16 +670,16 @@ def authors(request):
             author.user_id = full_id
             author.role = 'author'
         author.user_name = author_body.get('name')
-        author.school = models.School.objects.get(org_nr=author_body.get('school_id'))
+        author.school = models.School.objects.get(org_nr=author_body.get('schoolId'))
         author.save()
 
     authors = models.Role.objects.filter(role='author').all()
     response = []
     for author in authors:
         response.append({
-            'user_id': author.user_id.split('@')[0],
+            'userId': author.user_id.split('@')[0],
             'name': author.user_name or '',
-            'school_id': author.school.org_nr,
+            'schoolId': author.school.org_nr,
         })
 
     return Response({'authors': response})
@@ -699,7 +710,7 @@ async def send_message(request):
         try:
             bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
         except models.BotModel.DoesNotExist:
-            default_model_id = await get_setting_async('default_model')
+            default_model_id = await get_setting_async('defaultModel')
             bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:

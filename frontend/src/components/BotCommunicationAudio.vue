@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
         >
           <AudioWave v-if="isBotSpeaking" />
           <span v-else class="bot-icon">
-            <BotAvatar :avatar_scheme="props.bot.avatar_scheme" />
+            <BotAvatar :avatarScheme="props.bot.avatarScheme" />
           </span>
         </button>
 
