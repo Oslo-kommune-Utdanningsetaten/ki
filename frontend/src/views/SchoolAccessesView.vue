@@ -102,7 +102,9 @@ const schoolAccessFiltered = computed(() => {
                 v-model="school.access"
                 @change="schoolAccessChange(school)"
               />
-              <label class="form-check-label" :for="option.value">{{ option.label }}</label>
+              <label class="form-check-label" :for="school.orgNr + option.value">
+                {{ option.label }}
+              </label>
             </div>
           </div>
           <div v-if="school.access == 'levels'" class="row">

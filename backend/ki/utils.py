@@ -182,10 +182,10 @@ def generate_group_access_list(groups=None, bot=None):
             checked = False
         group_list.append({
             'id': group_id,
-            'display_name': group.get('display_name'),
-            'go_type': group.get('go_type'),
+            'displayName': group.get('display_name'),
+            'goType': group.get('go_type'),
             'checked': checked,
-            'valid_range': [valid_from, valid_to],
+            'validRange': [valid_from, valid_to],
         })
     return group_list
 

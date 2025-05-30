@@ -169,7 +169,11 @@ def user_bots(request):
             'personal': not bot.library,
             'allowDistribution': bot.allow_distribution,
             'botInfo': bot.bot_info or '',
-            'tag': bot.tags.all().values('category_id', 'tag_value') if bot.library else [],
+            'tag': [{
+                'categoryId': tag['category_id'], 
+                'tagValue': tag['tag_value']
+                } 
+                for tag in bot.tags.all().values('category_id', 'tag_value')] if bot.library else [],
             'accessCount': bot.access_count if request.userinfo.get('admin', False) else 0,
         }
         for bot in users_bots]
@@ -269,6 +273,7 @@ def empty_bot(request, bot_type):
                 'id': tag_label.tag_label_id,
                 'label': tag_label.tag_label_name,
                 'order': tag_label.tag_label_order,
+                'weight': tag_label.tag_label_weight,
                 'checked': False,
             })
         tag_categories.append({
@@ -426,7 +431,7 @@ def bot_info(request, bot_uuid=None):
     if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
 
         def is_valid_dates(from_date_iso, to_date_iso):
-            max_lifespan = get_setting('maxLifespan')
+            max_lifespan = get_setting('max_lifespan')
             try:
                 from_date = datetime.fromisoformat(from_date_iso)
                 to_date = datetime.fromisoformat(to_date_iso)
@@ -655,7 +660,7 @@ def authors(request):
     if request.method == "DELETE":
         body = json.loads(request.body)
         author_body = body.get('author', False)
-        full_id = author_body.get('user_id') + '@feide.osloskolen.no'
+        full_id = author_body.get('userId') + '@feide.osloskolen.no'
         author = models.Role.objects.filter(user_id=full_id).first()
         if author:
             author.delete()
@@ -663,7 +668,7 @@ def authors(request):
     if request.method == "PUT":
         body = json.loads(request.body)
         author_body = body.get('author', False)
-        full_id = author_body.get('user_id') + '@feide.osloskolen.no'
+        full_id = author_body.get('userId') + '@feide.osloskolen.no'
         author = models.Role.objects.filter(user_id=full_id).first()
         if not author:
             author = models.Role()
