@@ -708,7 +708,8 @@ async def send_message(request):
     body = json.loads(request.body)
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
-    if not bot_uuid in request.userinfo.get('bots', []):
+    if (not bot_uuid in request.userinfo.get('bots', [])  
+        and not request.userinfo.get('admin', False)):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
@@ -730,7 +731,8 @@ async def send_img_message(request):
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
     prompt = messages[-1].get('content')
-    if not bot_uuid in request.userinfo.get('bots', []):
+    if (not bot_uuid in request.userinfo.get('bots', [])  
+        and not request.userinfo.get('admin', False)):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
