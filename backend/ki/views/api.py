@@ -715,7 +715,7 @@ async def send_message(request):
         try:
             bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
         except models.BotModel.DoesNotExist:
-            default_model_id = await get_setting_async('defaultModel')
+            default_model_id = await get_setting_async('default_model')
             bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
         bot_model = bot_model_obj.deployment_id
     except models.Bot.DoesNotExist:
