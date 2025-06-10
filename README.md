@@ -10,14 +10,16 @@ This repo contains the complete code for the ki.osloskolen.no web app. If you'd 
 
 ## Technology
 
+- Platform: Docker
 - Database: MariaDB
 - Backend: Python and Django
-- Frontend: Vue, JavaScript, CSS
-- Authentication: Oauth via Feide
+- Frontend: Vue and JavaScript
+- Authentication: OAuth via Feide
+- LLM provider: Microsoft Azure
 
 ## Up and running, as developer
 
-- You need docker and docker-compose, python v3.13, poetry (`pip install poetry`) and node.js (v18+) installed on your system and available from the command line
+- You need docker and docker-compose, Python, [Poetry](https://python-poetry.org/docs/#installing-with-pipx) and Node.js installed on your system and available from the command line
 - `git clone` this repo
 - Make copies of these files, and modify the variables to match your configuration
   - `.env-example` --> `.env`
@@ -27,18 +29,18 @@ This repo contains the complete code for the ki.osloskolen.no web app. If you'd 
 - Containerized running of the database and adminer (for UI access to the DB): `docker-compose up --build` (refer to `compose.yml` and `.env` files)
 - Install everything the server/backend needs: `cd backend && poetry install`
 - Run migrations to get all database tables set up correctly `python manage.py makemigrations`
-- Start the backend with `python manage.py runserver 5000`
-  - Can also be started from a poetry shell with `poe run-server`
+- Start the backend: `python manage.py runserver 5000`
+  - Can also be started from a poetry shell: `poe run-server`
 - Install everything the frontend needs: `cd frontend && npm install`
-- Start the frontend with `npm run dev` and point your browser at http://localhost:5173
+- Start the frontend: `npm run dev` and point your browser at http://localhost:5173
 - There's probably no way that actually worked on the first try :)
 - Hopefully, you know enough to debug your way out of any problems. If not, feel free to contact the maintainers for advice <3
 
 ### MacOS tips
 
-- On your mac, go into settings and turn off AirPlay receiver, because this also runs on port 5000 (same as the backend). Or fiddle around with port config on the server to use a different port.
+- On your mac, go into settings and turn off AirPlay receiver. Why? Because it runs on the same port as backend. Alternatively, fiddle around with port config on the server to use a different port.
 - Make sure you have Homebrew installed
-- For node.js, use [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm) or install with `brew install node`
+- For Node.js, use [nvm](https://github.com/nvm-sh/nvm) (recommended) or install with `brew install node`
 - Homebrew some more:
 
 ```
@@ -61,8 +63,8 @@ PRs very welcome 🙌
 1. Fork the repo
 2. Make changes
 3. Run tests
-4. Create a PR, with a proper explanation of what the change does and why it should be included
+4. Create a PR, including a proper explanation of what the change does and why it should be included
 
 ## License
 
-See [License](LICENSE.md)
+See [License](LICENSE.md).
