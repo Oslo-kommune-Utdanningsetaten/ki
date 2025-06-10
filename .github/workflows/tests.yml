@@ -24,10 +24,10 @@ jobs:
               with:
                 python-version: 3.13
                 cache: 'poetry'
-            
+                
             - name: Install Dependencies
               working-directory: ./backend
-              run: poetry install --with test
+              run: poetry install --with dev
 
             - name: Run Tests
               working-directory: ./backend
