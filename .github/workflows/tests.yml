@@ -31,4 +31,4 @@ jobs:
 
             - name: Run Tests
               working-directory: ./backend
-              run: poetry run poe run-tests
+              run: pytest -vv --nomigrations -s
