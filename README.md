@@ -8,7 +8,7 @@ Students and teachers need access to LLM chatbots, but current commercial provid
 
 This repo contains the complete code for the ki.osloskolen.no web app. If you'd like to set this up for your school or county, here's barebones guide to get this whole thing up and running. Technical knowledge is required.
 
-## Which technology is involved?
+## Technology
 
 - Database: MariaDB
 - Backend: Python and Django
@@ -31,7 +31,6 @@ This repo contains the complete code for the ki.osloskolen.no web app. If you'd 
   - Can also be started from a poetry shell with `poe run-server`
 - Install everything the frontend needs: `cd frontend && npm install`
 - Start the frontend with `npm run dev` and point your browser at http://localhost:5173
-- You should now redirected to Feide for authentication
 - There's probably no way that actually worked on the first try :)
 - Hopefully, you know enough to debug your way out of any problems. If not, feel free to contact the maintainers for advice <3
 
