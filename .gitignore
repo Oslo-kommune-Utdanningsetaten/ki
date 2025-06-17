@@ -13,6 +13,7 @@ public/
 env/
 *.log*
 .vscode/launch.json
+!.env-example
 
 # macos
 .DS_Store
