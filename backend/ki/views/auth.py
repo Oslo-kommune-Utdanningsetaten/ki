@@ -15,6 +15,7 @@ from ki.utils import  get_memberships_from_feide, get_users_bots, has_school_acc
 
 # OAuth 2 client setup
 client = WebApplicationClient(os.environ.get('FEIDE_CLIENT_ID'))
+feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
 
 message_redirect = 'http://localhost:5173/message' if DEBUG else '/message'
 
@@ -81,7 +82,7 @@ def feidelogin(request):
         redirect_uri=os.environ.get('FEIDE_CALLBACK'),
         scope=["openid", "userid", "profile",
                "userid-feide", "groups-org", "groups-edu"],
-        login_hint="feide|realm|feide.osloskolen.no",
+        login_hint=f"feide|realm|{feide_realm}",
     )
     return redirect(request_uri)
 
