@@ -29,7 +29,7 @@ def auth_middleware(get_response):
         if is_authenticated:
             # get user's bots
             # TODO: author at multiple schools
-            role_obj = models.Role.objects.filter(user_id=username).first()
+            role_obj = models.Role.objects.filter(feide_user=username).first()
             role = role_obj.role if role_obj else None
             request.userinfo['username'] = username
             request.userinfo['name'] = request.session.get('user.name')
@@ -44,7 +44,7 @@ def auth_middleware(get_response):
                     request.userinfo['bots'] = get_users_bots(username, feide_memberships)
                     request.userinfo['has_access'] = True
                     if role == 'author':
-                        request.userinfo['author'] = True
+                        request.userinfo['is_author'] = True
                         request.userinfo['auth_school'] = role_obj.school
         else:
             url_name = resolve(request.path_info).url_name
