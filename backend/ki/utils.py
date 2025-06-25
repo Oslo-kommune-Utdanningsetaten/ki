@@ -24,7 +24,7 @@ def get_memberships_from_feide(tokens):
     schools = []
     levels = []
     groups = []
-    employee = False
+    is_employee = False
 
     if not (tokens):
         return None
@@ -45,13 +45,13 @@ def get_memberships_from_feide(tokens):
         # role empoyee from parent org
         if (group.get('id') == "fc:org:feide.osloskolen.no" and
                 group['membership']['primaryAffiliation'] == "employee"):
-            employee = True
+            is_employee = True
         # school org_nr(s) from child org(s)
         if (group.get('type') == "fc:org" and
                 group.get("parent") == "fc:org:feide.osloskolen.no"):
             # fifth part of id is org_nr
             org_nr = group['id'].split(":")[4]
-            school = models.School.objects.get(org_nr=org_nr)
+            school = models.School.objects.filter(org_nr=org_nr).first()
             if school:
                 schools.append(school)
         # level(s) from grep
@@ -61,7 +61,7 @@ def get_memberships_from_feide(tokens):
         # education groups
         if (group.get('type') == "fc:gogroup"):
             org_nr = group['parent'].split(":")[4]
-            school = models.School.objects.get(org_nr=org_nr)
+            school = models.School.objects.filter(org_nr=org_nr).first()
             # only add groups from schools that are open for students
             if school and school.access in ['all', 'levels']:
                 groups.append({
@@ -71,7 +71,7 @@ def get_memberships_from_feide(tokens):
                 })
 
     return {
-        'employee': employee,
+        'is_employee': is_employee,
         'schools': schools,
         'levels': levels,
         'groups': groups,
@@ -80,12 +80,12 @@ def get_memberships_from_feide(tokens):
 
 def has_school_access(feide_memberships) -> bool:
 
-    employee = feide_memberships.get('employee', False)
+    is_employee = feide_memberships.get('is_employee', False)
     schools = feide_memberships.get('schools', [])
     levels = feide_memberships.get('levels', [])
 
     for school in schools:
-        if employee:
+        if is_employee:
             if school.access in ['emp', 'all', 'levels']:
                 return True
         else:
@@ -111,46 +111,44 @@ def get_users_bots(username, feide_memberships):
     from ki import models # Avoid circular import
 
     bots:set = set()
-    employee = feide_memberships.get('employee', False)
-    schools = feide_memberships.get('schools', [])
-    levels = feide_memberships.get('levels', [])
-    groups = feide_memberships.get('groups', [])
+    is_employee:bool = feide_memberships.get('is_employee', False)
+    schools:list[models.School] = feide_memberships.get('schools', [])
+    levels:list[str] = feide_memberships.get('levels', [])
+    groups:list[str] = feide_memberships.get('groups', [])
 
     # bots from subject (for students)
-    if not employee:
+    if not is_employee:
         for group in groups:
             subject_accesses = models.SubjectAccess.objects.filter(subject_id=group['id'])
             for subject_access in subject_accesses:
                 if is_subject_access_valid(subject_access):
-                    bots.add(subject_access.bot_id_id)
+                    bots.add(subject_access.bot)
 
     # bots from school
     for school in schools:
-        bot_accesses = models.BotAccess.objects.filter(school_id=school)
+        bot_accesses = school.accesses.filter(access__in=['all', 'emp', 'levels']).all()
         for bot_access in bot_accesses:
             access = False
             match bot_access.access:
                 case 'all':
                     access = True
                 case 'emp':
-                    if employee:
+                    if is_employee:
                         access = True
                 case 'levels':
-                    if employee:
+                    if is_employee:
                         access = True
                     else:
                         for level in bot_access.levels.all():
                             if level.level in levels:
                                 access = True
             if access:
-                bots.add(bot_access.bot_id_id)
+                bots.add(bot_access.bot)
                                 
     # bots from personal bots (for employees)
-    if employee:
-        personal_bots = models.Bot.objects.filter(owner=username)
-        for personal_bot in personal_bots:
-            bots.add(personal_bot.uuid)
-
+    if is_employee:
+        personal_bots = models.Bot.objects.filter(owner=username).all()
+        bots = bots | set(personal_bots)
     return list(bots) if bots else []
 
 
@@ -190,30 +188,32 @@ def generate_group_access_list(groups=None, bot=None):
     return group_list
 
 
-def get_user_data_from_userinfo(request):
+def get_user_log_data_from_userinfo(request):
     # role
     role = 'student'
-    role = 'employee' if request.userinfo.get('employee', False) else role
-    role = 'admin' if request.userinfo.get('admin', False) else role
+    role = 'employee' if request.userinfo.get('is_employee', False) else role
+    role = 'admin' if request.userinfo.get('is_admin', False) else role
     # level
     level = None
     if (levels := request.userinfo.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
     # schools
-    schools = request.userinfo.get('schools', [])
+    schools = [ school.org_nr for school in request.userinfo.get('schools', [])]
     return level, schools, role
 
 
 def get_admin_memberships_and_bots(username) -> dict:
     from ki import models # Avoid circular import
     bots:set = set()
-    personal_bots = models.Bot.objects.filter(owner=username)
-    bots.update((bot.uuid for bot in personal_bots))
-    library_bots = models.Bot.objects.filter(library = True)
-    bots.update((bot.uuid for bot in library_bots))
+    personal_bots = set(models.Bot.objects.filter(owner=username).all())
+    if personal_bots:
+        bots = personal_bots
+    library_bots = set(models.Bot.objects.filter(is_library_bot = True).all())
+    if library_bots:
+        bots = bots.union(library_bots)
     return {
-        'admin': True,
-        'employee': False,
+        'is_admin': True,
+        'is_employee': False,
         'schools': [],
         'levels': [],
         'groups': [],
@@ -221,21 +221,20 @@ def get_admin_memberships_and_bots(username) -> dict:
     }
 
 
-async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1, interaction_type='text'):
+async def use_log(bot_id, role=None, level=None, schools=[], message_length=1, interaction_type='text'):
     from ki import models # Avoid circular import
-    log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
-    await log_line.asave()
+    use_log = models.UseLog(bot_id=bot_id, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
+    await use_log.asave()
 
-    for school in schools:
-        # school can be of both type dict or models.School
-        school_id = school.get('org_nr') if isinstance(school, dict) else school.org_nr
-        if school_id:
-            await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
+    for school_id in schools:
+        await models.LogSchool(school=school_id, use_log=use_log).asave()
 
 
 def get_setting(setting_key):
     from ki import models # Avoid circular import
-    setting = models.Setting.objects.get(setting_key=setting_key)
+    setting = models.Setting.objects.filter(setting_key=setting_key).first()
+    if not setting:
+        raise AttributeError(f"Setting '{setting_key}' does not exist.")
     if setting.is_txt:
         return setting.txt_val
     else:
@@ -244,7 +243,9 @@ def get_setting(setting_key):
 
 async def get_setting_async(setting_key):
     from ki import models # Avoid circular import
-    setting = await models.Setting.objects.aget(setting_key=setting_key)
+    setting = await models.Setting.objects.filter(setting_key=setting_key).afirst()
+    if not setting:
+        raise AttributeError(f"Setting '{setting_key}' does not exist.")
     if setting.is_txt:
         return setting.txt_val
     else:

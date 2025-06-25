@@ -44,5 +44,5 @@ def test_get_int_setting(sample_int_setting):
 @pytest.mark.django_db(reset_sequences=True)
 def test_get_nonexistent_setting():
     """Test getting a setting that doesn't exist raises exception"""
-    with pytest.raises(Setting.DoesNotExist):
+    with pytest.raises(AttributeError, match="Setting 'nonexistent_setting' does not exist."):
         get_setting('nonexistent_setting')
