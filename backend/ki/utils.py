@@ -1,4 +1,5 @@
 import requests
+import os
 from datetime import datetime, timedelta, timezone
 
 aarstrinn_codes = {
@@ -30,6 +31,7 @@ def get_memberships_from_feide(tokens):
         return None
 
     # get user's grups from dataporten
+    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
     groupinfo_response = requests.get(
@@ -43,12 +45,12 @@ def get_memberships_from_feide(tokens):
     # get user's schools and levels and groups
     for group in groupinfo_response:
         # role empoyee from parent org
-        if (group.get('id') == "fc:org:feide.osloskolen.no" and
+        if (group.get('id') == f"fc:org:{feide_realm}" and
                 group['membership']['primaryAffiliation'] == "employee"):
             employee = True
         # school org_nr(s) from child org(s)
         if (group.get('type') == "fc:org" and
-                group.get("parent") == "fc:org:feide.osloskolen.no"):
+                group.get("parent") == f"fc:org:{feide_realm}"):
             # fifth part of id is org_nr
             org_nr = group['id'].split(":")[4]
             school = models.School.objects.get(org_nr=org_nr)
