@@ -4,6 +4,8 @@ import { axiosInstance as axios } from '../clients'
 import { ref, watchEffect, computed } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
+import { submitLogin } from '../utils/httpTools.js'
+import { onMounted } from 'vue'
 
 const bots = ref([])
 const status = ref(null)
@@ -12,10 +14,21 @@ const isBotFilteringEnabled = ref(false)
 const isFilterWidgetVisible = ref(false)
 const activeBot = ref(null)
 const tagCategories = ref([])
+const loginUserName = ref('')
+const loginUserPassword = ref('')
+const showPassword = ref(false)
+
 // const route = useRoute()
 
 watchEffect(() => {
   getBots()
+})
+
+onMounted(() => {
+  const loginModalEl = document.getElementById('loginModal')
+  if (loginModalEl) {
+    loginModalEl.addEventListener('hidden.bs.modal', onLoginModalClosed)
+  }
 })
 
 async function getBots() {
@@ -87,6 +100,12 @@ const toggleFavorite = async bot => {
   }
 }
 
+const onLoginModalClosed = () => {
+  loginUserName.value = ''
+  loginUserPassword.value = ''
+  showPassword.value = false
+}
+
 const setActiveBot = bot => {
   activeBot.value = bot
 }
@@ -100,8 +119,29 @@ const botIconWidth = computed(() =>
 const newLink = computed(() => (showLibrary.value ? 'editbot/newlib' : 'editbot/new'))
 
 const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
-</script>
 
+const sendLogin = async () => {
+  try {
+    const { data } = await submitLogin({
+      username: loginUserName.value,
+      password: loginUserPassword.value,
+    })
+
+    // Check if login was successful
+
+    if (data.status === 'ok') {
+      loginUserName.value = ''
+      loginUserPassword.value = ''
+      window.location.href = '/'
+    } else {
+      store.addMessage(data.message, 'error')
+      window.location.href = '/'
+    }
+  } catch (error) {
+    console.error('Error during login:', error)
+  }
+}
+</script>
 <template>
   <!-- Modal -->
   <div
@@ -133,6 +173,61 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       </div>
     </div>
   </div>
+  <!-- Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginLabel">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form @submit.prevent="sendLogin">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="loginLabel">Logg inn</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <!-- <label for="username" class="form-label">Brukernavn</label> -->
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                v-model="loginUserName"
+                required
+                placeholder="Brukernavn"
+              />
+              <div class="input-group mt-2">
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  class="form-control mt-2"
+                  id="password"
+                  v-model="loginUserPassword"
+                  placeholder="Passord"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  @click="(showPassword = !showPassword)"
+                >
+                  {{ showPassword ? 'Skjul' : 'Vis' }}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn oslo-btn-primary" data-bs-dismiss="modal">
+              Logg inn
+            </button>
+            <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">
+              Lukk
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <div v-if="status != 'ok'" class="mb-3">
     <p>
@@ -155,6 +250,16 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
     </p>
     <div v-if="status === 'not_feide'">
       <a href="/auth/feidelogin" role="button" class="btn oslo-btn-primary">Logg inn</a>
+    </div>
+    <div v-if="status === 'not_feide'">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        data-bs-toggle="modal"
+        data-bs-target="#loginModal"
+      >
+        Logg inn med brukernavn og passord
+      </button>
     </div>
     <div v-else-if="status === 'not_school'">
       <div class="card">

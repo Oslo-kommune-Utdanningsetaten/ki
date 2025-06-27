@@ -5,12 +5,13 @@ import requests
 import json
 import os
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ki.utils import  get_memberships_from_feide, get_users_bots, has_school_access, get_admin_memberships_and_bots
+from ki.utils import  get_memberships, get_users_bots, has_school_access, get_admin_memberships_and_bots
+from django.views.decorators.http import require_POST
 
 
 # OAuth 2 client setup
@@ -38,11 +39,16 @@ def auth_middleware(get_response):
                 request.userinfo.update(get_admin_memberships_and_bots(username))
                 request.userinfo['has_access'] = True
             else:
-                feide_memberships = get_memberships_from_feide(request.session.get('user.auth', False))
-                if has_school_access(feide_memberships):
-                    request.userinfo.update(feide_memberships)
-                    request.userinfo['bots'] = get_users_bots(username, feide_memberships)
+                login_method = request.session.get('user.auth_method', None)
+                if login_method not in ['feide', 'local']:
+                    return redirect(f'{message_redirect}/Du er ikke logget inn./error')
+                tokens = request.session.get('user.auth_token', None)
+                memberships = get_memberships(login_method=login_method, username=username, tokens=tokens)
+                if has_school_access(memberships):
+                    request.userinfo.update(memberships)
+                    request.userinfo['bots'] = get_users_bots(username, memberships)
                     request.userinfo['has_access'] = True
+                    request.userinfo['external_user'] = login_method == 'local'
                     if role == 'author':
                         request.userinfo['author'] = True
                         request.userinfo['auth_school'] = role_obj.school
@@ -68,6 +74,34 @@ def auth_middleware(get_response):
 def get_provider_cfg():
     return requests.get(os.environ.get('FEIDE_DISCOVERY_URL')).json()
 
+
+@require_POST
+def locallogin(request):
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+
+    username = payload.get("username")
+    password = payload.get("password")
+    if not username or not password:
+        return redirect('http://localhost:5173/' if DEBUG else '/')
+
+        # return JsonResponse({"error": "Missing username or password"}, status=400)
+
+    user = models.ExternalUser.objects.filter(username=username).first()
+    if not user or not user.check_password(password):
+        return JsonResponse({"error": "Feil brukernavn eller passord."}, status=401)
+    if user.valid_to == None or user.valid_to < datetime.now(timezone.utc):
+        return JsonResponse({"error": "Kontoen er utløpt."}, status=401)
+    request.session["user.username"] = user.username
+    request.session["user.name"] = user.name
+    request.session["user.id"] = user.id
+    request.session["user.auth_method"] = "local"
+    request.session["user.has_self_service"] = user.has_self_service
+    return redirect('http://localhost:5173/' if DEBUG else '/')
+
+    
 
 def feidelogin(request):
     # Find out what URL to hit for Feide login
@@ -121,9 +155,10 @@ def feidecallback(request):
     )["https://n.feide.no/claims/eduPersonPrincipalName"]
 
     if username:
-        request.session['user.auth'] = tokens
+        request.session['user.auth_token'] = tokens
         request.session['user.username'] = username
         request.session['user.name'] = userinfo_response.json()["name"]
+        request.session['user.auth_method'] = 'feide'
         return redirect('http://localhost:5173/' if DEBUG else '/')
 
     else:
@@ -132,7 +167,7 @@ def feidecallback(request):
 
 
 def logout(request):
-    token = request.session.get('user.auth', False)
+    token = request.session.get('user.auth_token', False)
     request.session.clear()
     request.userinfo['username'] = None
     request.userinfo['name'] = None

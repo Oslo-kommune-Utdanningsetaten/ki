@@ -64,6 +64,8 @@ def app_config(request):
         'deploymentId': default_model_obj.deployment_id,
         'trainingCutoff': default_model_obj.training_cutoff,
     }
+    is_external_user = request.userinfo.get('external_user', False)
+    has_self_service = request.session.get('user.has_self_service', False)
 
     return Response({
         'infoPages': info_page_links,
@@ -71,6 +73,7 @@ def app_config(request):
             'isAdmin': request.userinfo.get('admin', False),
             'isEmployee': request.userinfo.get('employee', False),
             'isAuthor': request.userinfo.get('author', False),
+            'hasSelfService': is_external_user and has_self_service,
         },
         'defaultModel': default_model,
     })
@@ -235,6 +238,139 @@ def user_info(request):
             'levels': request.userinfo.get('levels', None),
         }
     })
+
+
+@api_view(["GET"])
+def external_users(request):
+    is_admin = request.userinfo.get('admin', False)
+    if not is_admin:
+        return Response(status=403)
+
+    users = models.ExternalUser.objects.all().order_by('name')
+    return Response({
+        'users': [{
+            'id': user.id,
+            'username': user.username,
+            'name': user.name,
+            'hasSelfService': user.has_self_service,
+            'expired': user.valid_to < datetime.now(timezone.utc) if user.valid_to else True,
+        } for user in users]
+    })
+
+
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def external_user_info(request, user_id=None):
+
+    is_admin = request.userinfo.get('admin', False)
+
+    if is_admin:
+
+        # Create new user
+        if request.method == "POST":
+            body = json.loads(request.body)
+            user_body = body.get('user', False)
+            user = models.ExternalUser()
+            user.set_username(user_body.get('username', user.username))
+            user.name = user_body.get('name', user.name)
+            user.has_self_service = user_body.get('hasSelfService', False)
+            user.valid_to = user_body.get('validTo', None)
+            user.memberships = user_body.get('memberships', [])
+            if 'newPassword' in user_body:
+                user.set_password(user_body['password'])
+            user.save()
+            return Response(status=200)
+
+        # Get existing user from user_id parameter
+        if not user_id:
+            return Response(status=400)
+        user = models.ExternalUser.objects.get(id=user_id)
+        if not user:
+            return Response(status=400)
+
+        if request.method == "DELETE":
+            try:
+                user.delete()
+                return Response(status=200)
+            except models.ExternalUser.DoesNotExist:
+                return Response(status=404)
+
+        if request.method == "PUT":
+            body = json.loads(request.body)
+            user_body = body.get('user', None)
+            if not user_body:
+                return Response(status=400)
+            user.name = user_body.get('name', user.name)
+            if 'newPassword' in user_body:
+                try:
+                    user.set_password(user_body.get('newPassword', user.password))
+                except ValueError as e:
+                    return Response(status=404, data={"error": str(e)})
+            try:
+                user.set_username(user_body.get('username', user.username), user.username)
+            except ValueError as e:
+                return Response(status=404, data={"error": str(e)})
+            user.has_self_service = user_body.get('hasSelfService', user.has_self_service)
+            valid_to_str = user_body.get('validTo', None)
+            if valid_to_str:
+                dt = datetime.fromisoformat(valid_to_str)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                user.valid_to = dt
+            user.memberships = user_body.get('memberships', user.memberships)
+            user.save()
+            return Response(status=200)
+
+        if request.method == "GET":
+            return Response({
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.name,
+                    'hasSelfService': user.has_self_service,
+                    'validTo': user.valid_to.isoformat() if user.valid_to else None,
+                    'memberships': user.memberships,
+                }
+            })
+
+    else:
+        # Uptate user info from self-service
+        if request.session["user.auth_method"] != "local":
+            return Response(status=403)
+        user_id = request.session["user.id"]
+        user = models.ExternalUser.objects.get(id=user_id)
+        if not user:
+            return Response(status=404)
+        if not user.has_self_service:
+            return Response(status=403)
+    
+        if request.method == "PUT":
+            body = json.loads(request.body)
+            user_body = body.get('user', None)
+            if not user_body:
+                return Response(status=400)
+            user.name = user_body.get('name', user.name)
+            # user.username = user_body.get('username', user.username)
+            if 'newPassword' in user_body and 'password' in user_body:
+                if not user.check_password(user_body['password']):
+                    return Response(status=403, data={"error": "Gammelt passord er feil"})
+                try:
+                    user.set_password(user_body.get('newPassword', user.password))
+                except ValueError as e:
+                    return Response(status=404, data={"error": str(e)})
+            user.save()
+            return Response(status=200)
+        
+        if request.method in ["POST", "DELETE"]:
+            return Response(status=405)
+
+        if request.method == "GET":
+            return Response({
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.name,
+                }
+            })
 
 
 @api_view(["GET"])
