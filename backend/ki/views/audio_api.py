@@ -119,8 +119,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
 
     async def create_completion_from_transcript(self, recognized_text):
-        self.log(f"Received transcript: {recognized_text}")
-
         # For cosmetic reasons, if recognized_text includes only one period, remove it
         if recognized_text.count('.') == 1:
             recognized_text = recognized_text.strip('.')
@@ -148,7 +146,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
 
         # Request completion based on messages
         completion = await chat_completion_azure(self.messages, self.bot_model)
-        self.log(f"Generated completion: {completion}")
 
         # Append completion to messages
         self.messages.append({
