@@ -26,7 +26,6 @@ def get_memberships_from_feide(tokens):
         return None
 
     # get user's grups from dataporten
-    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
     groupinfo_response = requests.get(
@@ -54,6 +53,7 @@ def get_memberships(username, login_method, tokens):
     levels = []
     groups = []
     employee = False
+    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
 
     if login_method == 'feide':
         # get user's memberships from feide
