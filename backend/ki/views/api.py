@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.http import HttpResponseNotFound, HttpResponseForbidden
 from datetime import datetime, timedelta, timezone
 import json
+import os
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
 from ki.utils import use_log, get_user_log_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async
 
@@ -668,10 +669,11 @@ def authors(request):
     if not request.userinfo.get('is_admin', False):
         return HttpResponseForbidden()
 
+    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
     if request.method == "DELETE":
         body = json.loads(request.body)
         author_body = body.get('author', False)
-        full_id = author_body.get('userId') + '@feide.osloskolen.no'
+        full_id = f"{author_body.get('userId')}@{feide_realm}"
         author = models.Role.objects.filter(feide_user=full_id).first()
         if author:
             author.delete()
@@ -679,8 +681,10 @@ def authors(request):
     if request.method == "PUT":
         body = json.loads(request.body)
         author_body = body.get('author', False)
-        full_id = author_body.get('userId') + '@feide.osloskolen.no'
+        full_id = f"{author_body.get('userId')}@{feide_realm}"
         author = models.Role.objects.filter(feide_user=full_id).first()
+        full_id = author_body.get('userId') + '@feide.osloskolen.no'
+        author = models.Role.objects.filter(user_id=full_id).first()
         if not author:
             author = models.Role()
             author.feide_user = full_id

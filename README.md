@@ -1,28 +1,52 @@
 # KI for Osloskolen
 
-## Getting started, on a mac
+Students and teachers need access to LLM chatbots, but current commercial providers do not offer the personal security nor the granular control of student access which is needed in school. The ki.osloskolen.no web app solves this problem by:
 
+- Wrapping all chatbot conversations behind a single API key, making it impossible for the LLM provider to match conversation data with user ID
+- Not storing any user or conversation data on the backend
+- Allowing teachers to create and grant time-limited access to bots for specific Feide groups (e.g. teaching groups)
+
+This repo contains the complete code for the ki.osloskolen.no web app. If you'd like to set this up for your school or county, here's barebones guide to get this whole thing up and running. Technical knowledge is required.
+
+## Technology
+
+- Platform: Docker
+- Database: MariaDB
+- Backend: Python and Django
+- Frontend: Vue and JavaScript
+- Authentication: OAuth via Feide
+- LLM provider: Microsoft Azure
+
+## Up and running, as developer
+
+- You need docker and docker-compose, Python, [Poetry](https://python-poetry.org/docs/#installing-with-pipx) and Node.js installed on your system and available from the command line
 - `git clone` this repo
-- Make sure you have a `frontend/.env` and `backend/.env` with everything that's needed
+- Make copies of these files, and modify the variables to match your configuration
+  - `.env-example` --> `.env`
+  - `frontend/.env-example` --> `frontend/.env`
+  - `backend/.env-example` --> `backend/.env`
+- Note that in addition to database credentials, the environment expects Azure and Feide specifics
+- Containerized running of the database and adminer (for UI access to the DB): `docker-compose up --build` (refer to `compose.yml` and `.env` files)
+- Install everything the server/backend needs: `cd backend && poetry install`
+- Run migrations to get all database tables set up correctly `python manage.py makemigrations`
+- Start the backend: `python manage.py runserver 5000`
+  - Can also be started from a poetry shell: `poe run-server`
+- Install everything the frontend needs: `cd frontend && npm install`
+- Start the frontend: `npm run dev` and point your browser at http://localhost:5173
+- There's probably no way that actually worked on the first try :)
+- Hopefully, you know enough to debug your way out of any problems. If not, feel free to contact the maintainers for advice <3
+
+### MacOS tips
+
+- On your mac, go into settings and turn off AirPlay receiver. Why? Because it runs on the same port as backend. Alternatively, fiddle around with port config on the server to use a different port.
 - Make sure you have Homebrew installed
-- Install node.js `brew install node` or use Node Version Manager (nvm) for better version control
+- For Node.js, use [nvm](https://github.com/nvm-sh/nvm) (recommended) or install with `brew install node`
 - Homebrew some more:
+
 ```
-brew install python@3.11
+brew install python@3.13
 brew install poetry
 brew install --cask docker
-brew install mariadb
-sudo mariadb-secure-installation
-mysql.server start
-```
-- Instead of `mysql.server start` you could use `brew services start mariadb` if you want mariadb to run as a service, always on
-- `cd frontend && npm install`
-- Spin up the frontend `npm run dev` (should now be running on port http://localhost:5173)
-- Go into settings, turn off AirPlay receiver, because this also runs on port 5000 (same as the backend)
-- Connect to mysql and `create database ki;`
-- Back in the terminal, set up the ki database: `mysql ki < ki.sql` (provided you're in posession of the ki.sql file)
-- `cd backend && poetry shell`. This attemps to install all the associated python packages listed in pyproject.tom. This will likely give you various problems, here are some of the things you might have to do:
-```
 brew install pkg-config
 brew install openssl
 export LDFLAGS="-L/opt/homebrew/opt/openssl/lib"
@@ -30,11 +54,17 @@ export CPPFLAGS="-I/opt/homebrew/opt/openssl/include"
 export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl/lib/pkgconfig"
 ```
 
-Eventually, run `python manage.py runserver 5000` to spin up the backend. At which point the frontend will have something to connect to 🙌
+Consider putting those last three lines in your .bashrc or equivalent, to always have a working OpenSSL on your system.
 
-Also, if you're running uBlock in you browser, disable it for http://localhost:5173 in order to allow for Feide auth.
+## Contributing
 
+PRs very welcome 🙌
 
-## Getting started, on a PC
-TBA
+1. Fork the repo
+2. Make changes
+3. Run tests
+4. Create a PR, including a proper explanation of what the change does and why it should be included
 
+## License
+
+See [License](LICENSE.md).

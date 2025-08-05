@@ -1,18 +1,35 @@
 .env*
+!.env-example
 frontend/.vite/*
 pw.txt
 db/*
-!log/compose.yml
+__pycache__/
+public/
+
+# build stuff
+node_modules
+dist
+coverage
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.tsbuildinfo
+
+# logging
 log/grafana/grafana/*
 log/grafana/datasources/*
 log/prometheus/*
+!log/compose.yml
 !/log/prometheus/prometheus.yml
 !/log/grafana/datasources/prometheus_ds.yml
-__pycache__/
-public/
-env/
 *.log*
-.vscode/launch.json
 
 # macos
 .DS_Store
