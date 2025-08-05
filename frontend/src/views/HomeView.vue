@@ -177,8 +177,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
   <div v-else class="mb-3">
     <p>
       Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller
-      lagrer personopplysninger. Vi tester løsningen skoleårene 2023/2024 og 2024/2025. Les mer
-      under "Om tjenesten"
+      lagrer personopplysninger. Les mer under "Om tjenesten"
     </p>
     <div v-if="bots.length === 0">
       <div class="card">
