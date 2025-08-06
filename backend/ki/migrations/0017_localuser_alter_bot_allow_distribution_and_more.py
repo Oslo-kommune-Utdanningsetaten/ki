@@ -18,7 +18,6 @@ class Migration(migrations.Migration):
                 ('password', models.CharField(max_length=100, null=True)),
                 ('name', models.CharField(max_length=50, null=True)),
                 ('has_self_service', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=False)),
                 ('valid_to', models.DateTimeField(null=True)),
                 ('memberships', models.JSONField(default=dict, null=True)),
             ],

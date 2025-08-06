@@ -142,17 +142,22 @@ const membershipsString = computed({
               />
               <button
                 type="button"
-                class="btn btn-outline-secondary"
+                class="btn btn-outline-secondary mb-0"
                 @click="(showPassword = !showPassword)"
               >
-                {{ showPassword ? 'Skjul' : 'Vis' }}
+                <img
+                  v-if="showPassword"
+                  src="@/components/icons/eye-hide.svg"
+                  alt="Skjul passord"
+                />
+                <img v-else src="@/components/icons/eye-show.svg" alt="Vis passord" />
               </button>
             </div>
           </div>
           <div class="mb-3">
             <label for="hasSelfService" class="form-label mt-2">Har 'Min side'</label>
             <input
-              class="form-check-input"
+              class="form-check-input m-2"
               type="checkbox"
               v-model="activeExternalUser.hasSelfService"
               id="hasSelfService"

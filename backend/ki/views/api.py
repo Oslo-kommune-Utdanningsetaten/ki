@@ -277,7 +277,7 @@ def external_user_info(request, user_id=None):
             user.valid_to = user_body.get('validTo', None)
             user.memberships = user_body.get('memberships', [])
             if 'newPassword' in user_body:
-                user.set_password(user_body['password'])
+                user.set_password(user_body['newPassword'])
             user.save()
             return Response(status=200)
 

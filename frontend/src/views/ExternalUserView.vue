@@ -12,7 +12,8 @@ const user = ref({
   password: '',
   newPassword: '',
 })
-const showPassword = ref(false)
+const showOldPassword = ref(false)
+const showNewPassword = ref(false)
 
 watchEffect(() => {
   getUserInfo()
@@ -41,13 +42,13 @@ async function saveUserInfo() {
 <template>
   <form class="container mt-3">
     <div class="mb-3 row">
-      <label for="username" class="col-sm-2 col-form-label">Brukernavn</label>
+      <label for="username" class="col-sm-2 col-form-label mb-2">Brukernavn</label>
       <div class="col-sm-10">
         <div class="form-control-plaintext">
           {{ user.username }}
         </div>
       </div>
-      <label for="name" class="col-sm-2 col-form-label">Navn</label>
+      <label for="name" class="col-sm-2 col-form-label mb-2">Navn</label>
       <div class="col-sm-10">
         <input
           type="text"
@@ -57,22 +58,23 @@ async function saveUserInfo() {
           v-model="user.name"
         />
       </div>
-      <label for="inputPassword" class="col-sm-2 col-form-label">Gammelt passord</label>
+      <label for="inputPassword" class="col-sm-2 col-form-label mb-2">Gammelt passord</label>
       <div class="col-sm-10">
         <div class="input-group">
           <input
-            :type="showPassword ? 'text' : 'password'"
+            :type="showOldPassword ? 'text' : 'password'"
             class="form-control"
             id="inputPassword"
-            placeholder="Skriv inn gammelt passord"
+            placeholder="Skriv inn gammelt passord hvis du vil endre passord"
             v-model="user.password"
           />
           <button
             type="button"
-            class="btn btn-outline-secondary"
-            @click="(showPassword = !showPassword)"
+            class="btn btn-outline-secondary mb-0"
+            @click="(showOldPassword = !showOldPassword)"
           >
-            {{ showPassword ? 'Skjul' : 'Vis' }}
+            <img v-if="showOldPassword" src="@/components/icons/eye-hide.svg" alt="Skjul passord" />
+            <img v-else src="@/components/icons/eye-show.svg" alt="Vis passord" />
           </button>
         </div>
       </div>
@@ -80,18 +82,20 @@ async function saveUserInfo() {
       <div class="col-sm-10">
         <div class="input-group">
           <input
-            :type="showPassword ? 'text' : 'password'"
+            :type="showNewPassword ? 'text' : 'password'"
             class="form-control"
             id="inputNewPassword"
-            placeholder="Skriv inn nytt passord"
+            placeholder="Skriv inn nytt passord hvis du vil endre passord"
             v-model="user.newPassword"
           />
+
           <button
             type="button"
-            class="btn btn-outline-secondary"
-            @click="(showPassword = !showPassword)"
+            class="btn btn-outline-secondary mb-0"
+            @click="(showNewPassword = !showNewPassword)"
           >
-            {{ showPassword ? 'Skjul' : 'Vis' }}
+            <img v-if="showNewPassword" src="@/components/icons/eye-hide.svg" alt="Skjul passord" />
+            <img v-else src="@/components/icons/eye-show.svg" alt="Vis passord" />
           </button>
         </div>
       </div>

@@ -201,17 +201,22 @@ const sendLogin = async () => {
               <div class="input-group mt-2">
                 <input
                   :type="showPassword ? 'text' : 'password'"
-                  class="form-control mt-2"
+                  class="form-control"
                   id="password"
                   v-model="loginUserPassword"
                   placeholder="Passord"
                 />
                 <button
                   type="button"
-                  class="btn btn-outline-secondary"
+                  class="btn btn-outline-secondary mb-0"
                   @click="(showPassword = !showPassword)"
                 >
-                  {{ showPassword ? 'Skjul' : 'Vis' }}
+                  <img
+                    v-if="showPassword"
+                    src="@/components/icons/eye-hide.svg"
+                    alt="Skjul passord"
+                  />
+                  <img v-else src="@/components/icons/eye-show.svg" alt="Vis passord" />
                 </button>
               </div>
             </div>
@@ -251,14 +256,14 @@ const sendLogin = async () => {
     <div v-if="status === 'not_feide'">
       <a href="/auth/feidelogin" role="button" class="btn oslo-btn-primary">Logg inn</a>
     </div>
-    <div v-if="status === 'not_feide'">
+    <div v-if="status === 'not_feide'" class="mt-2">
       <button
         type="button"
         class="btn btn-secondary"
         data-bs-toggle="modal"
         data-bs-target="#loginModal"
       >
-        Logg inn med brukernavn og passord
+        Logg inn med demobruker
       </button>
     </div>
     <div v-else-if="status === 'not_school'">
