@@ -14,6 +14,8 @@ const getAppConfig = async () => {
     store.isAdmin = data.role ? data.role.isAdmin : false
     store.isEmployee = data.role ? data.role.isEmployee : false
     store.isAuthor = data.role ? data.role.isAuthor : false
+    // store.isExternalUser = data.role ? data.role.isExternalUser : false
+    store.hasSelfService = data.role ? data.role.hasSelfService : false
     store.defaultModel = data.defaultModel
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -50,12 +52,16 @@ watchEffect(() => {
     <div v-else class="nav-item">
       <a class="nav-link p-3" href="/auth/logout">Logg ut</a>
     </div>
+    <div v-if="store.hasSelfService" class="nav-item">
+      <RouterLink activeClass="active" class="nav-link p-3" to="/externaluser">Min side</RouterLink>
+    </div>
     <a v-if="store.isAdmin" data-bs-toggle="dropdown" class="nav-link p-3 dropdown-toggle" href="#">
       Administrasjon
     </a>
     <ul v-if="store.isAdmin" class="dropdown-menu">
       <RouterLink class="dropdown-item" to="/school_accesses">Skoletilgang</RouterLink>
       <RouterLink class="dropdown-item" to="/authors">Forfattere</RouterLink>
+      <RouterLink class="dropdown-item" to="/externalusers">Eksterne brukere</RouterLink>
       <RouterLink class="dropdown-item" to="/settings">Innstillinger</RouterLink>
     </ul>
     <div v-for="item in infoPages" :key="item.id" class="nav-item">

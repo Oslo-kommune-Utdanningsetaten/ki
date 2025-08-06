@@ -4,6 +4,7 @@ from .views import api, auth
 
 authurls = [
   path("auth/feidelogin/", auth.feidelogin, name="auth.feidelogin"),
+  path("auth/locallogin/", auth.locallogin, name="auth.locallogin"),
   path("auth/feidecallback", auth.feidecallback, name="feidecallback"),
   path("auth/logout/", auth.logout, name="auth.logout"),
   path("auth/logged_out/", auth.logged_out, name="auth.logged_out"),
@@ -20,6 +21,9 @@ apiurls = [
   path("api/bot_info/", api.bot_info, name="api.bot_info"),
   path("api/bot_info/<uuid:bot_uuid>", api.bot_info, name="api.bot_info"),
   path("api/user_info/", api.user_info, name="api.user_info"),
+  path("api/external_user_info/", api.external_user_info, name="api.external_user_info"),
+  path("api/external_user_info/<int:user_id>", api.external_user_info, name="api.external_user_info"),
+  path("api/external_users/", api.external_users, name="api.external_users"),
   path("api/settings", api.settings, name="api.settings"),
   path("api/school_access", api.school_access, name="api.school_access"),
   path("api/school_list", api.school_list, name="api.school_list"),
