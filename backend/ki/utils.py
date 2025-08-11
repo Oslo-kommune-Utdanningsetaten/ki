@@ -200,8 +200,8 @@ def get_user_log_data_from_userinfo(request):
     if (levels := request.userinfo.get('levels', None)) and role == 'student':
         level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
     # schools
-    schools = [ school.org_nr for school in request.userinfo.get('schools', [])]
-    return level, schools, role
+    school_org_nrs = [ school.org_nr for school in request.userinfo.get('schools', [])]
+    return level, school_org_nrs, role
 
 
 def get_admin_memberships_and_bots(username) -> dict:
@@ -228,8 +228,8 @@ async def use_log(bot_id, role=None, level=None, schools=[], message_length=1, i
     use_log = models.UseLog(bot_id=bot_id, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
     await use_log.asave()
 
-    for school_id in schools:
-        await models.LogSchool(school=school_id, use_log=use_log).asave()
+    for school_org_nr in schools:
+        await models.LogSchool(school_org_nr=school_org_nr, use_log=use_log).asave()
 
 
 def get_setting(setting_key):

@@ -223,11 +223,11 @@ class UseLog(models.Model):
 class LogSchool(models.Model):
     id = models.AutoField(primary_key=True)
     use_log = models.ForeignKey(UseLog, on_delete=models.CASCADE, related_name="schools")
-    school = models.CharField(max_length=20, null=True)
+    school_org_nr = models.CharField(max_length=20, null=True)
 
     class Meta:
         db_table = 'log_school'
-        # unique_together = ('use_log', 'school')
+        # unique_together = ('use_log', 'school_org_nr')
 
 
 class TagCategory(models.Model):
