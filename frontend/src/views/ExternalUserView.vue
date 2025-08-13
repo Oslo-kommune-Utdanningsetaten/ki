@@ -3,7 +3,7 @@ import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 import { store } from '../store'
 import { axiosInstance as axios } from '../clients'
-import { ref, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
 
 const user = ref({
   id: null,
@@ -15,7 +15,7 @@ const user = ref({
 const showOldPassword = ref(false)
 const showNewPassword = ref(false)
 
-watchEffect(() => {
+onMounted(() => {
   getUserInfo()
 })
 

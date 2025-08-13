@@ -62,7 +62,6 @@ async def chat_completion_azure_streamed(messages, model, temperature=DEFAULT_TE
                     yield "Beklager, vi stopper her! Dette er ikke passende innhold å vise. Start samtalen på nytt."
                     break
                 if line.choices[0].finish_reason == "length":
-                    # print(line.choices[0].content_filter_results)
                     yield "Grensen for antall tegn i samtalen er nådd."
                     break
                 if chunk:

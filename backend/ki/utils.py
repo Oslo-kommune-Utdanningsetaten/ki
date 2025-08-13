@@ -45,6 +45,17 @@ def get_memberships_from_db(username):
         memberships = user.memberships if user.memberships else None
     return memberships
 
+def get_external_userinfo(username):
+    from ki import models # Avoid circular import
+
+    user = models.ExternalUser.objects.filter(username=username).first()
+    if user:
+        return {
+            "username": user.username,
+            "name": user.name,
+            "has_self_service": user.has_self_service
+        }
+    return None
 
 def get_memberships(username, login_method, tokens):
     from ki import models # Avoid circular import

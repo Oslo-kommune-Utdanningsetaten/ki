@@ -66,7 +66,7 @@ def app_config(request):
         'trainingCutoff': default_model_obj.training_cutoff,
     }
     is_external_user = request.userinfo.get('external_user', False)
-    has_self_service = request.session.get('user.has_self_service', False)
+    has_self_service = request.userinfo.get('has_self_service', False)
 
     return Response({
         'infoPages': info_page_links,

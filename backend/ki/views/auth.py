@@ -10,7 +10,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ki.utils import  get_memberships, get_users_bots, has_school_access, get_admin_memberships_and_bots
+from ki.utils import  get_memberships, get_users_bots, has_school_access, get_admin_memberships_and_bots, get_external_userinfo
 from django.views.decorators.http import require_POST
 
 
@@ -46,6 +46,8 @@ def auth_middleware(get_response):
                 tokens = request.session.get('user.auth_token', None)
                 memberships = get_memberships(login_method=login_method, username=username, tokens=tokens)
                 if has_school_access(memberships):
+                    if login_method == 'local':
+                        request.userinfo.update(get_external_userinfo(username))
                     request.userinfo.update(memberships)
                     request.userinfo['bots'] = get_users_bots(username, memberships)
                     request.userinfo['has_access'] = True
@@ -168,13 +170,13 @@ def feidecallback(request):
 
 
 def logout(request):
-    token = request.session.get('user.auth_token', False)
+    tokens = request.session.get('user.auth_token', False)
     request.session.clear()
     request.userinfo['username'] = None
     request.userinfo['name'] = None
     request.userinfo['bots'] = []
-    if token:
-        id_token = token['id_token']
+    if tokens:
+        id_token = tokens['id_token']
         feide_provider_cfg = get_provider_cfg()
         redirect_uri=os.environ.get('FEIDE_LOGOUT_REDIR')
         end_session_endpoint = feide_provider_cfg["end_session_endpoint"]+'?'

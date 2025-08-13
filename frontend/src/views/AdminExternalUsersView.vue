@@ -7,7 +7,7 @@ import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const route = useRoute()
-const ExternalUsers = ref([])
+const externalUsers = ref([])
 const activeExternalUser = ref(null)
 const showPassword = ref(false)
 
@@ -20,7 +20,7 @@ onMounted(async () => {
 const getAllExternalUsers = async () => {
   try {
     const { data } = await axios.get('/api/external_users')
-    ExternalUsers.value = data.users
+    externalUsers.value = data.users
   } catch (error) {
     console.log(error)
   }
@@ -71,7 +71,6 @@ const addExternalUser = () => {
   activeExternalUser.value = {
     name: '',
     userId: '',
-    school: '',
   }
 }
 
@@ -242,7 +241,7 @@ const membershipsString = computed({
     <div class="card-body">
       <h3 class="h4">Eksterne brukere</h3>
       <ul class="list-group mb-2">
-        <li v-for="user in ExternalUsers" class="list-group-item">
+        <li v-for="user in externalUsers" class="list-group-item">
           <div class="row">
             <div class="col-4">{{ user.name }}</div>
             <div class="col-2">{{ user.username }}</div>
