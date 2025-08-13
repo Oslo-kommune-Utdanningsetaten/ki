@@ -245,7 +245,7 @@ def user_info(request):
 
 @api_view(["GET"])
 def external_users(request):
-    is_admin = request.userinfo.get('admin', False)
+    is_admin = request.userinfo.get('is_admin', False)
     if not is_admin:
         return Response(status=403)
 
@@ -264,7 +264,7 @@ def external_users(request):
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def external_user_info(request, user_id=None):
 
-    is_admin = request.userinfo.get('admin', False)
+    is_admin = request.userinfo.get('is_admin', False)
 
     if is_admin:
 

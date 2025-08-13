@@ -63,7 +63,7 @@ def get_memberships(username, login_method, tokens):
     schools = []
     levels = []
     groups = []
-    employee = False
+    is_employee = False
     feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
 
     if login_method == 'feide':

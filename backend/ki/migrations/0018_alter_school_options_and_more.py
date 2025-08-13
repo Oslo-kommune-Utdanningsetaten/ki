@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ki', '0016_role_user_name_alter_bot_allow_distribution_and_more'),
+        ('ki', '0017_localuser_alter_bot_allow_distribution_and_more'),
     ]
 
 
