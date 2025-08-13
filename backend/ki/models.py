@@ -1,5 +1,7 @@
 from django.db import models
 import uuid
+import bcrypt
+from django.utils import timezone
 
 
 class Setting(models.Model):
@@ -199,6 +201,41 @@ class Role(models.Model):
 
     class Meta:
         db_table = 'role'
+
+class ExternalUser(models.Model):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=50, null=True, unique=True)
+    password = models.CharField(max_length=128, null=True)
+    name = models.CharField(max_length=50, null=True)
+    has_self_service = models.BooleanField(default=False)
+    valid_to = models.DateTimeField(null=True, default=timezone.now)
+    memberships = models.JSONField(null=True, default=dict)
+
+    def set_password(self, raw_password):
+        if len(raw_password) < 8:
+            raise ValueError("Passordet må være minst 8 tegn langt")
+        pwd_bytes = raw_password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
+        self.password = hashed_password.decode('utf-8')
+
+    def check_password(self, raw_password):
+        if self.password is None:
+            return False
+        pwd_bytes = raw_password.encode('utf-8')
+        password_bytes = self.password.encode('utf-8')
+        return bcrypt.checkpw(pwd_bytes, password_bytes)
+    
+    def set_username(self, username, old_username=None):
+        if old_username != username:
+            if not username:
+                raise ValueError("Brukernavn kan ikke være tomt")
+            if ExternalUser.objects.filter(username=username).exists():
+                raise ValueError(f"Brukernavnet '{username}' er allerede i bruk")
+            self.username = username
+
+    class Meta:
+        db_table = 'external_user'
 
 
 class UseLog(models.Model):

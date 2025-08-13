@@ -1,7 +1,6 @@
 import { axiosInstance as axios } from '../clients'
 import { store } from '../store.js'
 
-
 export const getCookie = name => {
   let cookieValue = null
   if (document.cookie && document.cookie !== '') {
@@ -26,7 +25,7 @@ export const getUser = async () => {
   }
 }
 
-export const getBot = async (botId) => {
+export const getBot = async botId => {
   try {
     const { data } = await axios.get('/api/bot_info/' + botId)
     return data.bot
@@ -35,7 +34,7 @@ export const getBot = async (botId) => {
   }
 }
 
-export const deleteBot = async (botId) => {
+export const deleteBot = async botId => {
   try {
     await axios.delete('/api/bot_info/' + botId)
     store.addMessage('Boten er nå slettet', 'info')
@@ -63,23 +62,34 @@ export const submitTextPrompt = async (data, onProgressCallback) => {
     })
 }
 
-export const submitImagePrompt = async (data) => {
+export const submitImagePrompt = async data => {
   try {
-    const result = await axios.post(
-      '/api/send_img_message',
-      data,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        }
-      }
-    )
-    return { revisedPrompt: result.data.revised_prompt, imageUrl: result.data.url, systemMessage: result.data.system_message }
+    const result = await axios.post('/api/send_img_message', data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+    })
+    return {
+      revisedPrompt: result.data.revised_prompt,
+      imageUrl: result.data.url,
+      systemMessage: result.data.system_message,
+    }
   } catch (error) {
     console.log(error)
   }
 }
 
-
-
+export const submitLogin = async data => {
+  try {
+    const result = await axios.post('/auth/locallogin/', data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+    })
+    return result
+  } catch (error) {
+    console.log(error)
+  }
+}

@@ -22,16 +22,10 @@ aarstrinn_codes = {
 def get_memberships_from_feide(tokens):
     from ki import models # Avoid circular import
 
-    schools = []
-    levels = []
-    groups = []
-    employee = False
-
     if not (tokens):
         return None
 
     # get user's grups from dataporten
-    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
     groupinfo_response = requests.get(
@@ -40,8 +34,49 @@ def get_memberships_from_feide(tokens):
         )
     if groupinfo_response.status_code == 401:
         return None
-    groupinfo_response = groupinfo_response.json()
+    return groupinfo_response.json()
 
+        
+def get_memberships_from_db(username):
+    from ki import models # Avoid circular import
+
+    user = models.ExternalUser.objects.filter(username=username).first()
+    if user:
+        memberships = user.memberships if user.memberships else None
+    return memberships
+
+def get_external_userinfo(username):
+    from ki import models # Avoid circular import
+
+    user = models.ExternalUser.objects.filter(username=username).first()
+    if user:
+        return {
+            "username": user.username,
+            "name": user.name,
+            "has_self_service": user.has_self_service
+        }
+    return None
+
+def get_memberships(username, login_method, tokens):
+    from ki import models # Avoid circular import
+
+    schools = []
+    levels = []
+    groups = []
+    employee = False
+    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
+
+    if login_method == 'feide':
+        # get user's memberships from feide
+        groupinfo_response = get_memberships_from_feide(tokens)
+        # print(f"get_memberships: {groupinfo_response}")
+        if not groupinfo_response:
+            return None
+    elif login_method == 'local':
+        # get user's memberships from database
+        groupinfo_response = get_memberships_from_db(username)
+        if not groupinfo_response:
+            return None
     # get user's schools and levels and groups
     for group in groupinfo_response:
         # role empoyee from parent org

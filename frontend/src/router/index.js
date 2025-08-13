@@ -8,7 +8,9 @@ import InfoView from '../views/InfoView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import SchoolAccessesView from '../views/SchoolAccessesView.vue'
 import AuthorsView from '../views/AuthorsView.vue'
+import AdminExternalUsersView from '../views/AdminExternalUsersView.vue'
 import MessageView from '../views/MessageView.vue'
+import ExternalUserView from '../views/ExternalUserView.vue'
 import { store } from '../store'
 import { axiosInstance as axios } from '../clients'
 
@@ -69,6 +71,18 @@ const routes = [
     path: '/authors',
     name: 'authors',
     component: AuthorsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/externalusers',
+    name: 'externalUsers',
+    component: AdminExternalUsersView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/externaluser/',
+    name: 'externalUser',
+    component: ExternalUserView,
     meta: { requiresAuth: true },
   },
 ]
