@@ -6,38 +6,38 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.utils import use_log, get_user_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async
+from ki.utils import use_log, get_user_log_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async
 
 
 @api_view(["GET"])
 def page_text(request, page):
     try:
-        text_line = models.PageText.objects.get(page_id=page)
+        text_line = models.PageText.objects.get(id=page)
     except models.PageText.DoesNotExist:
         return Response(status=404)
 
-    if (not request.userinfo.get('employee', False)
-        and not request.userinfo.get('admin', False)
-            and not text_line.public):
+    if (not request.userinfo.get('is_employee', False)
+        and not request.userinfo.get('is_admin', False)
+            and not text_line.is_public):
         return Response(status=403)
 
     return Response({
         "page": page,
-        "contentText": text_line.page_text,
+        "contentText": text_line.text,
     })
 
 @api_view(["GET"])
 def school_list(request):
     if not request.session.get('user.username', None):
         return Response(status=403)
-    if not request.userinfo.get('admin', False):
+    if not request.userinfo.get('is_admin', False):
         return Response(status=403)
 
     schools = []
     for school in models.School.objects.all():
         schools.append({
             'orgNr': school.org_nr,
-            'schoolName': school.school_name,
+            'schoolName': school.name,
         })
 
     return Response({'schools': schools})
@@ -49,21 +49,22 @@ def app_config(request):
 
     if request.session.get('user.username', None):
         for page in info_pages:
-            if page.public or request.userinfo.get('employee', False) or request.userinfo.get('admin', False):
+            if page.is_public or request.userinfo.get('is_employee', False) or request.userinfo.get('is_admin', False):
                 info_page_links.append({
-                    'title': page.page_title,
-                    'url': f'/info/{page.page_id}',
+                    'title': page.title,
+                    'url': f'/info/{page.id}',
                 })
 
     # Get default model
     default_model_id = get_setting('default_model')
-    default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
-    default_model = {
-        'modelId': default_model_obj.model_id,
-        'displayName': default_model_obj.display_name,
-        'modelDescription': default_model_obj.model_description,
-        'deploymentId': default_model_obj.deployment_id,
-        'trainingCutoff': default_model_obj.training_cutoff,
+    default_model = models.BotModel.objects.get(id=default_model_id)
+    default_model_response = {
+        'modelId': default_model.id,
+        'deploymentKey': default_model.deployment_key,
+        'displayName': default_model.display_name,
+        'modelDescription': default_model.model_description,
+        'deploymentId': default_model.deployment_key,
+        'trainingCutoff': default_model.training_cutoff,
     }
     is_external_user = request.userinfo.get('external_user', False)
     has_self_service = request.userinfo.get('has_self_service', False)
@@ -71,12 +72,12 @@ def app_config(request):
     return Response({
         'infoPages': info_page_links,
         'role': {
-            'isAdmin': request.userinfo.get('admin', False),
-            'isEmployee': request.userinfo.get('employee', False),
-            'isAuthor': request.userinfo.get('author', False),
+            'isAdmin': request.userinfo.get('is_admin', False),
+            'isEmployee': request.userinfo.get('is_employee', False),
+            'isAuthor': request.userinfo.get('is_author', False),
             'hasSelfService': is_external_user and has_self_service,
         },
-        'defaultModel': default_model,
+        'defaultModel': default_model_response,
     })
 
 
@@ -84,24 +85,24 @@ def app_config(request):
 def favorite(request, bot_uuid):
     if not request.session.get('user.username', None):
         return Response(status=403)
-    if not request.userinfo.get('employee', False):
-        return Response(status=403)
-
-    if not str(bot_uuid) in request.userinfo.get('bots', []):
+    if not request.userinfo.get('is_employee', False):
         return Response(status=403)
 
     try:
-        bot = models.Bot.objects.get(uuid=bot_uuid)
+        bot = models.Bot.objects.get(id=bot_uuid)
     except models.Bot.DoesNotExist:
         return Response(status=404)
 
+    if not bot in request.userinfo.get('bots', []):
+        return Response(status=403)
+
     if request.method == "PUT":
-        if favorite := bot.favorites.filter(user_id=request.userinfo.get('username', '')).first():
+        if favorite := bot.favorites.filter(feide_user=request.userinfo.get('username', '')).first():
             favorite.delete()
             return Response({'favorite': False})
         else:
             favorite = models.Favorite(
-                bot_id=bot, user_id=request.userinfo.get('username', ''))
+                bot=bot, feide_user=request.userinfo.get('username', ''))
             favorite.save()
             return Response({'favorite': True})
 
@@ -111,8 +112,8 @@ def bot_models(request):
     return Response({
         'models': [
             {
-                'deploymentId': model.deployment_id,
-                'modelId': model.model_id,
+                'deploymentId': model.deployment_key,
+                'modelId': model.id,
                 'displayName': model.display_name,
                 'modelDescription': model.model_description,
                 'trainingCutoff': model.training_cutoff,
@@ -135,56 +136,55 @@ def user_bots(request):
             'bots': None,
         })
 
-    tag_categories = []
-    for category in models.TagCategory.objects.all():
-        tag_categories.append({
-            'id': category.category_id,
-            'label': category.category_name,
-            'order': category.category_order,
+    tag_categories_response = []
+    for tag_category in models.TagCategory.objects.all():
+        tag_categories_response.append({
+            'id': tag_category.id,
+            'label': tag_category.name,
+            'order': tag_category.order,
             'tagItems': [
                 {
-                    'id': tag.tag_label_id,
-                    'label': tag.tag_label_name,
-                    'order': tag.tag_label_order,
-                    'weight': tag.tag_label_weight,
+                    'id': tag.id,
+                    'label': tag.name,
+                    'order': tag.order,
+                    'weight': tag.weight,
                     'checked': False,
                 }
-                for tag in category.tag_labels.all()
+                for tag in tag_category.tag_labels.all()
             ],
         })
 
-    users_bots = [models.Bot.objects.get(uuid=bot_id)
-                  for bot_id in request.userinfo.get('bots', [])]
+    users_bots = request.userinfo.get('bots', [])
 
-    if request.userinfo.get('admin', False):
+    if request.userinfo.get('is_admin', False):
         for bot in users_bots:
             bot.access_count = bot.accesses.exclude(access='none').count()
 
     return_bots = [
         {
-            'uuid': bot.uuid,
+            'uuid': bot.id,
             'botTitle': bot.title,
             'favorite': True 
-                    if (bot.favorites.filter(user_id=request.userinfo.get('username', '')).first())
+                    if (bot.favorites.filter(feide_user=request.userinfo.get('username', '')).first())
                     else False,
-            'mandatory': bot.mandatory,
-            'imgBot': bot.img_bot,
+            'mandatory': bot.is_mandatory,
+            'imgBot': bot.is_img_bot,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
-            'personal': not bot.library,
-            'allowDistribution': bot.allow_distribution,
+            'personal': not bot.is_library_bot,
+            'allowDistribution': bot.is_distribution_allowed,
             'botInfo': bot.bot_info or '',
             'tag': [{
-                'categoryId': tag['category_id'], 
-                'tagValue': tag['tag_value']
+                'categoryId': tag['category'], 
+                'tagValue': tag['value']
                 } 
-                for tag in bot.tags.all().values('category_id', 'tag_value')] if bot.library else [],
-            'accessCount': bot.access_count if request.userinfo.get('admin', False) else 0,
+                for tag in bot.tags.all().values('category', 'value')] if bot.is_library_bot else [],
+            'accessCount': bot.access_count if request.userinfo.get('is_admin', False) else 0,
         }
         for bot in users_bots]
 
     return Response({
         'bots': return_bots,
-        'tagCategories': tag_categories,
+        'tagCategories': tag_categories_response,
         'status': 'ok',
         'isBotFilteringEnabled': get_setting('is_bot_filtering_enabled'),
     })
@@ -195,18 +195,19 @@ def user_info(request):
     # Roles
     roles = []
     role = 'student'
-    if request.userinfo.get('employee', False):
+    if request.userinfo.get('is_employee', False):
         role = 'employee'
         roles.append(role)
-    if request.userinfo.get('admin', False):
+    if request.userinfo.get('is_admin', False):
         role = 'admin'
         roles.append(role)
     # Schools
     schools = []
     for school in request.userinfo.get('schools', []):
         schools.append({
+            'id': school.id,
             'orgNr': school.org_nr,
-            'schoolName': school.school_name,
+            'schoolName': school.name,
         })
     
     auth_school = {
@@ -215,8 +216,9 @@ def user_info(request):
     }
     if auth_school_obj := request.userinfo.get('auth_school', None):
         auth_school = {
+            'id': auth_school_obj.id,
             'orgNr': auth_school_obj.org_nr,
-            'schoolName': auth_school_obj.school_name,
+            'schoolName': auth_school_obj.name,
         }
 
     # Levels
@@ -228,9 +230,9 @@ def user_info(request):
         'user': {
             'username': request.userinfo.get('username', None),
             'name': request.userinfo.get('name', None),
-            'isAdmin': request.userinfo.get('admin', False),
-            'isEmployee': request.userinfo.get('employee', False),
-            'isAuthor': request.userinfo.get('author', False),
+            'isAdmin': request.userinfo.get('is_admin', False),
+            'isEmployee': request.userinfo.get('is_employee', False),
+            'isAuthor': request.userinfo.get('is_author', False),
             'schools': schools,
             'authSchool': auth_school,
             'role': role,
@@ -378,9 +380,9 @@ def external_user_info(request, user_id=None):
 def empty_bot(request, bot_type):
 
     library = bot_type == 'library'
-    is_admin = request.userinfo.get('admin', False)
-    is_employee = request.userinfo.get('employee', False)
-    is_author = request.userinfo.get('author', False)
+    is_admin = request.userinfo.get('is_admin', False)
+    is_employee = request.userinfo.get('is_employee', False)
+    is_author = request.userinfo.get('is_author', False)
 
     if not is_admin and not is_employee:
         return Response(status=403)
@@ -396,27 +398,28 @@ def empty_bot(request, bot_type):
             school_list = [request.userinfo.get('auth_school')]
         for school in school_list:
             school_access_list.append({
+                'id': school.id,
                 'orgNr': school.org_nr,
-                'schoolName': school.school_name,
+                'schoolName': school.name,
                 'access': 'none',
                 'accessList': [],
             })
 
     tag_categories = []
-    for category in models.TagCategory.objects.all().order_by('category_order'):
+    for category in models.TagCategory.objects.all().order_by('order'):
         tag_items = []
-        for tag_label in category.tag_labels.all().order_by('tag_label_order'):
+        for tag_label in category.tag_labels.all().order_by('order'):
             tag_items.append({
-                'id': tag_label.tag_label_id,
-                'label': tag_label.tag_label_name,
-                'order': tag_label.tag_label_order,
-                'weight': tag_label.tag_label_weight,
+                'id': tag_label.id,
+                'label': tag_label.name,
+                'order': tag_label.order,
+                'weight': tag_label.weight,
                 'checked': False,
             })
         tag_categories.append({
-            'id': category.category_id,
-            'label': category.category_name,
-            'order': category.category_order,
+            'id': category.id,
+            'label': category.name,
+            'order': category.order,
             'tags': tag_items,
         })
 
@@ -447,9 +450,9 @@ def empty_bot(request, bot_type):
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def bot_info(request, bot_uuid=None):
 
-    is_admin = request.userinfo.get('admin', False)
-    is_employee = request.userinfo.get('employee', False)
-    is_author = request.userinfo.get('author', False)
+    is_admin = request.userinfo.get('is_admin', False)
+    is_employee = request.userinfo.get('is_employee', False)
+    is_author = request.userinfo.get('is_author', False)
 
     new_bot = False if bot_uuid else True
 
@@ -461,7 +464,7 @@ def bot_info(request, bot_uuid=None):
         bot.owner = request.userinfo.get('username')
     else: # Get existing bot
         try:
-            bot = models.Bot.objects.get(uuid=bot_uuid)
+            bot = models.Bot.objects.get(id=bot_uuid)
         except models.Bot.DoesNotExist:
             return Response(status=404)
     is_owner = bot.owner == request.userinfo.get('username', None)
@@ -478,13 +481,13 @@ def bot_info(request, bot_uuid=None):
         bot.ingress = body.get('ingress', bot.ingress)
         bot.prompt = body.get('prompt', bot.prompt)
         bot.bot_info = body.get('botInfo', bot.bot_info)
-        bot.prompt_visibility = body.get('promptVisibility', bot.prompt_visibility)
-        bot.allow_distribution = body.get('allowDistribution', bot.allow_distribution)
-        bot.mandatory = body.get('mandatory', bot.mandatory)
+        bot.is_prompt_visible = body.get('promptVisibility', bot.is_prompt_visible)
+        bot.is_distribution_allowed = body.get('allowDistribution', bot.is_distribution_allowed)
+        bot.is_mandatory = body.get('mandatory', bot.is_mandatory)
         bot.is_audio_enabled = body.get('isAudioEnabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
         bot.avatar_scheme = ','.join([str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get('avatarScheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
-        bot.library = body.get('library', bot.library)
+        bot.is_library_bot = body.get('library', bot.is_library_bot)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
         bot.owner = None if bot.owner == '' else bot.owner
         
@@ -495,72 +498,78 @@ def bot_info(request, bot_uuid=None):
             model != "none" and
             (model_id := model.get('modelId', False))
         ):
-            bot.model_id = models.BotModel.objects.get(model_id=model_id)
+            bot.model = models.BotModel.objects.get(id=model_id)
         else:
-            bot.model_id = None
+            bot.model = None
     
         bot.save()
 
         # save tags
         if body.get('tagCategories', False):
+
             def array_to_binary(arr):
-                return sum([1 << tag.get('weight') for tag in arr if tag.get('checked', False)])
-            for tag_category in body.get('tagCategories', []):
-                tag_obj = bot.tags.filter(category_id=tag_category.get('id')).first()
-                if not tag_obj:
-                    tag_obj = models.Tag(bot_id=bot, category_id_id=tag_category.get('id'))
-                tag_obj.tag_value = array_to_binary([
-                        {'weight': tag.get('weight'), 'checked': tag.get('checked')} 
-                        for tag in tag_category.get('tags', [])])
-                tag_obj.save()
+                return sum([1 << entry.get('weight') for entry in arr if entry.get('checked', False)])
+            for tag_category_reponse in body.get('tagCategories', []):
+                tag = bot.tags.filter(category=tag_category_reponse.get('id')).first()
+                if not tag:
+                    tag = models.Tag(
+                        bot=bot, 
+                        category=models.TagCategory.objects.get(id=tag_category_reponse.get('id'))
+                    )
+                tag.value = array_to_binary([
+                        {'weight': tag_choice.get('weight'), 'checked': tag_choice.get('checked')} 
+                        for tag_choice in tag_category_reponse.get('tags', [])])
+                tag.save()
         
         # save choices and options
         # delete all choices and options before saving new ones
         if not new_bot:
-            for choice in bot.prompt_choices.all():
-                choice.options.all().delete()
-                choice.delete()
+            for choice_response in bot.prompt_choices.all():
+                choice_response.options.all().delete()
+                choice_response.delete()
 
-        for choice in body.get('choices', []):
+        for choice_response in body.get('choices', []):
             prompt_choice = models.PromptChoice(
-                    id=choice.get('id'),
-                    bot_id=bot,
-                    label=choice.get('label'),
-                    order=choice.get('order'),
+                    id=choice_response.get('id'),
+                    bot=bot,
+                    label=choice_response.get('label'),
+                    order=choice_response.get('order'),
             )
             prompt_choice.save()
 
-            for option in choice.get('options', []):
+            for option_response in choice_response.get('options', []):
                 choice_option = models.ChoiceOption(
-                        id=option.get('id'),
-                        choice_id=prompt_choice, 
-                        label=option.get('label'), 
-                        text=option.get('text'),
-                        order=option.get('order'),
-                        is_default=choice.get('selected').get('id', 0) == option.get('id')\
-                            if choice.get('selected', False) else False
+                        id=option_response.get('id'),
+                        choice=prompt_choice, 
+                        label=option_response.get('label'), 
+                        text=option_response.get('text'),
+                        order=option_response.get('order'),
+                        is_default=choice_response.get('selected').get('id', 0) == option_response.get('id')\
+                            if choice_response.get('selected', False) else False
                 )
                 choice_option.save()
         
         # save school access
         if is_admin or is_author:
-            for school in body.get('schoolAccesses', []):
-                school_obj = models.School.objects.get(org_nr=school.get('orgNr'))
-                if is_author and school_obj != request.userinfo.get('authSchool'):
+            for school_response in body.get('schoolAccesses', []):
+                school = models.School.objects.get(id=school_response.get('id'))
+                if not school:
                     continue
-                if is_author and not school.get('access', 'none') in ['none', 'emp']:
+                if is_author and school != request.userinfo.get('auth_school'):
                     continue
-                bot_access = school_obj.accesses.filter(bot_id=bot).first()
+                if is_author and not school_response.get('access', 'none') in ['none', 'emp']:
+                    continue
+                bot_access = school.accesses.filter(bot=bot).first()
                 if bot_access:
-                    bot_access.access = school.get('access', 'none')
+                    bot_access.access = school_response.get('access', 'none')
                 else:
                     bot_access = models.BotAccess(
-                        bot_id=bot, school_id=school_obj, access=school.get('access', 'none'))
+                        bot=bot, school=school, access=school_response.get('access', 'none'))
                 if bot_access.access == 'levels':
                     if not new_bot:
                         bot_access.levels.all().delete()
-                    for level in school.get('accessList', []):
-                        access = models.BotLevel(access_id=bot_access, level=level)
+                    for level in school_response.get('accessList', []):
+                        access = models.BotLevel(bot_access=bot_access, level=level)
                         access.save()
                 bot_access.save() 
 
@@ -592,17 +601,17 @@ def bot_info(request, bot_uuid=None):
                 valid_from, valid_to = incoming_group.get('validRange', [None, None])
                 if not is_valid_dates(valid_from, valid_to):
                     continue
-                if not (subject_access := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=incoming_group_id).first()):
+                if not (subject_access := models.SubjectAccess.objects.filter(bot=bot, subject_id=incoming_group_id).first()):
                     subject_access = models.SubjectAccess(
-                        bot_id=bot, subject_id=incoming_group_id)
+                        bot=bot, subject_id=incoming_group_id)
                 subject_access.valid_from = valid_from
                 subject_access.valid_to = valid_to
                 subject_access.save()
             else:
-                if subject_access := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=incoming_group_id).first():
+                if subject_access := models.SubjectAccess.objects.filter(bot=bot, subject_id=incoming_group_id).first():
                     subject_access.delete()
 
-        return Response({'bot': {'uuid': bot.uuid }})
+        return Response({'bot': {'uuid': bot.id }})
 
     if request.method == "DELETE":
         if not is_owner and not is_admin:
@@ -612,21 +621,21 @@ def bot_info(request, bot_uuid=None):
 
     # build response
     choices = []
-    for choice in bot.prompt_choices.all():
+    for choice_response in bot.prompt_choices.all():
         options = []
-        default_option = choice.options.filter(is_default=True).first()
-        for option in choice.options.all():
+        default_option = choice_response.options.filter(is_default=True).first()
+        for option_response in choice_response.options.all():
             options.append({
-                'id': option.id,
-                'label': option.label,
-                'text': option.text,
-                'order': option.order,
+                'id': option_response.id,
+                'label': option_response.label,
+                'text': option_response.text,
+                'order': option_response.order,
             })
         choices.append({
-            'id': choice.id,
-            'label': choice.label,
+            'id': choice_response.id,
+            'label': choice_response.label,
             'options': options,
-            'order': choice.order,
+            'order': choice_response.order,
             'selected': {
                 'id': default_option.id,
                 'label': default_option.label,
@@ -644,50 +653,52 @@ def bot_info(request, bot_uuid=None):
     for school in school_list:
         if new_bot:
             school_access_list.append({
+                'id': school.id,
                 'orgNr': school.org_nr,
-                'schoolName': school.school_name,
+                'schoolName': school.name,
                 'access': 'none',
                 'accessList': [],
             })
         else:
             access_dict = []
-            bot_access = bot.accesses.filter(school_id=school.org_nr).first()
+            bot_access = bot.accesses.filter(school=school.id).first()
             if bot_access and bot_access.access == 'levels':
                 access_dict = [
                     access.level for access in bot_access.levels.all()]
             school_access_list.append({
+                'id': school.id,
                 'orgNr': school.org_nr,
-                'schoolName': school.school_name,
+                'schoolName': school.name,
                 'access': bot_access.access if bot_access else 'none',
                 'accessList': access_dict,
             })
 
     tag_categories = []
-    for category in models.TagCategory.objects.all().order_by('category_order'):
-        tag_obj = bot.tags.filter(category_id=category.category_id).first()
+    for category in models.TagCategory.objects.all().order_by('order'):
+        tag = bot.tags.filter(category=category.id).first()
         tag_items = []
-        for tag_label in category.tag_labels.all().order_by('tag_label_order'):
+        for tag_label in category.tag_labels.all().order_by('order'):
             tag_items.append({
-                'id': tag_label.tag_label_id,
-                'label': tag_label.tag_label_name,
-                'order': tag_label.tag_label_order,
-                'weight': tag_label.tag_label_weight,
-                'checked': bool(tag_obj.tag_value >> tag_label.tag_label_weight & 1) if tag_obj else False,
+                'id': tag_label.id,
+                'label': tag_label.name,
+                'order': tag_label.order,
+                'weight': tag_label.weight,
+                'checked': bool(tag.value >> tag_label.weight & 1) if tag else False,
             })
         tag_categories.append({
-            'id': category.category_id,
-            'label': category.category_name,
-            'order': category.category_order,
+            'id': category.id,
+            'label': category.name,
+            'order': category.order,
             'tags': tag_items,
         })
 
     bot_model = {
-        'modelId': bot.model_id.model_id,
-        'displayName': bot.model_id.display_name,
-        'modelDescription': bot.model_id.model_description,
-        'deploymentId': bot.model_id.deployment_id,
-        'trainingCutoff': bot.model_id.training_cutoff,
-    } if bot.model_id else None
+        'modelId': bot.model.id,
+        'displayName': bot.model.display_name,
+        'modelDescription': bot.model.model_description,
+        'deploymentId': bot.model.deployment_key,
+        'trainingCutoff': bot.model.training_cutoff,
+    } if bot.model else None
 
     groups_access_list = []
     if is_employee:
@@ -695,16 +706,16 @@ def bot_info(request, bot_uuid=None):
 
     return Response({
         'bot': {
-            'uuid': bot.uuid,
+            'uuid': bot.id,
             'title': bot.title,
             'ingress': bot.ingress,
             'prompt': bot.prompt,
             'botInfo': bot.bot_info,
-            'imgBot': bot.img_bot,
-            'promptVisibility': bot.prompt_visibility,
-            'allowDistribution': bot.allow_distribution,
-            'mandatory': bot.mandatory,
-            'library': bot.library,
+            'imgBot': bot.is_img_bot,
+            'promptVisibility': bot.is_prompt_visible,
+            'allowDistribution': bot.is_distribution_allowed,
+            'mandatory': bot.is_mandatory,
+            'library': bot.is_library_bot,
             'isAudioEnabled': bot.is_audio_enabled,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
@@ -724,7 +735,7 @@ def bot_info(request, bot_uuid=None):
 @api_view(["GET", "PUT"])
 def settings(request):
 
-    if not request.userinfo.get('admin', False):
+    if not request.userinfo.get('is_admin', False):
         return HttpResponseForbidden()
 
     if request.method == "PUT":
@@ -756,7 +767,7 @@ def settings(request):
 
 @api_view(["GET", "PUT"])
 def school_access(request):
-    if not request.userinfo.get('admin', False):
+    if not request.userinfo.get('is_admin', False):
         return HttpResponseForbidden()
 
     if request.method == "PUT":
@@ -782,7 +793,7 @@ def school_access(request):
 
         response.append({
             'orgNr': school.org_nr,
-            'schoolName': school.school_name,
+            'schoolName': school.name,
             'access': school.access,
             'accessList': access_list,
         })
@@ -791,7 +802,7 @@ def school_access(request):
 
 @api_view(["GET", "PUT", "DELETE"])
 def authors(request):
-    if not request.userinfo.get('admin', False):
+    if not request.userinfo.get('is_admin', False):
         return HttpResponseForbidden()
 
     feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
@@ -799,7 +810,7 @@ def authors(request):
         body = json.loads(request.body)
         author_body = body.get('author', False)
         full_id = f"{author_body.get('userId')}@{feide_realm}"
-        author = models.Role.objects.filter(user_id=full_id).first()
+        author = models.Role.objects.filter(feide_user=full_id).first()
         if author:
             author.delete()
 
@@ -807,10 +818,12 @@ def authors(request):
         body = json.loads(request.body)
         author_body = body.get('author', False)
         full_id = f"{author_body.get('userId')}@{feide_realm}"
+        author = models.Role.objects.filter(feide_user=full_id).first()
+        full_id = author_body.get('userId') + '@feide.osloskolen.no'
         author = models.Role.objects.filter(user_id=full_id).first()
         if not author:
             author = models.Role()
-            author.user_id = full_id
+            author.feide_user = full_id
             author.role = 'author'
         author.user_name = author_body.get('name')
         author.school = models.School.objects.get(org_nr=author_body.get('schoolId'))
@@ -820,7 +833,7 @@ def authors(request):
     response = []
     for author in authors:
         response.append({
-            'userId': author.user_id.split('@')[0],
+            'userId': author.feide_user.split('@')[0],
             'name': author.user_name or '',
             'schoolId': author.school.org_nr,
         })
@@ -830,12 +843,12 @@ def authors(request):
 @api_view(["POST"])
 def start_message(request, uuid):
     try:
-        bot = models.Bot.objects.get(uuid=uuid)
+        bot = models.Bot.objects.get(id=uuid)
     except models.Bot.DoesNotExist:
         return Response(status=404)
 
     return Response({'bot': {
-        'uuid': bot.uuid,
+        'uuid': bot.id,
         'title': bot.title,
         'ingress': bot.ingress,
         'prompt': bot.prompt,
@@ -844,42 +857,43 @@ def start_message(request, uuid):
 
 async def send_message(request):
     body = json.loads(request.body)
-    bot_uuid = body.get('uuid')
+    bot_id = body.get('uuid')
     messages = body.get('messages')
-    is_admin = request.userinfo.get('admin', False)
-    has_bot_access = bot_uuid in request.userinfo.get('bots', [])
-    if not (has_bot_access or is_admin):
-        return HttpResponseForbidden()
     try:
-        bot = await models.Bot.objects.aget(uuid=bot_uuid)
-        try:
-            bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
-        except models.BotModel.DoesNotExist:
-            default_model_id = await get_setting_async('default_model')
-            bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
-        bot_model = bot_model_obj.deployment_id
+        bot = await models.Bot.objects.aget(id=bot_id)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    level, schools, role = get_user_data_from_userinfo(request)
-    await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
-    return await chat_completion_azure_streamed(messages, bot_model, temperature=bot.temperature)
+    try:
+        bot_model = await models.BotModel.objects.aget(id=bot.model_id)
+    except models.BotModel.DoesNotExist:
+        default_model_id = await get_setting_async('default_model')
+        # setting = await models.Setting.objects.filter(setting_key='default_model').first()
+        bot_model = await models.BotModel.objects.aget(id=default_model_id)
+    bot_model_key = bot_model.deployment_key
+    is_admin = request.userinfo.get('is_admin', False)
+    has_bot_access = bot in request.userinfo.get('bots', [])
+    if not (has_bot_access or is_admin):
+        return HttpResponseForbidden()
+    level, schools, role = get_user_log_data_from_userinfo(request)
+    await use_log(bot_id, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
+    return await chat_completion_azure_streamed(messages, bot_model_key, temperature=bot.temperature)
 
 
 async def send_img_message(request):
     body = json.loads(request.body)
-    bot_uuid = body.get('uuid')
+    bot_id = body.get('uuid')
     messages = body.get('messages')
     prompt = messages[-1].get('content')
-    is_admin = request.userinfo.get('admin', False)
-    has_bot_access = bot_uuid in request.userinfo.get('bots', [])
+    is_admin = request.userinfo.get('is_admin', False)
+    has_bot_access = bot_id in request.userinfo.get('bots', [])
     if not (has_bot_access or is_admin):
         return HttpResponseForbidden()
     try:
-        bot = await models.Bot.objects.aget(uuid=bot_uuid)
-        bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
+        bot = await models.Bot.objects.aget(id=bot_id)
+        bot_model_obj = await models.BotModel.objects.aget(id=bot.model_id)
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
-    level, schools, role = get_user_data_from_userinfo(request)
-    await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
-    return await generate_image_azure(prompt, model=bot_model_obj.deployment_id)
+    level, schools, role = get_user_log_data_from_userinfo(request)
+    await use_log(bot_id, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
+    return await generate_image_azure(prompt, model=bot_model_obj.deployment_key)
 
