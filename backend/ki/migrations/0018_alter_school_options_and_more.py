@@ -121,6 +121,13 @@ class Migration(migrations.Migration):
 
         # School
         migrations.AlterField(
+            # Remove the old foreign key constraint
+            model_name='schoolaccess',
+            name='school_id',
+            field=models.CharField(max_length=50, null=True, blank=True),
+        ),
+
+        migrations.AlterField(
             # Remove the old primary index 
             model_name='school',
             name='org_nr',
@@ -237,12 +244,6 @@ class Migration(migrations.Migration):
             model_name='schoolaccess',
             old_name='access_id',
             new_name='id',
-        ),
-        migrations.AlterField(
-            # Remove the old foreign key constraint
-            model_name='schoolaccess',
-            name='school_id',
-            field=models.CharField(max_length=50, null=True, blank=True),
         ),
         migrations.AddField(
             # Add a temporary field to hold the new foreign key
