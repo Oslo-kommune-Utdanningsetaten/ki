@@ -122,7 +122,19 @@ class Migration(migrations.Migration):
         # School
         migrations.AlterField(
             # Remove the old foreign key constraint
+            model_name='role',
+            name='school',
+            field=models.CharField(max_length=50, null=True, blank=True),
+        ),
+        migrations.AlterField(
+            # Remove the old foreign key constraint
             model_name='schoolaccess',
+            name='school_id',
+            field=models.CharField(max_length=50, null=True, blank=True),
+        ),
+        migrations.AlterField(
+            # Remove the old foreign key constraint
+            model_name='botaccess',
             name='school_id',
             field=models.CharField(max_length=50, null=True, blank=True),
         ),
@@ -201,12 +213,6 @@ class Migration(migrations.Migration):
             name='id',
             field=models.AutoField(primary_key=True),
         ),
-        migrations.AlterField(
-            # Remove the old foreign key constraint
-            model_name='role',
-            name='school',
-            field=models.CharField(max_length=50, null=True, blank=True),
-        ),
         migrations.AddField(
             # Add a temporary field to hold the new foreign key
             model_name='role',
@@ -251,8 +257,8 @@ class Migration(migrations.Migration):
             name='school_temporary',
             field=models.IntegerField(null=True, blank=True),
         ),
-        migrations.RunSQL(change_school_access_foreign_key, migrations.RunSQL.noop),
         # Update the temporary field with the new foreign key values
+        migrations.RunSQL(change_school_access_foreign_key, migrations.RunSQL.noop),
         migrations.RemoveField(
             # Remove the old foreign key field
             model_name='schoolaccess',
@@ -291,12 +297,6 @@ class Migration(migrations.Migration):
             # Remove the old unique constraint
             name='botaccess',
             unique_together=set(),
-        ),
-        migrations.AlterField(
-            # Remove the old foreign key constraint
-            model_name='botaccess',
-            name='school_id',
-            field=models.CharField(max_length=50, null=True, blank=True),
         ),
         migrations.AddField(
             # Add a temporary field to hold the new foreign key
