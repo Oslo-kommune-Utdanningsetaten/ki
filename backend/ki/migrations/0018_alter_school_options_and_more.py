@@ -132,6 +132,11 @@ class Migration(migrations.Migration):
             name='school_id',
             field=models.CharField(max_length=50, null=True, blank=True),
         ),
+        migrations.AlterUniqueTogether(
+            # Remove the old unique constraint
+            name='botaccess',
+            unique_together=set(),
+        ),
         migrations.AlterField(
             # Remove the old foreign key constraint
             model_name='botaccess',
@@ -292,11 +297,6 @@ class Migration(migrations.Migration):
             model_name='botaccess',
             old_name='bot_id',
             new_name='bot',
-        ),
-        migrations.AlterUniqueTogether(
-            # Remove the old unique constraint
-            name='botaccess',
-            unique_together=set(),
         ),
         migrations.AddField(
             # Add a temporary field to hold the new foreign key
