@@ -11,24 +11,6 @@ class Migration(migrations.Migration):
     ]
 
 
-    change_role_foreign_key = """
-                UPDATE role JOIN school ON role.school = school.org_nr 
-                SET role.school_temporary = school.id 
-                WHERE role.school IS NOT NULL;
-    """
-
-    change_school_access_foreign_key = """
-                UPDATE school_access JOIN school ON school_access.school_id = school.org_nr 
-                SET school_access.school_temporary = school.id 
-                WHERE school_access.school_id IS NOT NULL;
-    """
-
-    change_bot_access_foreign_key = """
-                UPDATE bot_access JOIN school ON bot_access.school_id = school.org_nr 
-                SET bot_access.school_temporary = school.id 
-                WHERE bot_access.school_id IS NOT NULL;
-    """
-
     operations = [
 
         # Setting
@@ -36,87 +18,6 @@ class Migration(migrations.Migration):
             model_name='setting',
             name='setting_key',
             field=models.CharField(max_length=50, unique=True),
-        ),
-        migrations.AddField(
-            model_name='setting',
-            name='id',
-            field=models.AutoField(primary_key=True),
-        ),
-
-        # Bot
-        migrations.RenameField(
-            model_name='bot',
-            old_name='uuid',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='bot',
-            old_name='model_id',
-            new_name='model',
-        ),
-        migrations.RenameField(
-            model_name='bot',
-            old_name='prompt_visibility',
-            new_name='is_prompt_visible',
-        ),
-        migrations.RenameField(
-            model_name='bot',
-            old_name='library',
-            new_name='is_library_bot',
-        ),
-        migrations.RenameField(
-            model_name='bot',
-            old_name='allow_distribution',
-            new_name='is_distribution_allowed',
-        ),
-        migrations.RenameField(
-            model_name='bot',
-            old_name='mandatory',
-            new_name='is_mandatory',
-        ),
-        migrations.RenameField(
-            model_name='bot',
-            old_name='img_bot',
-            new_name='is_img_bot',
-        ),
-
-        # BotModel
-        migrations.RenameField(
-            model_name='botmodel',
-            old_name='model_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='botmodel',
-            old_name='deployment_id',
-            new_name='deployment_key',
-        ),
-
-        # Favorite
-        migrations.RenameField(
-            model_name='favorite',
-            old_name='bot_id',
-            new_name='bot',
-        ),
-        migrations.RenameField(
-            model_name='favorite',
-            old_name='user_id',
-            new_name='feide_user',
-        ),
-
-
-        # PromptChoice
-        migrations.RenameField(
-            model_name='promptchoice',
-            old_name='bot_id',
-            new_name='bot',
-        ),
-
-        # ChoiceOption
-        migrations.RenameField(
-            model_name='choiceoption',
-            old_name='choice_id',
-            new_name='choice',
         ),
 
         # School
@@ -143,62 +44,11 @@ class Migration(migrations.Migration):
             name='school_id',
             field=models.CharField(max_length=50, null=True, blank=True),
         ),
-
         migrations.AlterField(
             # Remove the old primary index 
             model_name='school',
             name='org_nr',
             field=models.CharField(max_length=20, unique=True),
-        ),
-        migrations.AddField(
-            model_name='school',
-            name='id',
-            field=models.AutoField(primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.RenameField(
-            model_name='school',
-            old_name='school_name',
-            new_name='name',
-        ),
-        migrations.RenameField(
-            model_name='school',
-            old_name='school_code',
-            new_name='code',
-        ),
-
-        # BotLevel
-        migrations.RenameField(
-            model_name='botlevel',
-            old_name='level_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='botlevel',
-            old_name='access_id',
-            new_name='bot_access',
-        ),
-
-        # PageText
-        migrations.RenameField(
-            model_name='pagetext',
-            old_name='page_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='pagetext',
-            old_name='page_title',
-            new_name='title',
-        ),
-        migrations.RenameField(
-            model_name='pagetext',
-            old_name='page_text',
-            new_name='text',
-        ),
-        migrations.RenameField(
-            model_name='pagetext',
-            old_name='public',
-            new_name='is_public',
         ),
 
         # Role
@@ -207,138 +57,6 @@ class Migration(migrations.Migration):
             model_name='role',
             name='user_id',
             field=models.CharField(max_length=50, unique=True),
-        ),
-        migrations.RenameField(
-            model_name='role',
-            old_name='user_id',
-            new_name='feide_user',
-        ),
-        migrations.AddField(
-            model_name='role',
-            name='id',
-            field=models.AutoField(primary_key=True),
-        ),
-        migrations.AddField(
-            # Add a temporary field to hold the new foreign key
-            model_name='role',
-            name='school_temporary',
-            field=models.IntegerField(null=True, blank=True),
-        ),
-        # Update the temporary field with the new foreign key values
-        migrations.RunSQL(change_role_foreign_key, migrations.RunSQL.noop),
-        migrations.RemoveField(
-            # Remove the old foreign key field
-            model_name='role',
-            name='school',
-        ),
-        migrations.RenameField(
-            # Rename the temporary field to the new foreign key field
-            model_name='role',
-            old_name='school_temporary',
-            new_name='school',
-        ),
-
-        migrations.AlterField(
-            # Set the new foreign key field
-            model_name='role',
-            name='school',
-            field=models.ForeignKey(
-                to='ki.school',
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='roles',
-                null=True,
-            ),
-        ),
-
-        # SchoolAccess
-        migrations.RenameField(
-            model_name='schoolaccess',
-            old_name='access_id',
-            new_name='id',
-        ),
-        migrations.AddField(
-            # Add a temporary field to hold the new foreign key
-            model_name='schoolaccess',
-            name='school_temporary',
-            field=models.IntegerField(null=True, blank=True),
-        ),
-        # Update the temporary field with the new foreign key values
-        migrations.RunSQL(change_school_access_foreign_key, migrations.RunSQL.noop),
-        migrations.RemoveField(
-            # Remove the old foreign key field
-            model_name='schoolaccess',
-            name='school_id',
-        ),
-        migrations.RenameField(
-            # Rename the temporary field to the new foreign key field
-            model_name='schoolaccess',
-            old_name='school_temporary',
-            new_name='school',
-        ),
-        migrations.AlterField(
-            # Set the new foreign key field
-            model_name='schoolaccess',
-            name='school',
-            field=models.ForeignKey(
-                to='ki.school',
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='school_accesses',
-                null=True,
-            ),
-        ),
-
-        # BotAccess
-        migrations.RenameField(
-            model_name='botaccess',
-            old_name='access_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='botaccess',
-            old_name='bot_id',
-            new_name='bot',
-        ),
-        migrations.AddField(
-            # Add a temporary field to hold the new foreign key
-            model_name='botaccess',
-            name='school_temporary',
-            field=models.IntegerField(null=True, blank=True),
-        ),
-        # Update the temporary field with the new foreign key values
-        migrations.RunSQL(change_bot_access_foreign_key, migrations.RunSQL.noop),
-        migrations.RemoveField(
-            # Remove the old foreign key field
-            model_name='botaccess',
-            name='school_id',
-        ),
-        migrations.RenameField(
-            # Rename the temporary field to the new foreign key field
-            model_name='botaccess',
-            old_name='school_temporary',
-            new_name='school',
-        ),
-        migrations.AlterField(
-            # Set the new foreign key field
-            model_name='botaccess',
-            name='school',
-            field=models.ForeignKey(
-                to='ki.school',
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='bot_accesses',
-                null=True,
-            ),
-        ),
-        migrations.AlterUniqueTogether(
-            # Set the new unique constraint
-            name='botaccess',
-            unique_together=['bot', 'school'],
-        ),
-
-        # Subject_access
-        migrations.RenameField(
-            model_name='subjectaccess',
-            old_name='bot_id',
-            new_name='bot',
         ),
 
         # LogSchool
@@ -359,79 +77,6 @@ class Migration(migrations.Migration):
             model_name='logschool',
             name='school_id',
             field=models.CharField(max_length=20, null=True, blank=True),
-        ),
-        migrations.RenameField(
-            model_name='logschool',
-            old_name='log_id',
-            new_name='use_log',
-        ),
-        migrations.RenameField(
-            model_name='logschool',
-            old_name='school_id',
-            new_name='school_org_nr',
-        ),
-        migrations.AlterField(
-            # Set the new foreign key field
-            model_name='logschool',
-            name='use_log',
-            field=models.ForeignKey(
-                to='ki.uselog',
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='schools',
-                null=True,
-            ),
-        ),
-
-
-        # TagCategory
-        migrations.RenameField(
-            model_name='tagcategory',
-            old_name='category_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='tagcategory',
-            old_name='category_name',
-            new_name='name',
-        ),
-        migrations.RenameField(
-            model_name='tagcategory',
-            old_name='category_order',
-            new_name='order',
-        ),
-
-        # TagLabel
-        migrations.RenameField(
-            model_name='taglabel',
-            old_name='tag_label_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='taglabel',
-            old_name='tag_label_name',
-            new_name='name',
-        ),
-        migrations.RenameField(
-            model_name='taglabel',
-            old_name='tag_label_weight',
-            new_name='weight',
-        ),
-        migrations.RenameField(
-            model_name='taglabel',
-            old_name='tag_label_order',
-            new_name='order',
-        ),
-
-        # Tag
-        migrations.RenameField(
-            model_name='tag',
-            old_name='tag_id',
-            new_name='id',
-        ),
-        migrations.RenameField(
-            model_name='tag',
-            old_name='tag_value',
-            new_name='value',
         ),
 
     ]
