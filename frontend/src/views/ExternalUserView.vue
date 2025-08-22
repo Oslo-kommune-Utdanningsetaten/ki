@@ -21,7 +21,7 @@ onMounted(() => {
 
 async function getUserInfo() {
   try {
-    const { data } = await axios.get('/api/external_user_info')
+    const { data } = await axios.get('/api/external_user_self_service')
     user.value = data.user
   } catch (error) {
     console.log(error)
@@ -30,7 +30,7 @@ async function getUserInfo() {
 
 async function saveUserInfo() {
   try {
-    await axios.put('/api/external_user_info/', { user: user.value })
+    await axios.put('/api/external_user_self_service/', { user: user.value })
     store.addMessage('Endringen er lagret', 'success')
   } catch (e) {
     store.addMessage(e.response.data.error, 'danger')

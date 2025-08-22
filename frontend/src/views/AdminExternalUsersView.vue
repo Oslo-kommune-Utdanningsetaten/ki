@@ -28,7 +28,7 @@ const getAllExternalUsers = async () => {
 
 const getExternalUser = async id => {
   try {
-    const { data } = await axios.get('/api/external_user_info/' + id)
+    const { data } = await axios.get('/api/external_user/' + id)
     activeExternalUser.value = data.user
   } catch (error) {
     console.log(error)
@@ -38,14 +38,14 @@ const getExternalUser = async id => {
 const saveExternalUser = async user => {
   if (!user.id) {
     try {
-      const { data } = await axios.post('/api/external_user_info/', { user })
+      const { data } = await axios.post('/api/external_user/', { user })
     } catch (e) {
       store.addMessage(e.response.data.error, 'danger')
       return
     }
   } else {
     try {
-      const { data } = await axios.put('/api/external_user_info/' + user.id, { user })
+      const { data } = await axios.put('/api/external_user/' + user.id, { user })
     } catch (e) {
       store.addMessage(e.response.data.error, 'danger')
       return
@@ -58,7 +58,7 @@ const saveExternalUser = async user => {
 
 const deleteExternalUser = async user => {
   try {
-    const { data } = await axios.delete('/api/external_user_info/' + user.id)
+    const { data } = await axios.delete('/api/external_user/' + user.id)
   } catch (error) {
     console.log(error)
   }

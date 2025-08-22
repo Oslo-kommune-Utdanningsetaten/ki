@@ -7,10 +7,11 @@ const route = useRoute()
 const authors = ref([])
 const activeAuthor = ref(null)
 const schools = ref([])
+const newAuthor = ref(false)
 
 onMounted(async () => {
   await getSchools()
-  await getAutors()
+  await getAuthors()
 })
 
 const getSchools = async () => {
@@ -22,7 +23,7 @@ const getSchools = async () => {
   }
 }
 
-const getAutors = async () => {
+const getAuthors = async () => {
   try {
     const { data } = await axios.get('/api/authors')
     authors.value = data.authors
@@ -32,33 +33,51 @@ const getAutors = async () => {
 }
 
 const saveAuthor = async author => {
-  try {
-    const { data } = await axios.put('/api/authors', { author })
-    authors.value = data.authors
-  } catch (error) {
-    console.log(error)
+  if (newAuthor.value) {
+    try {
+      const { data } = await axios.post('/api/author/', {
+        author: author,
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  } else {
+    try {
+      await axios.put('/api/author/' + author.id, {
+        author: author,
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
+  activeAuthor.value = null
+  newAuthor.value = false
+  getAuthors()
 }
 
 const deleteAuthor = async author => {
   try {
-    const { data } = await axios.delete('/api/authors', { data: { author } })
-    authors.value = data.authors
+    await axios.delete('/api/author/' + author.id)
   } catch (error) {
     console.log(error)
   }
+  activeAuthor.value = null
+  newAuthor.value = false
+  getAuthors()
 }
 
 const setActiveAuthor = author => {
   activeAuthor.value = author
+  newAuthor.value = false
 }
 
 const addAuthor = () => {
   activeAuthor.value = {
     name: '',
-    userId: '',
+    username: '',
     school: '',
   }
+  newAuthor.value = true
 }
 
 const schoolName = schoolId => {
@@ -89,11 +108,20 @@ const schoolName = schoolId => {
         </div>
 
         <div v-if="activeAuthor" class="modal-body">
-          <label for="name" class="form-label">Navn</label>
+          <label for="name" class="form-label mt-2">Navn</label>
           <input type="text" class="form-control" id="name" v-model="activeAuthor.name" />
-          <label for="userId" class="form-label">Bruker ID</label>
-          <input type="text" class="form-control" id="userId" v-model="activeAuthor.userId" />
-          <label for="school" class="form-label">Skole</label>
+          <label for="userId" class="form-label mt-2">Bruker ID</label>
+          <input type="text" class="form-control" id="username" v-model="activeAuthor.username" />
+          <div class="form-check mt-2">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="isExternal"
+              v-model="activeAuthor.isExternal"
+            />
+            <label class="form-check-label" for="isExternal">Ekstern bruker</label>
+          </div>
+          <label for="school" class="form-label mt-2">Skole</label>
           <select class="form-select" id="school" v-model="activeAuthor.schoolId">
             <option v-for="school in schools" :key="school.orgNr" :value="school.orgNr">
               {{ school.schoolName }}
@@ -159,7 +187,7 @@ const schoolName = schoolId => {
         <li v-for="author in authors" class="list-group-item">
           <div class="row">
             <div class="col-4">{{ author.name }}</div>
-            <div class="col-2">{{ author.userId }}</div>
+            <div class="col-2">{{ author.username }}</div>
             <div class="col-4">{{ schoolName(author.schoolId) }}</div>
             <div class="col-2">
               <button

@@ -191,13 +191,14 @@ class Role(models.Model):
         AUTHOR = 'author'
         EMP = 'emp'
 
-    user_id = models.CharField(max_length=50, primary_key=True)
-    user_name = models.CharField(max_length=50, null=True)
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, null=True)
     role = models.CharField(max_length=10, choices=RoleEnum.choices, default=RoleEnum.EMP)
     school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school', to_field='org_nr', related_name="roles", null=True) 
 
     def __str__(self):
-        return f"{self.user_id}-{self.role}"
+        return f"{self.username}-{self.role}"
 
     class Meta:
         db_table = 'role'
