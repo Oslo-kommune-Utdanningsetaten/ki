@@ -187,10 +187,7 @@ const sendLogin = async () => {
     </div>
   </div>
   <div v-else class="mb-3">
-    <p>
-      Dette er en trygg og sikker måte å bruke kunstig intelligens på. Løsningen bruker ikke eller
-      lagrer personopplysninger. Les mer under "Om tjenesten"
-    </p>
+    <h1 class="h2 mb-3">Mine boter</h1>
     <div v-if="bots.length === 0">
       <div class="card">
         <div class="card-body">
