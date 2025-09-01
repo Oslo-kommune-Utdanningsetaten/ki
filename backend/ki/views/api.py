@@ -26,6 +26,7 @@ def page_text(request, page):
         "contentText": text_line.page_text,
     })
 
+
 @api_view(["GET"])
 def school_list(request):
     if not request.session.get('user.username', None):
@@ -41,6 +42,7 @@ def school_list(request):
         })
 
     return Response({'schools': schools})
+
 
 @api_view(["GET"])
 def app_config(request):
@@ -67,6 +69,7 @@ def app_config(request):
     }
     is_external_user = request.userinfo.get('external_user', False)
     has_self_service = request.userinfo.get('has_self_service', False)
+    max_message_length = get_setting('max_message_length')
 
     return Response({
         'infoPages': info_page_links,
@@ -77,6 +80,7 @@ def app_config(request):
             'hasSelfService': is_external_user and has_self_service,
         },
         'defaultModel': default_model,
+        'maxMessageLength': max_message_length,
     })
 
 
@@ -105,6 +109,7 @@ def favorite(request, bot_uuid):
             favorite.save()
             return Response({'favorite': True})
 
+
 @api_view(["GET"])
 def bot_models(request):
     bot_models = models.BotModel.objects.all()
@@ -120,6 +125,7 @@ def bot_models(request):
             for model in bot_models
         ]
     })
+
 
 @api_view(["GET"])
 def user_bots(request):
@@ -164,9 +170,9 @@ def user_bots(request):
         {
             'uuid': bot.uuid,
             'botTitle': bot.title,
-            'favorite': True 
-                    if (bot.favorites.filter(user_id=request.userinfo.get('username', '')).first())
-                    else False,
+            'favorite': True
+            if (bot.favorites.filter(user_id=request.userinfo.get('username', '')).first())
+            else False,
             'mandatory': bot.mandatory,
             'imgBot': bot.img_bot,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
@@ -174,9 +180,9 @@ def user_bots(request):
             'allowDistribution': bot.allow_distribution,
             'botInfo': bot.bot_info or '',
             'tag': [{
-                'categoryId': tag['category_id'], 
+                'categoryId': tag['category_id'],
                 'tagValue': tag['tag_value']
-                } 
+            }
                 for tag in bot.tags.all().values('category_id', 'tag_value')] if bot.library else [],
             'accessCount': bot.access_count if request.userinfo.get('admin', False) else 0,
         }
@@ -208,7 +214,7 @@ def user_info(request):
             'orgNr': school.org_nr,
             'schoolName': school.school_name,
         })
-    
+
     auth_school = {
         'orgNr': None,
         'schoolName': None,
@@ -222,7 +228,7 @@ def user_info(request):
     # Levels
     level = None
     if (levels := request.userinfo.get('levels', None)) and role == 'student':
-        level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+        level = min([aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
 
     return Response({
         'user': {
@@ -268,11 +274,10 @@ def external_user(request, user_id):
     ext_user = models.ExternalUser.objects.get(id=user_id)
     if not ext_user:
         return Response(status=404)
-    
+
     if request.method == "DELETE":
         ext_user.delete()
         return Response(status=200)
-    
 
     if request.method == "PUT":
         body = json.loads(request.body)
@@ -332,7 +337,6 @@ def external_user_create(request):
         return Response(status=200)
     except ValueError as e:
         return Response(status=404, data={"error": str(e)})
-    
 
 
 @api_view(["PUT", "GET"])
@@ -343,7 +347,6 @@ def external_user_self_service(request):
         return Response(status=404)
     if not user.has_self_service:
         return Response(status=403)
-
 
     if request.method == "PUT":
         body = json.loads(request.body)
@@ -439,6 +442,7 @@ def empty_bot(request, bot_type):
         'maxLifespan': get_setting('max_lifespan'),
     })
 
+
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def bot_info(request, bot_uuid=None):
 
@@ -454,7 +458,7 @@ def bot_info(request, bot_uuid=None):
             return Response(status=409)
         bot = models.Bot()
         bot.owner = request.userinfo.get('username')
-    else: # Get existing bot
+    else:  # Get existing bot
         try:
             bot = models.Bot.objects.get(uuid=bot_uuid)
         except models.Bot.DoesNotExist:
@@ -476,15 +480,18 @@ def bot_info(request, bot_uuid=None):
         bot.prompt_visibility = body.get('promptVisibility', bot.prompt_visibility)
         bot.allow_distribution = body.get('allowDistribution', bot.allow_distribution)
         bot.mandatory = body.get('mandatory', bot.mandatory)
-        bot.is_audio_enabled = body.get('isAudioEnabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
-        bot.avatar_scheme = ','.join([str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get('avatarScheme', False) else bot.avatar_scheme
+        bot.is_audio_enabled = body.get(
+            'isAudioEnabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
+        bot.avatar_scheme = ','.join(
+            [str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get(
+            'avatarScheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
         bot.library = body.get('library', bot.library)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
         bot.owner = None if bot.owner == '' else bot.owner
-        
+
         model = body.get('model', False)
-        if(        
+        if (
             (is_admin or (is_author and is_owner)) and
             model and
             model != "none" and
@@ -493,7 +500,7 @@ def bot_info(request, bot_uuid=None):
             bot.model_id = models.BotModel.objects.get(model_id=model_id)
         else:
             bot.model_id = None
-    
+
         bot.save()
 
         # save tags
@@ -505,10 +512,10 @@ def bot_info(request, bot_uuid=None):
                 if not tag_obj:
                     tag_obj = models.Tag(bot_id=bot, category_id_id=tag_category.get('id'))
                 tag_obj.tag_value = array_to_binary([
-                        {'weight': tag.get('weight'), 'checked': tag.get('checked')} 
-                        for tag in tag_category.get('tags', [])])
+                    {'weight': tag.get('weight'), 'checked': tag.get('checked')}
+                    for tag in tag_category.get('tags', [])])
                 tag_obj.save()
-        
+
         # save choices and options
         # delete all choices and options before saving new ones
         if not new_bot:
@@ -518,25 +525,25 @@ def bot_info(request, bot_uuid=None):
 
         for choice in body.get('choices', []):
             prompt_choice = models.PromptChoice(
-                    id=choice.get('id'),
-                    bot_id=bot,
-                    label=choice.get('label'),
-                    order=choice.get('order'),
+                id=choice.get('id'),
+                bot_id=bot,
+                label=choice.get('label'),
+                order=choice.get('order'),
             )
             prompt_choice.save()
 
             for option in choice.get('options', []):
                 choice_option = models.ChoiceOption(
-                        id=option.get('id'),
-                        choice_id=prompt_choice, 
-                        label=option.get('label'), 
-                        text=option.get('text'),
-                        order=option.get('order'),
-                        is_default=choice.get('selected').get('id', 0) == option.get('id')\
-                            if choice.get('selected', False) else False
+                    id=option.get('id'),
+                    choice_id=prompt_choice,
+                    label=option.get('label'),
+                    text=option.get('text'),
+                    order=option.get('order'),
+                    is_default=choice.get('selected').get('id', 0) == option.get('id')
+                    if choice.get('selected', False) else False
                 )
                 choice_option.save()
-        
+
         # save school access
         if is_admin or is_author:
             for school in body.get('schoolAccesses', []):
@@ -557,7 +564,7 @@ def bot_info(request, bot_uuid=None):
                     for level in school.get('accessList', []):
                         access = models.BotLevel(access_id=bot_access, level=level)
                         access.save()
-                bot_access.save() 
+                bot_access.save()
 
     # save groups
     if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
@@ -587,17 +594,19 @@ def bot_info(request, bot_uuid=None):
                 valid_from, valid_to = incoming_group.get('validRange', [None, None])
                 if not is_valid_dates(valid_from, valid_to):
                     continue
-                if not (subject_access := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=incoming_group_id).first()):
+                if not (subject_access := models.SubjectAccess.objects.filter(
+                        bot_id=bot, subject_id=incoming_group_id).first()):
                     subject_access = models.SubjectAccess(
                         bot_id=bot, subject_id=incoming_group_id)
                 subject_access.valid_from = valid_from
                 subject_access.valid_to = valid_to
                 subject_access.save()
             else:
-                if subject_access := models.SubjectAccess.objects.filter(bot_id=bot, subject_id=incoming_group_id).first():
+                if subject_access := models.SubjectAccess.objects.filter(
+                        bot_id=bot, subject_id=incoming_group_id).first():
                     subject_access.delete()
 
-        return Response({'bot': {'uuid': bot.uuid }})
+        return Response({'bot': {'uuid': bot.uuid}})
 
     if request.method == "DELETE":
         if not is_owner and not is_admin:
@@ -784,6 +793,7 @@ def school_access(request):
 
     return Response({'schools': response})
 
+
 @api_view(["GET", "PUT", "DELETE"])
 def author(request, user_id):
     if not request.userinfo.get('admin', False):
@@ -818,6 +828,7 @@ def author(request, user_id):
         'name': author.name,
         'schoolId': author.school.org_nr,
     }})
+
 
 @api_view(["POST"])
 def author_create(request):
@@ -870,6 +881,7 @@ def authors(request):
         })
 
     return Response({'authors': response})
+
 
 @api_view(["POST"])
 def start_message(request, uuid):
@@ -926,4 +938,3 @@ async def send_img_message(request):
     level, schools, role = get_user_data_from_userinfo(request)
     await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
     return await generate_image_azure(prompt, model=bot_model_obj.deployment_id)
-

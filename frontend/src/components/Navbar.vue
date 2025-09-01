@@ -17,6 +17,7 @@ const getAppConfig = async () => {
     // store.isExternalUser = data.role ? data.role.isExternalUser : false
     store.hasSelfService = data.role ? data.role.hasSelfService : false
     store.defaultModel = data.defaultModel
+    store.maxMessageLength = data.maxMessageLength
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'

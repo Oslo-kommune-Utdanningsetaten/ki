@@ -12,7 +12,7 @@ const messages = ref([])
 const message = ref('')
 const isProcessingInput = ref(false)
 const textInput = ref(null)
-const maxMessageLength = 1500
+const maxMessageLength = store.maxMessageLength
 
 const resetMessages = () => {
   message.value = ''

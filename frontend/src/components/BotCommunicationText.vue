@@ -10,7 +10,7 @@ const message = ref('')
 const isProcessingInput = ref(false)
 const isStreaming = ref(false)
 const textInput = useTemplateRef('text-input')
-const maxMessageLength = 15000
+const maxMessageLength = store.maxMessageLength
 
 const props = defineProps({
   bot: {
