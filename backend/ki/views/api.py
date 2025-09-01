@@ -59,7 +59,10 @@ def app_config(request):
 
     # Get default model
     default_model_id = get_setting('default_model')
-    default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
+    try:
+        default_model_obj = models.BotModel.objects.get(model_id=default_model_id)
+    except models.BotModel.DoesNotExist:
+        return Response(status=500, data={"error": "Default model not found"})
     default_model = {
         'modelId': default_model_obj.model_id,
         'displayName': default_model_obj.display_name,
@@ -69,7 +72,7 @@ def app_config(request):
     }
     is_external_user = request.userinfo.get('external_user', False)
     has_self_service = request.userinfo.get('has_self_service', False)
-    max_message_length = get_setting('max_message_length')
+    max_message_length = get_setting('max_message_length', 50000)
 
     return Response({
         'infoPages': info_page_links,
@@ -192,7 +195,7 @@ def user_bots(request):
         'bots': return_bots,
         'tagCategories': tag_categories,
         'status': 'ok',
-        'isBotFilteringEnabled': get_setting('is_bot_filtering_enabled'),
+        'isBotFilteringEnabled': get_setting('is_bot_filtering_enabled', False),
     })
 
 
@@ -438,8 +441,8 @@ def empty_bot(request, bot_type):
             'library': library,
             'tagCategories': tag_categories,
         },
-        'defaultLifespan': get_setting('default_lifespan'),
-        'maxLifespan': get_setting('max_lifespan'),
+        'defaultLifespan': get_setting('default_lifespan', 2),
+        'maxLifespan': get_setting('max_lifespan', 14),
     })
 
 
@@ -570,7 +573,7 @@ def bot_info(request, bot_uuid=None):
     if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
 
         def is_valid_dates(from_date_iso, to_date_iso):
-            max_lifespan = get_setting('max_lifespan')
+            max_lifespan = get_setting('max_lifespan', 14)
             try:
                 from_date = datetime.fromisoformat(from_date_iso)
                 to_date = datetime.fromisoformat(to_date_iso)
@@ -720,8 +723,8 @@ def bot_info(request, bot_uuid=None):
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tagCategories': tag_categories,
         },
-        'defaultLifespan': get_setting('default_lifespan'),
-        'maxLifespan': get_setting('max_lifespan'),
+        'defaultLifespan': get_setting('default_lifespan', 2),
+        'maxLifespan': get_setting('max_lifespan', 14),
     })
 
 

@@ -8,7 +8,7 @@ export const store = reactive({
   messages: [],
   isAuthenticated: null,
   defaultModel: {},
-  maxMessageLength: null,
+  maxMessageLength: 50000,
 
   logout() {
     axios

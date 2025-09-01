@@ -20,7 +20,7 @@ aarstrinn_codes = {
 
 
 def get_memberships_from_feide(tokens):
-    from ki import models # Avoid circular import
+    from ki import models  # Avoid circular import
 
     if not (tokens):
         return None
@@ -29,24 +29,25 @@ def get_memberships_from_feide(tokens):
     groupinfo_endpoint = "https://groups-api.dataporten.no/groups/me/groups"
     headers = {"Authorization": "Bearer " + tokens['access_token']}
     groupinfo_response = requests.get(
-        groupinfo_endpoint, 
+        groupinfo_endpoint,
         headers=headers
-        )
+    )
     if groupinfo_response.status_code == 401:
         return None
     return groupinfo_response.json()
 
-        
+
 def get_memberships_from_db(username):
-    from ki import models # Avoid circular import
+    from ki import models  # Avoid circular import
 
     user = models.ExternalUser.objects.filter(username=username).first()
     if user:
         memberships = user.memberships if user.memberships else None
     return memberships
 
+
 def get_external_userinfo(username):
-    from ki import models # Avoid circular import
+    from ki import models  # Avoid circular import
 
     user = models.ExternalUser.objects.filter(username=username).first()
     if user:
@@ -57,8 +58,9 @@ def get_external_userinfo(username):
         }
     return None
 
+
 def get_memberships(username, login_method, tokens):
-    from ki import models # Avoid circular import
+    from ki import models  # Avoid circular import
 
     schools = []
     levels = []
@@ -135,19 +137,19 @@ def has_school_access(feide_memberships) -> bool:
     return False
 
 
-def is_subject_access_valid (subject_access) -> bool:
+def is_subject_access_valid(subject_access) -> bool:
     if subject_access.valid_to < datetime.now(timezone.utc):
         subject_access.delete()
         return False
     elif subject_access.valid_from > datetime.now(timezone.utc):
         return False
     return True
-    
+
 
 def get_users_bots(username, feide_memberships):
-    from ki import models # Avoid circular import
+    from ki import models  # Avoid circular import
 
-    bots:set = set()
+    bots: set = set()
     employee = feide_memberships.get('employee', False)
     schools = feide_memberships.get('schools', [])
     levels = feide_memberships.get('levels', [])
@@ -181,7 +183,7 @@ def get_users_bots(username, feide_memberships):
                                 access = True
             if access:
                 bots.add(bot_access.bot_id_id)
-                                
+
     # bots from personal bots (for employees)
     if employee:
         personal_bots = models.Bot.objects.filter(owner=username)
@@ -211,7 +213,7 @@ def generate_group_access_list(groups=None, bot=None):
         group_id = group.get('id')
         if group_id in access_dict:
             valid_from = access_dict[group_id].get('valid_from', None)
-            valid_to =  access_dict[group_id].get('valid_to', None)
+            valid_to = access_dict[group_id].get('valid_to', None)
             checked = True
         else:
             valid_from = datetime.now(timezone.utc)
@@ -235,18 +237,18 @@ def get_user_data_from_userinfo(request):
     # level
     level = None
     if (levels := request.userinfo.get('levels', None)) and role == 'student':
-        level = min([ aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
+        level = min([aarstrinn_codes[level] for level in levels if level in aarstrinn_codes])
     # schools
     schools = request.userinfo.get('schools', [])
     return level, schools, role
 
 
 def get_admin_memberships_and_bots(username) -> dict:
-    from ki import models # Avoid circular import
-    bots:set = set()
+    from ki import models  # Avoid circular import
+    bots: set = set()
     personal_bots = models.Bot.objects.filter(owner=username)
     bots.update((bot.uuid for bot in personal_bots))
-    library_bots = models.Bot.objects.filter(library = True)
+    library_bots = models.Bot.objects.filter(library=True)
     bots.update((bot.uuid for bot in library_bots))
     return {
         'admin': True,
@@ -259,8 +261,10 @@ def get_admin_memberships_and_bots(username) -> dict:
 
 
 async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1, interaction_type='text'):
-    from ki import models # Avoid circular import
-    log_line = models.UseLog(bot_id=bot_uuid, role=role, level=level, message_length=message_length, interaction_type=interaction_type)
+    from ki import models  # Avoid circular import
+    log_line = models.UseLog(
+        bot_id=bot_uuid, role=role, level=level, message_length=message_length,
+        interaction_type=interaction_type)
     await log_line.asave()
 
     for school in schools:
@@ -270,9 +274,12 @@ async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1,
             await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
 
 
-def get_setting(setting_key):
-    from ki import models # Avoid circular import
-    setting = models.Setting.objects.get(setting_key=setting_key)
+def get_setting(setting_key, default=None):
+    from ki import models  # Avoid circular import
+    try:
+        setting = models.Setting.objects.get(setting_key=setting_key)
+    except models.Setting.DoesNotExist:
+        return default
     if setting.is_txt:
         return setting.txt_val
     else:
@@ -280,11 +287,9 @@ def get_setting(setting_key):
 
 
 async def get_setting_async(setting_key):
-    from ki import models # Avoid circular import
+    from ki import models  # Avoid circular import
     setting = await models.Setting.objects.aget(setting_key=setting_key)
     if setting.is_txt:
         return setting.txt_val
     else:
         return setting.int_val
-
-
