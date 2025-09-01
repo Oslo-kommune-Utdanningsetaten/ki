@@ -261,6 +261,9 @@ def external_users(request):
 
 @api_view(["GET", "PUT", "DELETE"])
 def external_user(request, user_id):
+    is_admin = request.userinfo.get('admin', False)
+    if not is_admin:
+        return Response(status=403)
 
     ext_user = models.ExternalUser.objects.get(id=user_id)
     if not ext_user:
