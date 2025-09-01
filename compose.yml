@@ -2,11 +2,17 @@ services:
   db:
     image: mariadb
     restart: always
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test: ['CMD', 'healthcheck.sh', '--su-mysql', '--connect', '--innodb_initialized']
+      timeout: 30s
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MARIADB_MYSQL_LOCALHOST_USER: 1
     ports:
       - 3306:3306 # For dev (make sure port is not exposed on prod host)
     volumes:
@@ -41,6 +47,9 @@ services:
         '-t',
         '/var/www/html',
       ]
+    depends_on:
+      db:
+        condition: service_healthy
   backend:
     build: ./backend
     command:
@@ -67,6 +76,9 @@ services:
     profiles:
       - prod
     restart: always
+    depends_on:
+      db:
+        condition: service_healthy
   frontend:
     build: ./frontend
     ports:
