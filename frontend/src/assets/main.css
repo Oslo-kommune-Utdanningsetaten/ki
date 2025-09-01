@@ -75,6 +75,18 @@ nav a:hover {
   color: inherit;
 }
 
+.nav-link {
+  color: inherit;
+}
+
+.nav-link.active {
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: inherit;
+}
+
 .infotext a {
   color: #007eff;
 }
@@ -100,6 +112,10 @@ ul .system {
 
 button img {
   width: 1.3em;
+}
+
+.icon {
+  width: 1.7em;
 }
 
 .avatar {

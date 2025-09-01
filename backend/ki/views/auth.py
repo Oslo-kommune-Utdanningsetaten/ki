@@ -31,7 +31,7 @@ def auth_middleware(get_response):
         if is_authenticated:
             # get user's bots
             # TODO: author at multiple schools
-            role_obj = models.Role.objects.filter(user_id=username).first()
+            role_obj = models.Role.objects.filter(username=username).first()
             role = role_obj.role if role_obj else None
             request.userinfo['username'] = username
             request.userinfo['name'] = request.session.get('user.name')

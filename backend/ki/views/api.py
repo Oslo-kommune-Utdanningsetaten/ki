@@ -259,119 +259,114 @@ def external_users(request):
     })
 
 
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def external_user_info(request, user_id=None):
-
+@api_view(["GET", "PUT", "DELETE"])
+def external_user(request, user_id):
     is_admin = request.userinfo.get('admin', False)
+    if not is_admin:
+        return Response(status=403)
 
-    if is_admin:
+    ext_user = models.ExternalUser.objects.get(id=user_id)
+    if not ext_user:
+        return Response(status=404)
+    
+    if request.method == "DELETE":
+        ext_user.delete()
+        return Response(status=200)
+    
 
-        # Create new user
-        if request.method == "POST":
-            body = json.loads(request.body)
-            user_body = body.get('user', False)
-            user = models.ExternalUser()
-            user.set_username(user_body.get('username', user.username))
-            user.name = user_body.get('name', user.name)
-            user.has_self_service = user_body.get('hasSelfService', False)
-            user.valid_to = user_body.get('validTo', None)
-            user.memberships = user_body.get('memberships', [])
-            if 'newPassword' in user_body:
-                user.set_password(user_body['newPassword'])
-            user.save()
-            return Response(status=200)
-
-        # Get existing user from user_id parameter
-        if not user_id:
+    if request.method == "PUT":
+        body = json.loads(request.body)
+        user_body = body.get('user', False)
+        if not user_body:
             return Response(status=400)
-        user = models.ExternalUser.objects.get(id=user_id)
-        if not user:
-            return Response(status=400)
-
-        if request.method == "DELETE":
-            try:
-                user.delete()
-                return Response(status=200)
-            except models.ExternalUser.DoesNotExist:
-                return Response(status=404)
-
-        if request.method == "PUT":
-            body = json.loads(request.body)
-            user_body = body.get('user', None)
-            if not user_body:
-                return Response(status=400)
-            user.name = user_body.get('name', user.name)
-            if 'newPassword' in user_body:
-                try:
-                    user.set_password(user_body.get('newPassword', user.password))
-                except ValueError as e:
-                    return Response(status=404, data={"error": str(e)})
-            try:
-                user.set_username(user_body.get('username', user.username), user.username)
-            except ValueError as e:
-                return Response(status=404, data={"error": str(e)})
-            user.has_self_service = user_body.get('hasSelfService', user.has_self_service)
+        try:
+            ext_user.set_username(user_body.get('username', ext_user.username), ext_user.username)
+            ext_user.name = user_body.get('name', ext_user.name)
+            ext_user.has_self_service = user_body.get('hasSelfService', ext_user.has_self_service)
+            ext_user.memberships = user_body.get('memberships', ext_user.memberships)
             valid_to_str = user_body.get('validTo', None)
             if valid_to_str:
                 dt = datetime.fromisoformat(valid_to_str)
                 if dt.tzinfo is None:
                     dt = dt.replace(tzinfo=timezone.utc)
-                user.valid_to = dt
-            user.memberships = user_body.get('memberships', user.memberships)
-            user.save()
-            return Response(status=200)
+                ext_user.valid_to = dt
+            if 'newPassword' in user_body:
+                ext_user.set_password(user_body.get('newPassword', ext_user.password))
+            ext_user.save()
+        except ValueError as e:
+            return Response(status=404, data={"error": str(e)})
 
-        if request.method == "GET":
-            return Response({
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'name': user.name,
-                    'hasSelfService': user.has_self_service,
-                    'validTo': user.valid_to.isoformat() if user.valid_to else None,
-                    'memberships': user.memberships,
-                }
-            })
+    return Response({
+        'user': {
+            'id': ext_user.id,
+            'username': ext_user.username,
+            'name': ext_user.name,
+            'hasSelfService': ext_user.has_self_service,
+            'validTo': ext_user.valid_to.isoformat() if ext_user.valid_to else None,
+            'memberships': ext_user.memberships,
+        }
+    })
 
-    else:
-        # Uptate user info from self-service
-        if request.session["user.auth_method"] != "local":
-            return Response(status=403)
-        user_id = request.session["user.id"]
-        user = models.ExternalUser.objects.get(id=user_id)
-        if not user:
-            return Response(status=404)
-        if not user.has_self_service:
-            return Response(status=403)
+
+@api_view(["POST"])
+def external_user_create(request):
+
+    is_admin = request.userinfo.get('admin', False)
+    if not is_admin:
+        return Response(status=403)
+
+    body = json.loads(request.body)
+    user_body = body.get('user', False)
+    if not user_body:
+        return Response(status=400)
+
+    user = models.ExternalUser()
+    try:
+        user.set_username(user_body.get('username'))
+        user.name = user_body.get('name', '')
+        user.has_self_service = user_body.get('hasSelfService', False)
+        user.valid_to = user_body.get('validTo', None)
+        user.memberships = user_body.get('memberships', [])
+        user.set_password(user_body.get('newPassword', ''))
+        user.save()
+        return Response(status=200)
+    except ValueError as e:
+        return Response(status=404, data={"error": str(e)})
     
-        if request.method == "PUT":
-            body = json.loads(request.body)
-            user_body = body.get('user', None)
-            if not user_body:
-                return Response(status=400)
-            user.name = user_body.get('name', user.name)
-            # user.username = user_body.get('username', user.username)
-            if 'newPassword' in user_body and 'password' in user_body:
-                if not user.check_password(user_body['password']):
-                    return Response(status=403, data={"error": "Gammelt passord er feil"})
-                try:
-                    user.set_password(user_body.get('newPassword', user.password))
-                except ValueError as e:
-                    return Response(status=404, data={"error": str(e)})
-            user.save()
-            return Response(status=200)
-        
-        if request.method in ["POST", "DELETE"]:
-            return Response(status=405)
 
-        if request.method == "GET":
-            return Response({
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'name': user.name,
-                }
-            })
+
+@api_view(["PUT", "GET"])
+def external_user_self_service(request):
+    user_id = request.session["user.id"]
+    user = models.ExternalUser.objects.get(id=user_id)
+    if not user:
+        return Response(status=404)
+    if not user.has_self_service:
+        return Response(status=403)
+
+
+    if request.method == "PUT":
+        body = json.loads(request.body)
+        user_body = body.get('user', None)
+        if not user_body:
+            return Response(status=400)
+        user.name = user_body.get('name', user.name)
+        if 'newPassword' in user_body and 'password' in user_body:
+            if not user.check_password(user_body['password']):
+                return Response(status=403, data={"error": "Gammelt passord er feil"})
+            try:
+                user.set_password(user_body.get('newPassword', user.password))
+            except ValueError as e:
+                return Response(status=404, data={"error": str(e)})
+        user.save()
+
+    return Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'name': user.name,
+        }
+    })
 
 
 @api_view(["GET"])
@@ -790,39 +785,88 @@ def school_access(request):
     return Response({'schools': response})
 
 @api_view(["GET", "PUT", "DELETE"])
-def authors(request):
+def author(request, user_id):
     if not request.userinfo.get('admin', False):
         return HttpResponseForbidden()
 
-    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
+    author = models.Role.objects.get(id=user_id)
+    if not author:
+        return Response(status=404)
+
     if request.method == "DELETE":
-        body = json.loads(request.body)
-        author_body = body.get('author', False)
-        full_id = f"{author_body.get('userId')}@{feide_realm}"
-        author = models.Role.objects.filter(user_id=full_id).first()
-        if author:
-            author.delete()
+        author.delete()
+        return Response(status=200)
 
     if request.method == "PUT":
         body = json.loads(request.body)
         author_body = body.get('author', False)
-        full_id = f"{author_body.get('userId')}@{feide_realm}"
-        author = models.Role.objects.filter(user_id=full_id).first()
-        if not author:
-            author = models.Role()
-            author.user_id = full_id
-            author.role = 'author'
-        author.user_name = author_body.get('name')
-        author.school = models.School.objects.get(org_nr=author_body.get('schoolId'))
+        if not author_body:
+            return Response(status=400)
+        if author_body.get('isExternal'):
+            full_id = author_body.get('username')
+        else:
+            full_id = f"{author_body.get('username')}@{os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')}"
+        author.username = full_id
+        author.name = author_body.get('name', author.name)
+        school_id = author_body.get('schoolId')
+        author.school = models.School.objects.get(org_nr=school_id)
         author.save()
+
+    return Response({'author': {
+        'id': author.id,
+        'username': author.username.split('@')[0],
+        'name': author.name,
+        'schoolId': author.school.org_nr,
+    }})
+
+@api_view(["POST"])
+def author_create(request):
+    if not request.userinfo.get('admin', False):
+        return HttpResponseForbidden()
+
+    body = json.loads(request.body)
+    author_body = body.get('author', False)
+    if not author_body:
+        return Response(status=400)
+
+    if author_body.get('isExternal'):
+        full_id = author_body.get('username')
+    else:
+        full_id = f"{author_body.get('username')}@{os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')}"
+
+    author = models.Role()
+    author.username = full_id
+    author.name = author_body.get('name')
+    author.school = models.School.objects.get(org_nr=author_body.get('schoolId'))
+    author.role = 'author'
+    author.save()
+
+    return Response({'author': {
+        'id': author.id,
+        'username': author.username.split('@')[0],
+        'name': author.name,
+        'schoolId': author.school.org_nr,
+    }})
+
+
+@api_view(["GET"])
+def authors(request):
+    if not request.userinfo.get('admin', False):
+        return HttpResponseForbidden()
+    feide_realm = os.environ.get('FEIDE_REALM', 'feide.osloskolen.no')
 
     authors = models.Role.objects.filter(role='author').all()
     response = []
     for author in authors:
+        username = author.username.split('@')[0]
+        user_realm = author.username.split('@')[1] if '@' in author.username else None
+        is_external = False if user_realm == feide_realm else True
         response.append({
-            'userId': author.user_id.split('@')[0],
-            'name': author.user_name or '',
+            'id': author.id,
+            'username': username,
+            'name': author.name or '',
             'schoolId': author.school.org_nr,
+            'isExternal': is_external
         })
 
     return Response({'authors': response})
