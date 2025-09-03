@@ -19,6 +19,12 @@ const props = defineProps({
       :key="bot.uuid"
       class="row border oslo-bg-light p-2 mb-2"
     >
+      <RouterLink active-class="active" class="col-sm-1 col-2" :to="botLink(bot)">
+        <div style="width: 40px">
+          <BotAvatar :avatarScheme="bot.avatarScheme" />
+        </div>
+      </RouterLink>
+
       <div class="col-1">
         <div v-if="store.isEmployee">
           <div v-if="!bot.mandatory" class="mb-2">
@@ -41,10 +47,10 @@ const props = defineProps({
           </div>
           <div v-if="bot.mandatory && isFavoriteView"><p class="oslo-text-light"></p></div>
           <div v-if="bot.personal && isFavoriteView">
-            <p class="oslo-text-light mb-0">Personlig</p>
+            <img src="@/components/icons/user_outline.svg" style="width: 20px" />
           </div>
           <div v-if="!bot.mandatory && !bot.personal && isFavoriteView">
-            <p class="oslo-text-light mb-0">Bibliotek</p>
+            <img src="@/components/icons/books.svg" style="width: 20px" />
           </div>
         </div>
         <div v-if="store.isAdmin" class="col-2 px-0">
@@ -53,11 +59,6 @@ const props = defineProps({
           </span>
         </div>
       </div>
-      <RouterLink active-class="active" class="col-1" :to="botLink(bot)">
-        <div style="width: 40px">
-          <BotAvatar :avatarScheme="bot.avatarScheme" />
-        </div>
-      </RouterLink>
       <RouterLink active-class="active" class="col-4" :to="botLink(bot)">
         {{ bot.botTitle }}
       </RouterLink>

@@ -5,7 +5,7 @@ import { axiosInstance as axios } from '../clients'
 import GridView from '@/components/GridView.vue'
 import ListView from '@/components/ListView.vue'
 
-const filterMode = ref('favorites')
+const filterMode = ref(localStorage.getItem('filterMode') || 'favorites')
 const isListView = ref(localStorage.getItem('isListView') === 'true')
 const isFilterSelected = ref(false)
 const activeBot = ref(null)
@@ -24,21 +24,19 @@ const filteredBots = computed(() => {
   }
   if (filterMode.value === 'library') {
     let botsFiltered = bots
-    if (showSideBar) {
-      props.tagCategories.forEach(tagCategory => {
-        let filterArray = tagCategory.tagItems
-          .filter(tagItem => tagItem.checked)
-          .map(tagItem => tagItem.weight)
-        if (filterArray.length > 0) {
-          let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
-          botsFiltered = botsFiltered.filter(
-            bot =>
-              bot.tag.filter(tag => tag.categoryId === tagCategory.id && tag.tagValue & binarySum)
-                .length > 0
-          )
-        }
-      })
-    }
+    props.tagCategories.forEach(tagCategory => {
+      const filterArray = tagCategory.tagItems
+        .filter(tagItem => tagItem.checked)
+        .map(tagItem => tagItem.weight)
+      if (filterArray.length > 0) {
+        let binarySum = filterArray.reduce((partialSum, a) => partialSum + Math.pow(2, a), 0)
+        botsFiltered = botsFiltered.filter(
+          bot =>
+            bot.tag.filter(tag => tag.categoryId === tagCategory.id && tag.tagValue & binarySum)
+              .length > 0
+        )
+      }
+    })
     return botsFiltered.filter(bot => !bot.personal && !bot.mandatory)
   } else if (filterMode.value === 'personal') {
     return bots.filter(bot => bot.personal)
@@ -64,6 +62,11 @@ const toggleFavorite = async bot => {
   } catch (error) {
     console.log(error)
   }
+}
+
+const changeFilterMode = mode => {
+  filterMode.value = mode
+  localStorage.setItem('filterMode', mode)
 }
 
 const toggleIsListView = () => {
@@ -126,8 +129,9 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           class="nav-link"
           :class="filterMode === 'favorites' ? 'active' : ''"
           href="#"
-          @click.prevent="(filterMode = 'favorites')"
+          @click.prevent="changeFilterMode('favorites')"
         >
+          <img src="@/components/icons/star_solid.svg" style="width: 20px" />
           Favoritter
         </a>
       </li>
@@ -136,8 +140,9 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           class="nav-link"
           :class="filterMode === 'personal' ? 'active' : ''"
           href="#"
-          @click.prevent="(filterMode = 'personal')"
+          @click.prevent="changeFilterMode('personal')"
         >
+          <img src="@/components/icons/user_outline.svg" style="width: 20px" />
           Personlige
         </a>
       </li>
@@ -146,8 +151,9 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           class="nav-link"
           :class="filterMode === 'library' ? 'active' : ''"
           href="#"
-          @click.prevent="(filterMode = 'library')"
+          @click.prevent="changeFilterMode('library')"
         >
+          <img src="@/components/icons/books.svg" style="width: 20px" />
           Bibliotek
         </a>
       </li>
@@ -158,6 +164,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           <img
             src="@/components/icons/plus.svg"
             class="icon"
+            role="button"
             alt="Ny bibliotekbot"
             title="Opprett ny bibliotekbot"
           />
@@ -174,15 +181,17 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
             v-if="isFilterSelected"
             src="@/components/icons/filter_off.svg"
             class="icon"
-            alt="Filtrer av"
-            title="Filtrer av"
+            role="button"
+            alt="Skjul filter"
+            title="Skjul filter"
           />
           <img
             v-else
             src="@/components/icons/filter.svg"
             class="icon"
-            alt="Filtrer"
-            title="Filtrer"
+            role="button"
+            alt="Vis filter"
+            title="Vis filter"
           />
         </a>
       </li>
@@ -192,6 +201,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
             v-if="isListView"
             src="@/components/icons/grid.svg"
             class="icon"
+            role="button"
             alt="Rutenettvisning"
             title="Rutenettvisning"
           />
@@ -199,6 +209,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
             v-else
             src="@/components/icons/list.svg"
             class="icon"
+            role="button"
             alt="Listevisning"
             title="Listevisning"
           />
@@ -206,10 +217,30 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       </li>
     </ul>
   </div>
+  <div v-if="filterMode === 'library' && props.isBotFilteringEnabled" class="mb-2">
+    <span v-for="tagCategory in tagCategoriesSorted">
+      <span v-for="tagItem in tagItemSorted(tagCategory)" :key="tagItem.id">
+        <span
+          v-if="tagItem.checked"
+          class="badge bg-secondary me-1 mb-1"
+          style="font-size: 0.8em"
+          data-bs-theme="dark"
+        >
+          {{ tagItem.label }}
+          <button
+            type="button"
+            class="btn-close btn-sm"
+            aria-label="Close"
+            @click.prevent="(tagItem.checked = false)"
+          ></button>
+        </span>
+      </span>
+    </span>
+  </div>
 
   <div class="row align-items-stretch">
     <!-- sidebar filter -->
-    <div v-if="showSideBar" class="col-xxl-2 col-xl-2 col-lg-3 col-md-3 col-4">
+    <div v-if="showSideBar" class="col-xxl-2 col-xl-2 col-lg-3 col-md-3 col-12 mb-2">
       <div class="card card-body">
         <div v-for="tagCategory in tagCategoriesSorted" :key="tagCategory.id">
           <div>{{ tagCategory.label }}</div>
