@@ -5,7 +5,7 @@ import { axiosInstance as axios } from '../clients'
 import GridView from '@/components/GridView.vue'
 import ListView from '@/components/ListView.vue'
 
-const filterMode = ref('favorites')
+const filterMode = ref(localStorage.getItem('filterMode') || 'favorites')
 const isListView = ref(localStorage.getItem('isListView') === 'true')
 const isFilterSelected = ref(false)
 const activeBot = ref(null)
@@ -25,7 +25,7 @@ const filteredBots = computed(() => {
   if (filterMode.value === 'library') {
     let botsFiltered = bots
     props.tagCategories.forEach(tagCategory => {
-      let filterArray = tagCategory.tagItems
+      const filterArray = tagCategory.tagItems
         .filter(tagItem => tagItem.checked)
         .map(tagItem => tagItem.weight)
       if (filterArray.length > 0) {
@@ -62,6 +62,11 @@ const toggleFavorite = async bot => {
   } catch (error) {
     console.log(error)
   }
+}
+
+const changeFilterMode = mode => {
+  filterMode.value = mode
+  localStorage.setItem('filterMode', mode)
 }
 
 const toggleIsListView = () => {
@@ -124,7 +129,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           class="nav-link"
           :class="filterMode === 'favorites' ? 'active' : ''"
           href="#"
-          @click.prevent="(filterMode = 'favorites')"
+          @click.prevent="changeFilterMode('favorites')"
         >
           <img src="@/components/icons/star_solid.svg" style="width: 20px" />
           Favoritter
@@ -135,7 +140,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           class="nav-link"
           :class="filterMode === 'personal' ? 'active' : ''"
           href="#"
-          @click.prevent="(filterMode = 'personal')"
+          @click.prevent="changeFilterMode('personal')"
         >
           <img src="@/components/icons/user_outline.svg" style="width: 20px" />
           Personlige
@@ -146,7 +151,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           class="nav-link"
           :class="filterMode === 'library' ? 'active' : ''"
           href="#"
-          @click.prevent="(filterMode = 'library')"
+          @click.prevent="changeFilterMode('library')"
         >
           <img src="@/components/icons/books.svg" style="width: 20px" />
           Bibliotek
