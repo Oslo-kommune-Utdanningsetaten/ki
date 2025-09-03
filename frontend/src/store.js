@@ -8,6 +8,7 @@ export const store = reactive({
   messages: [],
   isAuthenticated: null,
   defaultModel: {},
+  maxMessageLength: 50000,
 
   logout() {
     axios
@@ -49,5 +50,5 @@ export const store = reactive({
         this.removeMessageId(uuid)
       }, 5000)
     }
-  }
+  },
 })
