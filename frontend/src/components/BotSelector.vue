@@ -6,7 +6,7 @@ import GridView from '@/components/GridView.vue'
 import ListView from '@/components/ListView.vue'
 
 const filterMode = ref(localStorage.getItem('filterMode') || 'favorites')
-const isListView = ref(localStorage.getItem('isListView') === 'true')
+const isListView = ref(localStorage.getItem('isListView') === 'true' || true)
 const isFilterSelected = ref(false)
 const activeBot = ref(null)
 
