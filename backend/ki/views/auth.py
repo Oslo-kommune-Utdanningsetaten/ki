@@ -10,7 +10,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from .. import models
 from app.settings import DEBUG
 from django.views.decorators.csrf import ensure_csrf_cookie
-from ki.utils import  get_memberships, get_users_bots, has_school_access, get_admin_memberships_and_bots, get_external_userinfo
+from ki.utils import get_memberships, get_users_bots, has_school_access, get_admin_memberships_and_bots, get_external_userinfo
 from django.views.decorators.http import require_POST
 
 
@@ -69,7 +69,7 @@ def auth_middleware(get_response):
 
         response = get_response(request)
         response['X-Is-Authenticated'] = str(is_authenticated).lower()
-        return response   
+        return response
 
     return load_logged_in_user
 
@@ -88,9 +88,7 @@ def locallogin(request):
     username = payload.get("username")
     password = payload.get("password")
     if not username or not password:
-        return redirect('http://localhost:5173/' if DEBUG else '/')
-
-        # return JsonResponse({"error": "Missing username or password"}, status=400)
+        return JsonResponse({"error": "Manglende brukernavn eller passord"}, status=400)
 
     user = models.ExternalUser.objects.filter(username=username).first()
     if not user or not user.check_password(password):
@@ -102,9 +100,8 @@ def locallogin(request):
     request.session["user.id"] = user.id
     request.session["user.auth_method"] = "local"
     request.session["user.has_self_service"] = user.has_self_service
-    return redirect('http://localhost:5173/' if DEBUG else '/')
+    return JsonResponse({"message": "Pålogging vellykket."})
 
-    
 
 def feidelogin(request):
     # Find out what URL to hit for Feide login
@@ -149,7 +146,7 @@ def feidecallback(request):
     # Parse the tokens!
     tokens = client.parse_request_body_response(
         json.dumps(token_response.json()))
-    
+
     # get the user's profile information
     userinfo_endpoint = provider_cfg["userinfo_endpoint"]
     uri, headers, body = client.add_token(userinfo_endpoint)
@@ -178,10 +175,10 @@ def logout(request):
     if tokens:
         id_token = tokens['id_token']
         feide_provider_cfg = get_provider_cfg()
-        redirect_uri=os.environ.get('FEIDE_LOGOUT_REDIR')
+        redirect_uri = os.environ.get('FEIDE_LOGOUT_REDIR')
         end_session_endpoint = feide_provider_cfg["end_session_endpoint"]+'?'
         params = {
-            "post_logout_redirect_uri": redirect_uri, 
+            "post_logout_redirect_uri": redirect_uri,
             "id_token_hint": id_token,
         }
         return_uri = end_session_endpoint + urllib.parse.urlencode(params)

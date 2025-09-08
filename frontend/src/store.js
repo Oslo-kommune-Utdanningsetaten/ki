@@ -5,6 +5,7 @@ export const store = reactive({
   isAdmin: false,
   isEmployee: false,
   isAuthor: false,
+  isExternalUser: false,
   messages: [],
   isAuthenticated: null,
   defaultModel: {},
