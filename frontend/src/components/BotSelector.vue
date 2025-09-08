@@ -6,7 +6,7 @@ import GridView from '@/components/GridView.vue'
 import ListView from '@/components/ListView.vue'
 
 const filterMode = ref(localStorage.getItem('filterMode') || 'favorites')
-const isListView = ref(localStorage.getItem('isListView') === 'true' || true)
+const isListView = ref(localStorage.getItem('isListView') === 'true' || false)
 const isFilterSelected = ref(false)
 const activeBot = ref(null)
 
@@ -217,6 +217,33 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       </li>
     </ul>
   </div>
+  <!-- For students -->
+  <div v-else class="mb-3">
+    <ul class="nav nav-tabs">
+      <!-- Push following items to the right -->
+      <li class="ms-auto mb-3">
+        <a href="#" @click.prevent="toggleIsListView">
+          <img
+            v-if="isListView"
+            src="@/components/icons/grid.svg"
+            class="icon"
+            role="button"
+            alt="Rutenettvisning"
+            title="Rutenettvisning"
+          />
+          <img
+            v-else
+            src="@/components/icons/list.svg"
+            class="icon"
+            role="button"
+            alt="Listevisning"
+            title="Listevisning"
+          />
+        </a>
+      </li>
+    </ul>
+  </div>
+
   <div v-if="filterMode === 'library' && props.isBotFilteringEnabled" class="mb-2">
     <span v-for="tagCategory in tagCategoriesSorted">
       <span v-for="tagItem in tagItemSorted(tagCategory)" :key="tagItem.id">

@@ -9,7 +9,7 @@ const errorInterceptor = error => {
   if (axios.isAxiosError(error)) {
     const axiosError = error
 
-    if (axiosError.response?.status === 401) {
+    if (axiosError.response?.status === 401 && !store.isExternalUser) {
       // Unauthorized user
       store.resetStore()
       window.location.href = '/auth/feidelogin'

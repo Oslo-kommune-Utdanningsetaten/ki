@@ -11,6 +11,7 @@ import AuthorsView from '../views/AuthorsView.vue'
 import AdminExternalUsersView from '../views/AdminExternalUsersView.vue'
 import MessageView from '../views/MessageView.vue'
 import ExternalUserView from '../views/ExternalUserView.vue'
+import ExternalUserLogin from '../views/ExternalUserLogin.vue'
 import { store } from '../store'
 import { axiosInstance as axios } from '../clients'
 
@@ -84,6 +85,12 @@ const routes = [
     name: 'externalUser',
     component: ExternalUserView,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/demo/',
+    name: 'ExternalUserLogin',
+    component: ExternalUserLogin,
+    meta: { requiresAuth: false },
   },
 ]
 
