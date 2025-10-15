@@ -1,5 +1,6 @@
 import requests
 import os
+import re
 from datetime import datetime, timedelta, timezone
 
 aarstrinn_codes = {
@@ -92,7 +93,7 @@ def get_memberships(username, login_method, tokens):
             org_nr = group['id'].split(":")[4]
             school = models.School.objects.get(org_nr=org_nr)
             if school:
-                schools.append(school)
+                schools.append(school.org_nr)
         # level(s) from grep
         if (group.get('type') == "fc:grep" and
                 group.get('grep_type') == "aarstrinn"):
@@ -118,12 +119,14 @@ def get_memberships(username, login_method, tokens):
 
 
 def has_school_access(feide_memberships) -> bool:
+    from ki import models  # Avoid circular import
 
     employee = feide_memberships.get('employee', False)
     schools = feide_memberships.get('schools', [])
     levels = feide_memberships.get('levels', [])
 
-    for school in schools:
+    for org_nr in schools:
+        school = models.School.objects.filter(org_nr=org_nr).first()
         if employee:
             if school.access in ['emp', 'all', 'levels']:
                 return True
@@ -293,3 +296,29 @@ async def get_setting_async(setting_key):
         return setting.txt_val
     else:
         return setting.int_val
+
+
+def convert_to_slug(text):
+    text = text.lower()
+    replacements = (
+        (' ', '-'),
+        ('æ', 'ae'),
+        ('ø', 'o'),
+        ('å', 'a')
+    )
+    for old, new in replacements:
+        text = text.replace(old, new)
+
+    # Remove all characters invalid in a slug
+    text = re.sub(r'[^-\w]', '', text)
+
+    return text
+
+
+def has_page_access(request, page):
+    if page.accessable_by == 'all'\
+            or request.userinfo.get('admin', False) \
+            or request.userinfo.get('employee', False) \
+            or (page.accessable_by == 'stud' and not request.userinfo.get('username', False)):
+        return True
+    return False

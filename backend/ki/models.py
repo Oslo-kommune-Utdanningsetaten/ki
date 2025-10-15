@@ -20,10 +20,11 @@ class Setting(models.Model):
 
 class Bot(models.Model):
     uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
-    title = models.CharField(max_length=40, null=True) 
-    ingress = models.TextField(null=True)  
+    title = models.CharField(max_length=40, null=True)
+    ingress = models.TextField(null=True)
     prompt = models.TextField(null=True)
-    model_id = models.ForeignKey('BotModel', on_delete=models.RESTRICT, db_column='model_id', related_name="bots_id", null=True)
+    model_id = models.ForeignKey('BotModel', on_delete=models.RESTRICT,
+                                 db_column='model_id', related_name="bots_id", null=True)
     temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
     avatar_scheme = models.CharField(max_length=50, null=True)
     prompt_visibility = models.BooleanField(default=True)
@@ -37,7 +38,7 @@ class Bot(models.Model):
 
     def __str__(self):
         return f"{self.uuid}-{self.title}"
-    
+
     class Meta:
         db_table = 'bot'
 
@@ -63,7 +64,8 @@ class BotModel(models.Model):
 
 class Favorite(models.Model):
     id = models.AutoField(primary_key=True)
-    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="favorites")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id',
+                               to_field='uuid', related_name="favorites")
     user_id = models.CharField(max_length=50)
     # created = models.DateTimeField(auto_now_add=True)
 
@@ -74,17 +76,20 @@ class Favorite(models.Model):
 
 class PromptChoice(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
-    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="prompt_choices")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id',
+                               to_field='uuid', related_name="prompt_choices")
     label = models.CharField(max_length=50)
     order = models.IntegerField()
-    text = models.TextField(null=True) 
+    text = models.TextField(null=True)
 
     class Meta:
         db_table = 'prompt_choice'
 
+
 class ChoiceOption(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
-    choice_id = models.ForeignKey(PromptChoice, on_delete=models.CASCADE, db_column='choice_id', to_field='id', related_name="options")
+    choice_id = models.ForeignKey(PromptChoice, on_delete=models.CASCADE,
+                                  db_column='choice_id', to_field='id', related_name="options")
     label = models.CharField(max_length=50)
     text = models.TextField(default="")
     order = models.IntegerField()
@@ -92,6 +97,7 @@ class ChoiceOption(models.Model):
 
     class Meta:
         db_table = 'choice_option'
+
 
 class School(models.Model):
     class AccessEnum(models.TextChoices):
@@ -101,8 +107,8 @@ class School(models.Model):
         LEVELS = 'levels'
 
     org_nr = models.CharField(max_length=20, primary_key=True)
-    school_name = models.CharField(max_length=50, null=True, default='')  
-    school_code = models.CharField(max_length=3, null=True)  
+    school_name = models.CharField(max_length=50, null=True, default='')
+    school_code = models.CharField(max_length=3, null=True)
     access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE)
 
     def __repr__(self):
@@ -121,11 +127,12 @@ class BotAccess(models.Model):
         LEVELS = 'levels'
 
     access_id = models.AutoField(primary_key=True)
-    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="accesses")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id',
+                               to_field='uuid', related_name="accesses")
     school_id = models.ForeignKey(
         School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="accesses")
-    level = models.CharField(max_length=20, null=True) 
-    access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE, null=True) 
+    level = models.CharField(max_length=20, null=True)
+    access = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.NONE, null=True)
 
     def __str__(self):
         return f"{self.bot_id}-{self.school_id}{self.level}"
@@ -139,11 +146,11 @@ class BotLevel(models.Model):
     level_id = models.AutoField(primary_key=True)
     access_id = models.ForeignKey(
         BotAccess, on_delete=models.CASCADE, db_column='access_id', related_name="levels")
-    level = models.CharField(max_length=20, default='') 
+    level = models.CharField(max_length=20, default='')
 
     def __str__(self):
         return f"{self.level_id}-{self.access_id}{self.level}"
-    
+
     class Meta:
         db_table = 'bot_level'
 
@@ -151,7 +158,8 @@ class BotLevel(models.Model):
 class SchoolAccess(models.Model):
     access_id = models.AutoField(primary_key=True)
     school_id = models.ForeignKey(
-        School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr', related_name="school_accesses")
+        School, on_delete=models.CASCADE, db_column='school_id', to_field='org_nr',
+        related_name="school_accesses")
     level = models.CharField(max_length=20)
 
     def __str__(self):
@@ -163,10 +171,10 @@ class SchoolAccess(models.Model):
 
 class SubjectAccess(models.Model):
     id = models.AutoField(primary_key=True)
-    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, 
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE,
                                db_column='bot_id', to_field='uuid', related_name="subjects")
-    subject_id = models.CharField(max_length=200, null=True) 
-    created = models.DateTimeField(auto_now_add=True) 
+    subject_id = models.CharField(max_length=200, null=True)
+    created = models.DateTimeField(auto_now_add=True)
     valid_from = models.DateTimeField(null=True)
     valid_to = models.DateTimeField(null=True)
 
@@ -176,10 +184,14 @@ class SubjectAccess(models.Model):
 
 
 class PageText(models.Model):
+    class AccessEnum(models.TextChoices):
+        STUD = 'stud'
+        EMP = 'emp'
+        ALL = 'all'
     page_id = models.CharField(max_length=10, primary_key=True)
     page_title = models.CharField(max_length=50)
-    page_text = models.TextField(null=True) 
-    public = models.BooleanField() 
+    page_text = models.TextField(null=True)
+    accessable_by = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.ALL)
 
     class Meta:
         db_table = 'page_text'
@@ -195,13 +207,15 @@ class Role(models.Model):
     username = models.CharField(max_length=50)
     name = models.CharField(max_length=50, null=True)
     role = models.CharField(max_length=10, choices=RoleEnum.choices, default=RoleEnum.EMP)
-    school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school', to_field='org_nr', related_name="roles", null=True) 
+    school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school',
+                               to_field='org_nr', related_name="roles", null=True)
 
     def __str__(self):
         return f"{self.username}-{self.role}"
 
     class Meta:
         db_table = 'role'
+
 
 class ExternalUser(models.Model):
     id = models.AutoField(primary_key=True)
@@ -226,7 +240,7 @@ class ExternalUser(models.Model):
         pwd_bytes = raw_password.encode('utf-8')
         password_bytes = self.password.encode('utf-8')
         return bcrypt.checkpw(pwd_bytes, password_bytes)
-    
+
     def set_username(self, username, old_username=None):
         if old_username != username:
             if not username:
@@ -250,7 +264,8 @@ class UseLog(models.Model):
     bot_id = models.CharField(max_length=36)
     message_length = models.IntegerField(null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    interaction_type = models.CharField(max_length=10, choices=InteractionTypeEnum.choices, default=InteractionTypeEnum.TEXT, null=False)
+    interaction_type = models.CharField(
+        max_length=10, choices=InteractionTypeEnum.choices, default=InteractionTypeEnum.TEXT, null=False)
 
     class Meta:
         db_table = 'use_log'
@@ -260,7 +275,8 @@ class UseLog(models.Model):
 class LogSchool(models.Model):
     id = models.AutoField(primary_key=True)
     log_id = models.ForeignKey(UseLog, on_delete=models.CASCADE, db_column='log_id', related_name="schools")
-    school_id = models.ForeignKey(School, on_delete=models.DO_NOTHING, db_column='school', related_name="school_logs")
+    school_id = models.ForeignKey(School, on_delete=models.DO_NOTHING,
+                                  db_column='school', related_name="school_logs")
 
     class Meta:
         db_table = 'log_school'
@@ -284,11 +300,13 @@ class TagLabel(models.Model):
     tag_label_name = models.CharField(max_length=50)
     tag_label_weight = models.IntegerField(null=True)
     tag_label_order = models.IntegerField()
-    category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id', related_name="tag_labels")
+    category_id = models.ForeignKey(
+        TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id',
+        related_name="tag_labels")
 
     def __str__(self):
         return f"{self.tag_label_id}-{self.tag_label_name}"
-    
+
     class Meta:
         db_table = 'tag_label'
         unique_together = ('tag_label_order', 'category_id')
@@ -297,13 +315,14 @@ class TagLabel(models.Model):
 class Tag(models.Model):
     tag_id = models.AutoField(primary_key=True)
     tag_value = models.IntegerField()
-    category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE, db_column='category_id', to_field='category_id', related_name="tags")
-    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id', to_field='uuid', related_name="tags")
-
+    category_id = models.ForeignKey(TagCategory, on_delete=models.CASCADE,
+                                    db_column='category_id', to_field='category_id', related_name="tags")
+    bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id',
+                               to_field='uuid', related_name="tags")
 
     def __str__(self):
         return f"{self.tag_id}-{self.category_id}{self.bot_id}"
-    
+
     class Meta:
         db_table = 'tag'
         unique_together = ('category_id', 'bot_id')

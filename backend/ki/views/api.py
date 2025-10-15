@@ -1,3 +1,4 @@
+from fileinput import filename
 from ki import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -6,25 +7,111 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.utils import use_log, get_user_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async
+from ki.utils import use_log, get_user_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async, convert_to_slug, has_page_access
+from django.conf import settings as django_settings
+import uuid
+import re
 
 
-@api_view(["GET"])
-def page_text(request, page):
+@api_view(['POST'])
+def create_info_page(request):
+    if not request.userinfo.get('admin', False):
+        return Response(status=403)
+
+    body = json.loads(request.body)
+
+    title = body.get('title', None)
+    content = body.get('content', None)
+    accessable_by = body.get('accessable_by', 'all')
+
+    if not title or not content:
+        return Response(status=400)
+
+    slug = convert_to_slug(title)
+    if models.PageText.objects.filter(page_id=slug).first():
+        return Response(status=409)
+
+    page = models.PageText(
+        page_id=slug,
+        page_title=title,
+        page_text=content,
+        accessable_by=accessable_by,
+    )
+    page.save()
+
+    return Response({
+        "slug": slug,
+        "title": page.page_title,
+        "content": page.page_text,
+        "accessable_by": page.accessable_by,
+    })
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def info_page(request, slug):
     try:
-        text_line = models.PageText.objects.get(page_id=page)
+        page = models.PageText.objects.get(page_id=slug)
     except models.PageText.DoesNotExist:
         return Response(status=404)
 
-    if (not request.userinfo.get('employee', False)
-        and not request.userinfo.get('admin', False)
-            and not text_line.public):
+    if not has_page_access(request, page):
         return Response(status=403)
 
+    if request.method == 'DELETE':
+        if not request.userinfo.get('admin', False):
+            return Response(status=403)
+        page.delete()
+        return Response(status=200)
+
+    elif request.method == 'PUT':
+        if not request.userinfo.get('admin', False):
+            return Response(status=403)
+        body = json.loads(request.body)
+
+        title = body.get('title', None)
+        content = body.get('content', None)
+
+        if not title or not content:
+            return Response(status=400)
+
+        page.page_title = title
+        page.page_text = content
+        page.accessable_by = body.get('accessable_by', page.accessable_by)
+
+        page.save()
+
     return Response({
-        "page": page,
-        "contentText": text_line.page_text,
+        "slug": slug,
+        "title": page.page_title,
+        "content": page.page_text,
+        "accessable_by": page.accessable_by,
     })
+
+
+@api_view(['POST'])
+def upload_info_image(request):
+
+    def handle_uploaded_file(file):
+        project_root = django_settings.BASE_DIR  # root path
+        img_path = os.path.join(project_root, 'static', 'img', 'infopage', file.name)
+        with open(img_path, "wb+") as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+
+    def allowed_file(filename):
+        allowed_extensions = {'jpg', 'jpeg', 'png', 'gif'}
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+    if not request.userinfo.get('admin', False):
+        return Response(status=403)
+
+    file = request.FILES.get('upload')
+    if not file or not allowed_file(file.name):
+        return Response(status=400)
+
+    handle_uploaded_file(file)
+
+    return Response({'fileName': file.name, 'url': f'/static/img/infopage/{file.name}'})
 
 
 @api_view(["GET"])
@@ -49,13 +136,12 @@ def app_config(request):
     info_page_links = []
     info_pages = models.PageText.objects.all()
 
-    if request.session.get('user.username', None):
-        for page in info_pages:
-            if page.public or request.userinfo.get('employee', False) or request.userinfo.get('admin', False):
-                info_page_links.append({
-                    'title': page.page_title,
-                    'url': f'/info/{page.page_id}',
-                })
+    for page in info_pages:
+        if has_page_access(request, page):
+            info_page_links.append({
+                'title': page.page_title,
+                'url': f'/info/{page.page_id}',
+            })
 
     # Get default model
     default_model_id = get_setting('default_model')
