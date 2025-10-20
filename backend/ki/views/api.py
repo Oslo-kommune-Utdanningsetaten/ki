@@ -637,7 +637,7 @@ def bot_info(request, bot_uuid=None):
         if is_admin or is_author:
             for school in body.get('schoolAccesses', []):
                 school_obj = models.School.objects.get(org_nr=school.get('orgNr'))
-                if is_author and school_obj != request.userinfo.get('authSchool'):
+                if is_author and school_obj != request.userinfo.get('auth_school'):
                     continue
                 if is_author and not school.get('access', 'none') in ['none', 'emp']:
                     continue
