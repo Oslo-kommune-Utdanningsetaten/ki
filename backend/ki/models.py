@@ -4,9 +4,17 @@ import bcrypt
 from django.utils import timezone
 
 
+class TruncatingCharField(models.CharField):
+    def get_prep_value(self, value):
+        value = super(TruncatingCharField, self).get_prep_value(value)
+        if value:
+            return value[:self.max_length]
+        return value
+
+
 class Setting(models.Model):
     setting_key = models.CharField(max_length=50, primary_key=True)
-    label = models.CharField(max_length=50)
+    label = TruncatingCharField(max_length=50)
     int_val = models.IntegerField(null=True)
     txt_val = models.CharField(max_length=250, null=True)
     is_txt = models.BooleanField(default=False)
@@ -20,7 +28,7 @@ class Setting(models.Model):
 
 class Bot(models.Model):
     uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
-    title = models.CharField(max_length=40, null=True)
+    title = TruncatingCharField(max_length=40, null=True)
     ingress = models.TextField(null=True)
     prompt = models.TextField(null=True)
     model_id = models.ForeignKey('BotModel', on_delete=models.RESTRICT,
@@ -78,7 +86,7 @@ class PromptChoice(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
     bot_id = models.ForeignKey(Bot, on_delete=models.CASCADE, db_column='bot_id',
                                to_field='uuid', related_name="prompt_choices")
-    label = models.CharField(max_length=50)
+    label = TruncatingCharField(max_length=50)
     order = models.IntegerField()
     text = models.TextField(null=True)
 
@@ -90,7 +98,7 @@ class ChoiceOption(models.Model):
     id = models.CharField(max_length=7, primary_key=True)
     choice_id = models.ForeignKey(PromptChoice, on_delete=models.CASCADE,
                                   db_column='choice_id', to_field='id', related_name="options")
-    label = models.CharField(max_length=50)
+    label = TruncatingCharField(max_length=50)
     text = models.TextField(default="")
     order = models.IntegerField()
     is_default = models.BooleanField(default=False)
@@ -189,7 +197,7 @@ class PageText(models.Model):
         EMP = 'emp'
         ALL = 'all'
     page_id = models.CharField(max_length=10, primary_key=True)
-    page_title = models.CharField(max_length=50)
+    page_title = TruncatingCharField(max_length=50)
     page_text = models.TextField(null=True)
     accessable_by = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.ALL)
 
@@ -205,7 +213,7 @@ class Role(models.Model):
 
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50)
-    name = models.CharField(max_length=50, null=True)
+    name = TruncatingCharField(max_length=50, null=True)
     role = models.CharField(max_length=10, choices=RoleEnum.choices, default=RoleEnum.EMP)
     school = models.ForeignKey(School, on_delete=models.CASCADE, db_column='school',
                                to_field='org_nr', related_name="roles", null=True)
@@ -221,7 +229,7 @@ class ExternalUser(models.Model):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50, null=True, unique=True)
     password = models.CharField(max_length=128, null=True)
-    name = models.CharField(max_length=50, null=True)
+    name = TruncatingCharField(max_length=50, null=True)
     has_self_service = models.BooleanField(default=False)
     valid_to = models.DateTimeField(null=True, default=timezone.now)
     memberships = models.JSONField(null=True, default=dict)
