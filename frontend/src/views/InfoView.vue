@@ -100,7 +100,9 @@ watchEffect(async () => {
     <button v-if="store.isAdmin" @click="(showEdit = true)" class="btn btn-primary mb-4">
       Rediger
     </button>
-    <span class="ck-content" v-html="htmlContent"></span>
+    <div class="container infotext my-4">
+      <span v-html="htmlContent"></span>
+    </div>
   </div>
 
   <div v-else-if="store.isAdmin" class="container my-4">

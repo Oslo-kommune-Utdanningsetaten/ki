@@ -21,48 +21,17 @@ import {
 } from 'ckeditor5'
 import sanitizeHtml from 'sanitize-html'
 
-// Basic configuration (used by news pages)
-export const basicSanitizeConfig = {
+export const SanitizeConfig = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['iframe', 'img']),
   allowedAttributes: {
-    ...sanitizeHtml.defaults.allowedAttributes,
     div: ['class'],
     figure: ['class', 'style'],
     p: ['style'],
-  },
-}
-
-// Full configuration (extends basic config for guide pages)
-export const fullSanitizeConfig = {
-  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['iframe', 'img']),
-  allowedAttributes: {
-    ...basicSanitizeConfig.allowedAttributes,
     iframe: ['src', 'allow', 'allowfullscreen', 'class'],
     img: ['src', 'alt', 'style', 'class', 'width', 'height'],
     h2: ['style'],
+    a: ['href', 'name', 'target'],
   },
-}
-
-export const basicEditorConfig = {
-  plugins: [Essentials, Bold, Italic, Link, List, Indent, IndentBlock, Paragraph],
-  toolbar: [
-    '|',
-    'bold',
-    'italic',
-    'link',
-    '|',
-    'bulletedList',
-    'numberedList',
-    'outdent',
-    'indent',
-    '|',
-    'undo',
-    'redo',
-    '|',
-  ],
-  link: {
-    addTargetToExternalLinks: true,
-  },
-  licenseKey: 'GPL',
 }
 
 export const editorConfig = {
@@ -118,6 +87,18 @@ export const editorConfig = {
       integrations: ['upload'],
     },
   },
+  link: {
+    decorators: {
+      openInNewTab: {
+        mode: 'manual',
+        label: 'Open in a new tab',
+        defaultValue: true,
+        attributes: {
+          target: '_blank',
+        },
+      },
+    },
+  },
   simpleUpload: {
     uploadUrl: '/api/upload_info_image',
     withCredentials: false,
@@ -135,8 +116,7 @@ export const editorConfig = {
       'facebook',
     ],
   },
-  link: basicEditorConfig.link,
-  licenseKey: basicEditorConfig.licenseKey,
+  licenseKey: 'GPL',
 }
 
 export const createHtmlContent = content => {
@@ -180,5 +160,5 @@ export const createHtmlContent = content => {
     oembedParent.replaceChild(div, oembed)
   })
 
-  return sanitizeHtml(doc.body.innerHTML, fullSanitizeConfig)
+  return sanitizeHtml(doc.body.innerHTML, SanitizeConfig)
 }
