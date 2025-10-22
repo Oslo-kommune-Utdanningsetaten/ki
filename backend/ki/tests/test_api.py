@@ -43,13 +43,13 @@ def set_up_database(db, request):
         page_id='test',
         page_title='Test title',
         page_text='test_text',
-        accessable_by='emp',
+        accessable_by=PageText.AccessEnum.EMPLOYEE,
     )
     PageText.objects.create(
         page_id='test_p',
         page_title='Test public title',
         page_text='test_text',
-        accessable_by='all',
+        accessable_by=PageText.AccessEnum.ALL,
     )
     TagCategory.objects.create(
         category_id=1,

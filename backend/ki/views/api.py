@@ -22,7 +22,7 @@ def create_info_page(request):
 
     title = body.get('title', None)
     content = body.get('content', None)
-    accessable_by = body.get('accessable_by', 'all')
+    accessable_by = body.get('accessableBy', 'all')
 
     if not title or not content:
         return Response(status=400)
@@ -43,7 +43,7 @@ def create_info_page(request):
         "slug": slug,
         "title": page.page_title,
         "content": page.page_text,
-        "accessable_by": page.accessable_by,
+        "accessableBy": page.accessable_by,
     })
 
 
@@ -76,7 +76,7 @@ def info_page(request, slug):
 
         page.page_title = title
         page.page_text = content
-        page.accessable_by = body.get('accessable_by', page.accessable_by)
+        page.accessable_by = body.get('accessableBy', page.accessable_by)
 
         page.save()
 
@@ -84,7 +84,7 @@ def info_page(request, slug):
         "slug": slug,
         "title": page.page_title,
         "content": page.page_text,
-        "accessable_by": page.accessable_by,
+        "accessableBy": page.accessable_by,
     })
 
 

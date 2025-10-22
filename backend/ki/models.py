@@ -185,8 +185,8 @@ class SubjectAccess(models.Model):
 
 class PageText(models.Model):
     class AccessEnum(models.TextChoices):
-        STUD = 'stud'
-        EMP = 'emp'
+        STUDENT = 'student'
+        EMPLOYEE = 'employee'
         ALL = 'all'
     page_id = models.CharField(max_length=10, primary_key=True)
     page_title = models.CharField(max_length=50)

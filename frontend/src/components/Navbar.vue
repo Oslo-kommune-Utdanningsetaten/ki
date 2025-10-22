@@ -10,8 +10,6 @@ const isActiveAdminHeader = ref(false)
 const isActiveInfoHeader = ref(false)
 const route = useRoute()
 
-let firstRouteHandled = false
-
 const getAppConfig = async () => {
   try {
     const response = await axios.get('/api/app_config')
@@ -34,12 +32,8 @@ const getAppConfig = async () => {
   }
 }
 
-watchEffect(() => {
-  // Initial fetch
-  if (!firstRouteHandled) {
-    getAppConfig()
-    firstRouteHandled = true
-  }
+onMounted(() => {
+  getAppConfig()
 })
 </script>
 
