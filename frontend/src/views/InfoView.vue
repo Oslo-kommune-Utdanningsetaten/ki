@@ -21,11 +21,6 @@ const htmlContent = computed(() => createHtmlContent(page.value.content))
 const fetchPage = async () => {
   try {
     if (!route.params.slug) {
-      // TODO: isAdmin isn't working here?
-      // if (!store.isAdmin) {
-      //   router.push('/')
-      //   return
-      // }
       showEdit.value = true
       return
     }
@@ -87,8 +82,6 @@ watchEffect(async () => {
 </script>
 
 <template>
-  <!-- <span class="infotext" v-html="contentText"></span> -->
-
   <div v-if="!showEdit" class="container my-4">
     <button v-if="store.isAdmin" @click="(showEdit = true)" class="btn btn-primary mb-4">
       Rediger
