@@ -44,7 +44,10 @@ def auth_middleware(get_response):
                 if login_method not in ['feide', 'local']:
                     return redirect(f'{message_redirect}/Du er ikke logget inn./error')
                 tokens = request.session.get('user.auth_token', None)
-                memberships = get_memberships(login_method=login_method, username=username, tokens=tokens)
+                memberships = request.session.get('user.memberships', None)
+                if memberships is None:  # if memberships not in session (yet)
+                    memberships = get_memberships(login_method=login_method, username=username, tokens=tokens)
+                    request.session['user.memberships'] = memberships
                 if has_school_access(memberships):
                     if login_method == 'local':
                         request.userinfo.update(get_external_userinfo(username))
@@ -55,21 +58,26 @@ def auth_middleware(get_response):
                     if role == 'author':
                         request.userinfo['author'] = True
                         request.userinfo['auth_school'] = role_obj.school
+            response = get_response(request)
+            response['X-Is-Authenticated'] = 'true'
+            return response
         else:
             url_name = resolve(request.path_info).url_name
             if (url_name is None):
                 return get_response(request)
             elif (
                 url_name.split('.')[0] == 'api'
-                and url_name not in ['api.user_bots', 'api.app_config']
+                and url_name not in [
+                    'api.user_bots',
+                    'api.app_config',
+                    'api.info_page'
+                ]
             ):
                 return JsonResponse({'error': 'Not authenticated'}, status=401)
             else:
-                return get_response(request)
-
-        response = get_response(request)
-        response['X-Is-Authenticated'] = str(is_authenticated).lower()
-        return response
+                response = get_response(request)
+                response['X-Is-Authenticated'] = 'false'
+                return response
 
     return load_logged_in_user
 

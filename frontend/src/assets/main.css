@@ -87,6 +87,12 @@ nav a:hover {
   color: inherit;
 }
 
+.infotext {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 47em;
+}
+
 .infotext a {
   color: #007eff;
 }

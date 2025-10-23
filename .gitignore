@@ -5,6 +5,8 @@ pw.txt
 db/*
 __pycache__/
 public/
+backend/static/img/infopage/*
+!backend/static/img/infopage/.gitkeep
 
 # build stuff
 node_modules

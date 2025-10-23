@@ -51,10 +51,16 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/info/:page',
+    path: '/info',
+    name: 'info_new',
+    component: InfoView,
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/info/:slug',
     name: 'info',
     component: InfoView,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
   },
   {
     path: '/settings',
@@ -108,7 +114,7 @@ router.beforeEach(async (to, from) => {
       return true
     } else if (store.isAuthenticated === false) {
       // Redirect to login page
-      window.location.href = loginUrl
+      // window.location.href = loginUrl
       return false
     } else {
       // Authentication status unknown, check with the server

@@ -5,7 +5,6 @@ from ki.views.api import app_config, bot_models, empty_bot
 from unittest.mock import patch
 
 
-
 def decorate_request(request, user_roles=[], user_groups=[]):
     request.userinfo = {'dist_to_groups': True, 'groups': user_groups}
     request.session = {'user.username': 'testuser'}
@@ -37,20 +36,20 @@ def set_up_database(db, request):
         deployment_id='gpt-4o-mini',
         model_id=1,
         display_name='GPT 4o mini',
-        model_description= None,
-        training_cutoff= None,
+        model_description=None,
+        training_cutoff=None,
     )
     PageText.objects.create(
         page_id='test',
         page_title='Test title',
         page_text='test_text',
-        public=False,
+        accessable_by=PageText.AccessEnum.EMPLOYEE,
     )
     PageText.objects.create(
         page_id='test_p',
         page_title='Test public title',
         page_text='test_text',
-        public=True,
+        accessable_by=PageText.AccessEnum.ALL,
     )
     TagCategory.objects.create(
         category_id=1,
@@ -59,19 +58,18 @@ def set_up_database(db, request):
     )
 
 
-
 @pytest.mark.django_db(reset_sequences=True)
 @pytest.mark.parametrize("user_roles, expected_items", [
     ([], [{'title': 'Test public title', 'url': '/info/test_p'}]),
     (['employee'], [
-        {'title': 'Test title', 'url': '/info/test'}, 
+        {'title': 'Test title', 'url': '/info/test'},
         {'title': 'Test public title', 'url': '/info/test_p'}
-        ]),
+    ]),
     (['admin'], [
-        {'title': 'Test title', 'url': '/info/test'}, 
+        {'title': 'Test title', 'url': '/info/test'},
         {'title': 'Test public title', 'url': '/info/test_p'}
-        ]),
-    ])
+    ]),
+])
 def test_info_page_links_endpoint(set_up_database, user_roles, expected_items):
     """info_pages endpoint returns items"""
     request = RequestFactory().get('/api/app_config')
@@ -87,7 +85,8 @@ def test_bot_models_endpoint(set_up_database):
     request = RequestFactory().get('/api/bot_models')
     response = bot_models(request)
     assert response.status_code == 200
-    expected_bot_models = {'models': [{'modelId': 1, 'displayName': 'GPT 4o mini', 'modelDescription': None, 'trainingCutoff': None, 'deploymentId': 'gpt-4o-mini'}]}       
+    expected_bot_models = {'models': [{'modelId': 1, 'displayName': 'GPT 4o mini',
+                                       'modelDescription': None, 'trainingCutoff': None, 'deploymentId': 'gpt-4o-mini'}]}
     assert response.data == expected_bot_models
 
 
@@ -107,4 +106,3 @@ def test_empty_bot_endpoint(set_up_database, user_roles, expected_status_code, e
     assert response.status_code == expected_status_code
     if expected_status_code == 200:
         assert response.data[expected_response]
-
