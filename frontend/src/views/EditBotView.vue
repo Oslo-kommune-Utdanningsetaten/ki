@@ -596,6 +596,7 @@ watch(
                   class="form-control"
                   :id="`choiceLabel${choice.id}`"
                   v-model="choice.label"
+                  maxlength="50"
                 />
               </div>
             </div>
@@ -613,6 +614,7 @@ watch(
                         class="form-control"
                         :id="`optLabel{option.id}`"
                         v-model="option.label"
+                        maxlength="50"
                       />
                     </div>
                   </div>
