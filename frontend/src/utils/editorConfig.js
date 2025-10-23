@@ -21,7 +21,7 @@ import {
 } from 'ckeditor5'
 import sanitizeHtml from 'sanitize-html'
 
-export const SanitizeConfig = {
+export const sanitizeConfig = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['iframe', 'img']),
   allowedAttributes: {
     div: ['class'],
@@ -160,5 +160,5 @@ export const createHtmlContent = content => {
     oembedParent.replaceChild(div, oembed)
   })
 
-  return sanitizeHtml(doc.body.innerHTML, SanitizeConfig)
+  return sanitizeHtml(doc.body.innerHTML, sanitizeConfig)
 }

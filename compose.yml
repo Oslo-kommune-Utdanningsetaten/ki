@@ -21,6 +21,7 @@ services:
     profiles:
       - dev
       - prod
+
   adminer:
     image: adminer
     restart: always
@@ -50,6 +51,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
   backend:
     build: ./backend
     command:
@@ -64,6 +66,7 @@ services:
       - ./backend:/code
       - /var/www/:/var/www/
       - /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock:ro
+      - infopage_images:/code/app/static/img/infopage
     ports:
       - 8001:8000
     env_file:
@@ -79,6 +82,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
   frontend:
     build: ./frontend
     ports:
@@ -92,3 +96,7 @@ services:
     restart: always
     profiles:
       - prod
+
+volumes:
+  infopage_images:
+    driver: local

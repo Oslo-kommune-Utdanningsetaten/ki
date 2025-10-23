@@ -12,14 +12,14 @@ class Migration(migrations.Migration):
     def update_existing_pagetexts(apps, schema_editor):
         PageText = apps.get_model('ki', 'PageText')
         for pagetext in PageText.objects.all():
-            pagetext.accessable_by = 'stud' if pagetext.public else 'emp'
+            pagetext.accessable_by = 'student' if pagetext.public else 'employee'
             pagetext.save()
 
     operations = [
         migrations.AddField(
             model_name='pagetext', name='accessable_by', field=models.CharField(
-                choices=[('stud', 'Stud'),
-                         ('emp', 'Emp'),
+                choices=[('student', 'Student'),
+                         ('employee', 'Employee'),
                          ('all', 'All')],
                 default='all', max_length=10),),
         migrations.RunPython(update_existing_pagetexts, reverse_code=migrations.RunPython.noop),

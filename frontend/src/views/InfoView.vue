@@ -10,7 +10,7 @@ const page = ref({
   title: '',
   content: '',
   slug: '',
-  accessable_by: 'stud',
+  accessableBy: 'student',
 })
 const showEdit = ref(false)
 const route = useRoute()
@@ -21,11 +21,7 @@ const htmlContent = computed(() => createHtmlContent(page.value.content))
 const fetchPage = async () => {
   try {
     if (!route.params.slug) {
-      // if (!store.isAdmin) return router.push('/')
       showEdit.value = true
-
-      // TODO new page
-
       return
     }
 
@@ -37,8 +33,6 @@ const fetchPage = async () => {
     }
   } catch (error) {
     store.addMessage(`Kunne ikke laste siden. Vennligst prøv igjen senere.`, 'danger')
-  } finally {
-    // isLoading.value = false
   }
 }
 
@@ -53,8 +47,6 @@ const createPage = async () => {
     }
   } catch (error) {
     store.addMessage(`Kunne ikke opprette siden. Vennligst prøv igjen senere.`, 'danger')
-  } finally {
-    // isLoading.value = false
   }
 }
 
@@ -70,8 +62,6 @@ const updatePage = async () => {
   } catch (error) {
     store.addMessage(`Kunne ikke oppdatere siden. Vennligst prøv igjen senere.`, 'danger')
     await fetchPage()
-  } finally {
-    // isLoading.value = false
   }
 }
 
@@ -83,8 +73,6 @@ const deletePage = async () => {
     router.push('/')
   } catch (error) {
     store.addMessage(`Kunne ikke slette siden. Vennligst prøv igjen senere.`, 'danger')
-  } finally {
-    // isLoading.value = false
   }
 }
 
@@ -94,8 +82,6 @@ watchEffect(async () => {
 </script>
 
 <template>
-  <!-- <span class="infotext" v-html="contentText"></span> -->
-
   <div v-if="!showEdit" class="container my-4">
     <button v-if="store.isAdmin" @click="(showEdit = true)" class="btn btn-primary mb-4">
       Rediger
@@ -138,7 +124,7 @@ watchEffect(async () => {
               type="radio"
               id="accessAll"
               value="all"
-              v-model="page.accessable_by"
+              v-model="page.accessableBy"
             />
             <label class="form-check-label" for="accessAll">Åpen for alle</label>
           </div>
@@ -147,8 +133,8 @@ watchEffect(async () => {
               class="form-check-input"
               type="radio"
               id="accessStud"
-              value="stud"
-              v-model="page.accessable_by"
+              value="student"
+              v-model="page.accessableBy"
             />
             <label class="form-check-label" for="accessStud">Elever og ansatte</label>
           </div>
@@ -157,16 +143,12 @@ watchEffect(async () => {
               class="form-check-input"
               type="radio"
               id="accessEmp"
-              value="emp"
-              v-model="page.accessable_by"
+              value="employee"
+              v-model="page.accessableBy"
             />
             <label class="form-check-label" for="accessEmp">Bare ansatte</label>
           </div>
         </div>
-        <!-- <div class="form-check form-switch mb-3">
-          <input class="form-check-input" type="checkbox" id="publicSwitch" v-model="page.public" />
-          <label class="form-check-label" for="publicSwitch">Offentlig</label>
-        </div> -->
         <div class="mb-3">
           <label for="titleInput" class="form-label">Tittel</label>
           <input type="text" class="form-control" id="titleInput" v-model="page.title" />

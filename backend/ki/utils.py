@@ -316,9 +316,12 @@ def convert_to_slug(text):
 
 
 def has_page_access(request, page):
-    if page.accessable_by == 'all'\
-            or request.userinfo.get('admin', False) \
-            or request.userinfo.get('employee', False) \
-            or (page.accessable_by == 'stud' and not request.userinfo.get('username', False)):
+    from ki.models import PageText  # Avoid circular import
+    if (page.accessable_by == PageText.AccessEnum.ALL
+            or request.userinfo.get('admin', False)
+            or request.userinfo.get('employee', False)
+            or (page.accessable_by == PageText.AccessEnum.STUDENT
+                and request.userinfo.get('username', False))
+        ):
         return True
     return False
