@@ -119,7 +119,13 @@ const membershipsString = computed({
         <div class="modal-body">
           <div class="mb-3">
             <label for="name" class="form-label mt-2">Navn</label>
-            <input type="text" class="form-control" id="name" v-model="activeExternalUser.name" />
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              v-model="activeExternalUser.name"
+              maxlength="50"
+            />
           </div>
           <div class="mb-3">
             <label for="username" class="form-label">Brukernavn</label>

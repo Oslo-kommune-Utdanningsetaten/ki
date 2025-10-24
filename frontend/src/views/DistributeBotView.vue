@@ -158,6 +158,7 @@ watch(
               cancel-text="Avbryt"
               :clearable="false"
               :min-date="new Date()"
+              ignore-time-validation
               preview-format="dd.MM HH:mm"
             ></VueDatePicker>
           </div>

@@ -42,6 +42,7 @@ const settingsChange = async setting => {
             :id="setting.settingKey"
             class="form-control"
             v-model="setting.value"
+            maxlength="50"
             @change="settingsChange(setting)"
           />
         </div>

@@ -151,7 +151,13 @@ watchEffect(async () => {
         </div>
         <div class="mb-3">
           <label for="titleInput" class="form-label">Tittel</label>
-          <input type="text" class="form-control" id="titleInput" v-model="page.title" />
+          <input
+            type="text"
+            class="form-control"
+            id="titleInput"
+            v-model="page.title"
+            maxlength="50"
+          />
         </div>
         <div class="mb-3"></div>
 
