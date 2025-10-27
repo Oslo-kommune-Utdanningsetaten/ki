@@ -271,8 +271,8 @@ async def use_log(bot_uuid, role=None, level=None, schools=[], message_length=1,
     await log_line.asave()
 
     for school in schools:
-        # school can be of both type dict or models.School
-        school_id = school.get('org_nr') if isinstance(school, dict) else school.org_nr
+        # school can be of both type string or models.School
+        school_id = school if isinstance(school, str) else school.org_nr
         if school_id:
             await models.LogSchool(school_id_id=school_id, log_id_id=log_line.id).asave()
 
