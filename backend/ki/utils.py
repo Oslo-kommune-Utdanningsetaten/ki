@@ -232,6 +232,19 @@ def generate_group_access_list(groups=None, bot=None):
     return group_list
 
 
+def get_bots_from_group_access(group):
+    from ki import models  # Avoid circular import
+    bots = []
+    subject_accesses = models.SubjectAccess.objects.filter(subject_id=group['id'])
+    for subject_access in subject_accesses:
+        if is_subject_access_valid(subject_access):
+            bots.append({
+                'uuid': subject_access.bot_id_id,
+                'title': subject_access.bot_id.title
+            })
+    return bots
+
+
 def get_user_data_from_userinfo(request):
     # role
     role = 'student'

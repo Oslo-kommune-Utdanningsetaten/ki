@@ -11,6 +11,7 @@ const tagCategories = ref([])
 const loginUserName = ref('')
 const loginUserPassword = ref('')
 const showPassword = ref(false)
+const groups = ref([])
 
 watchEffect(() => {
   getBots()
@@ -36,6 +37,14 @@ async function getBots() {
     } else {
       console.log(error)
     }
+  }
+  try {
+    const { data } = await axios.get('/api/groups_bots')
+    if (data) {
+      groups.value = data.groups || []
+    }
+  } catch (error) {
+    console.log('Error fetching groups:', error)
   }
 }
 
@@ -102,5 +111,18 @@ const onLoginModalClosed = () => {
       :isBotFilteringEnabled="isBotFilteringEnabled"
       :tagCategories="tagCategories"
     />
+  </div>
+  <div>
+    <h5>Grupper</h5>
+    <div v-for="group in groups" :key="group.id">
+      {{ group.display_name }}
+      <div v-if="group.bots && group.bots.length > 0" class="ms-3">
+        <div v-for="bot in group.bots" :key="bot.id">
+          <RouterLink :to="`/distribute/${bot.uuid}`">
+            {{ bot.title }}
+          </RouterLink>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
