@@ -196,6 +196,25 @@ def get_users_bots(username, feide_memberships):
     return list(bots) if bots else []
 
 
+def get_distributed_groups(groups=None, bot=None):
+    from ki import models  # Avoid circular import
+    distributed_groups = []
+    accesses = []
+
+    for subj in bot.subjects.all():
+        if is_subject_access_valid(subj):
+            accesses.append(subj.subject_id)
+    for group in groups:
+        group_id = group.get('id')
+        if group_id in accesses:
+            distributed_groups.append({
+                'id': group_id,
+                'displayName': group.get('display_name'),
+                'goType': group.get('go_type'),
+            })
+    return distributed_groups
+
+
 def generate_group_access_list(groups=None, bot=None):
     group_list = []
     default_lifespan = get_setting('default_lifespan')
@@ -230,19 +249,6 @@ def generate_group_access_list(groups=None, bot=None):
             'validRange': [valid_from, valid_to],
         })
     return group_list
-
-
-def get_bots_from_group_access(group):
-    from ki import models  # Avoid circular import
-    bots = []
-    subject_accesses = models.SubjectAccess.objects.filter(subject_id=group['id'])
-    for subject_access in subject_accesses:
-        if is_subject_access_valid(subject_access):
-            bots.append({
-                'uuid': subject_access.bot_id_id,
-                'title': subject_access.bot_id.title
-            })
-    return bots
 
 
 def get_user_data_from_userinfo(request):
@@ -331,10 +337,10 @@ def convert_to_slug(text):
 def has_page_access(request, page):
     from ki.models import PageText  # Avoid circular import
     if (page.accessable_by == PageText.AccessEnum.ALL
-            or request.userinfo.get('admin', False)
-            or request.userinfo.get('employee', False)
-            or (page.accessable_by == PageText.AccessEnum.STUDENT
-                and request.userinfo.get('username', False))
+        or request.userinfo.get('admin', False)
+        or request.userinfo.get('employee', False)
+        or (page.accessable_by == PageText.AccessEnum.STUDENT
+                    and request.userinfo.get('username', False))
         ):
         return True
     return False

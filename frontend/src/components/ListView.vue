@@ -59,7 +59,13 @@ const props = defineProps({
           </span>
         </div>
       </div>
-      <RouterLink active-class="active" class="col-4" :to="botLink(bot)">
+      <ul class="col-2">
+        <li v-for="group in bot.distributed_to">
+          <span v-if="group.goType === 'b'">Klasse</span>
+          {{ group.displayName }}
+        </li>
+      </ul>
+      <RouterLink active-class="active" class="col-3" :to="botLink(bot)">
         {{ bot.botTitle }}
       </RouterLink>
       <div class="col">

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 from ki.ai_providers.azure import chat_completion_azure_streamed, generate_image_azure
-from ki.utils import use_log, get_user_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async, convert_to_slug, has_page_access, get_bots_from_group_access
+from ki.utils import use_log, get_user_data_from_userinfo, generate_group_access_list, aarstrinn_codes, get_setting, get_setting_async, convert_to_slug, has_page_access, get_distributed_groups
 from django.conf import settings as django_settings
 import uuid
 import re
@@ -274,6 +274,7 @@ def user_bots(request):
             }
                 for tag in bot.tags.all().values('category_id', 'tag_value')] if bot.library else [],
             'accessCount': bot.access_count if request.userinfo.get('admin', False) else 0,
+            'distributed_to': get_distributed_groups(groups=request.userinfo.get('groups', []), bot=bot)
         }
         for bot in users_bots]
 
@@ -812,17 +813,6 @@ def bot_info(request, bot_uuid=None):
         'defaultLifespan': get_setting('default_lifespan', 2),
         'maxLifespan': get_setting('max_lifespan', 14),
     })
-
-
-@api_view(["GET"])
-def groups_bots(request):
-    users_groups = request.userinfo.get('groups', [])
-    if not users_groups:
-        return Response({'groups': []})
-
-    for group in users_groups:
-        group['bots'] = get_bots_from_group_access(group)
-    return Response({'groups': users_groups})
 
 
 @api_view(["GET", "PUT"])
