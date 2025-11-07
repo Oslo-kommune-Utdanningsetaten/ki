@@ -9,6 +9,7 @@ const props = defineProps({
   setActiveBot: Function,
   botLink: Function,
   toggleFavorite: Function,
+  isFavoriteView: Boolean,
   showSideBar: Boolean,
 })
 
@@ -42,20 +43,23 @@ const botIconWidth = computed(() =>
                       src="@/components/icons/star_solid.svg"
                       alt="Fjern som favoritt"
                       title="Fjern som favoritt"
+                      style="width: 20px"
                     />
                     <img
                       v-else
                       src="@/components/icons/star.svg"
                       alt="Sett som favoritt"
                       title="Sett som favoritt"
+                      style="width: 20px"
                     />
                   </a>
+                  <div v-if="bot.personal && isFavoriteView">
+                    <img src="@/components/icons/user_outline.svg" style="width: 20px" />
+                  </div>
+                  <div v-if="!bot.mandatory && !bot.personal && isFavoriteView">
+                    <img src="@/components/icons/books.svg" style="width: 20px" />
+                  </div>
                 </div>
-              </div>
-              <div v-if="store.isAdmin" class="col-2 px-0">
-                <span class="badge text-bg-secondary">
-                  {{ bot.accessCount }}
-                </span>
               </div>
               <div class="card-body row m-0">
                 <div class="col-10 ps-0">{{ bot.botTitle }}</div>

@@ -300,6 +300,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       :botLink="botLink"
       :toggleFavorite="toggleFavorite"
       :showSideBar="showSideBar"
+      :isFavoriteView="filterMode === 'favorites'"
     />
   </div>
 </template>
