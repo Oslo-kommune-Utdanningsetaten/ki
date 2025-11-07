@@ -6,8 +6,6 @@ import { useRoute } from 'vue-router'
 import { store } from '../store.js'
 
 const infoPages = ref([])
-const isActiveAdminHeader = ref(false)
-const isActiveInfoHeader = ref(false)
 const route = useRoute()
 
 const getAppConfig = async () => {
@@ -29,6 +27,14 @@ const getAppConfig = async () => {
     } else {
       console.log(error)
     }
+  }
+}
+
+const closeDropdown = event => {
+  const dropdown = event.target.closest('.dropdown')
+  if (dropdown) {
+    dropdown.classList.remove('show')
+    dropdown.querySelector('.dropdown-menu')?.classList.remove('show')
   }
 }
 
@@ -63,15 +69,22 @@ onMounted(() => {
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbar">
-            <ul class="navbar-nav mb-2 mb-lg-0">
-              <li class="nav-item">
-                <RouterLink activeClass="active" class="nav-link ps-0" aria-current="page" to="/">
-                  Startside
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li v-if="store.isAuthenticated" class="nav-item">
+                <RouterLink
+                  active-class="active"
+                  class="nav-link ps-0"
+                  aria-current="page"
+                  to="/"
+                  @click="closeDropdown"
+                >
+                  Boter
                 </RouterLink>
               </li>
               <li v-if="infoPages.length > 1" class="nav-item dropdown" id="infoHeader">
                 <a
                   class="nav-link dropdown-toggle"
+                  :class="{ active: route.name === 'info' }"
                   href="#"
                   role="button"
                   data-bs-toggle="dropdown"
@@ -81,14 +94,19 @@ onMounted(() => {
                 </a>
                 <ul class="dropdown-menu">
                   <li v-for="item in infoPages" :key="item.id">
-                    <RouterLink class="dropdown-item" active-class="active" :to="item.url">
+                    <RouterLink
+                      class="dropdown-item"
+                      active-class="active"
+                      :to="item.url"
+                      @click="closeDropdown"
+                    >
                       {{ item.title }}
                     </RouterLink>
                   </li>
                 </ul>
               </li>
               <li v-else-if="infoPages.length == 1" class="nav-item">
-                <RouterLink activeClass="active" class="nav-link" :to="infoPages[0].url">
+                <RouterLink active-class="active" class="nav-link" :to="infoPages[0].url">
                   {{ infoPages[0].title }}
                 </RouterLink>
               </li>
@@ -96,6 +114,7 @@ onMounted(() => {
               <li v-if="store.isAdmin" class="nav-item dropdown" id="adminHeader">
                 <a
                   class="nav-link dropdown-toggle"
+                  :class="{ active: route.path.startsWith('/admin') }"
                   href="#"
                   role="button"
                   data-bs-toggle="dropdown"
@@ -105,37 +124,59 @@ onMounted(() => {
                 </a>
                 <ul class="dropdown-menu">
                   <li>
-                    <RouterLink class="dropdown-item" active-class="active" to="/school_accesses">
+                    <RouterLink
+                      class="dropdown-item"
+                      active-class="active"
+                      to="/admin/school_accesses"
+                      @click="closeDropdown"
+                    >
                       Skoletilgang
                     </RouterLink>
                   </li>
                   <li>
-                    <RouterLink class="dropdown-item" active-class="active" to="/authors">
+                    <RouterLink
+                      class="dropdown-item"
+                      active-class="active"
+                      to="/admin/authors"
+                      @click="closeDropdown"
+                    >
                       Forfattere
                     </RouterLink>
                   </li>
                   <li>
-                    <RouterLink class="dropdown-item" active-class="active" to="/externalusers">
+                    <RouterLink
+                      class="dropdown-item"
+                      active-class="active"
+                      to="/admin/externalusers"
+                      @click="closeDropdown"
+                    >
                       Eksterne brukere
                     </RouterLink>
                   </li>
                   <li>
-                    <RouterLink class="dropdown-item" active-class="active" to="/settings">
+                    <RouterLink
+                      class="dropdown-item"
+                      active-class="active"
+                      to="/admin/settings"
+                      @click="closeDropdown"
+                    >
                       Innstillinger
                     </RouterLink>
                   </li>
                 </ul>
               </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
               <li v-if="store.hasSelfService" class="nav-item">
-                <RouterLink activeClass="active" class="nav-link" to="/externaluser">
+                <RouterLink active-class="active" class="nav-link" to="/externaluser">
                   Min side
                 </RouterLink>
               </li>
-              <li v-if="store.isAuthenticated === true" class="nav-item ms-auto">
-                <a class="nav-link" href="/auth/logout">Logg ut</a>
-              </li>
-              <li v-else class="nav-item ms-auto">
-                <a class="nav-link" href="/auth/feidelogin">Logg inn</a>
+              <li class="nav-item">
+                <a v-if="store.isAuthenticated" class="nav-link pe-0" href="/auth/logout">
+                  Logg ut
+                </a>
+                <a v-else class="nav-link pe-0" href="/auth/feidelogin">Logg inn</a>
               </li>
             </ul>
           </div>
