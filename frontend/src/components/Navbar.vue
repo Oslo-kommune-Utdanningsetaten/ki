@@ -70,7 +70,7 @@ onMounted(() => {
           </button>
           <div class="collapse navbar-collapse" id="navbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li v-if="store.isAuthenticated === true" class="nav-item">
+              <li v-if="store.isAuthenticated" class="nav-item">
                 <RouterLink
                   active-class="active"
                   class="nav-link ps-0"
@@ -173,7 +173,7 @@ onMounted(() => {
                 </RouterLink>
               </li>
               <li class="nav-item">
-                <a v-if="store.isAuthenticated === true" class="nav-link pe-0" href="/auth/logout">
+                <a v-if="store.isAuthenticated" class="nav-link pe-0" href="/auth/logout">
                   Logg ut
                 </a>
                 <a v-else class="nav-link pe-0" href="/auth/feidelogin">Logg inn</a>
