@@ -36,27 +36,27 @@ const titleColWidth = store.isEmployee || store.isAdmin ? 'col-3' : 'col-2'
               src="@/components/icons/star_solid.svg"
               alt="Fjern som favoritt"
               title="Fjern som favoritt"
-              style="width: 20px"
+              class="category_icon"
             />
             <img
               v-else
               src="@/components/icons/star.svg"
               alt="Sett som favoritt"
               title="Sett som favoritt"
-              style="width: 20px"
+              class="category_icon"
             />
           </a>
           <div v-if="bot.personal && isFavoriteView">
-            <img src="@/components/icons/user_outline.svg" style="width: 20px" />
+            <img src="@/components/icons/user_outline.svg" class="category_icon" />
           </div>
           <div v-if="!bot.mandatory && !bot.personal && isFavoriteView">
-            <img src="@/components/icons/books.svg" style="width: 20px" />
+            <img src="@/components/icons/books.svg" class="category_icon" />
           </div>
         </div>
       </div>
       <!-- distributed to -->
       <div v-if="store.isEmployee" class="col-2">
-        <div v-for="group in bot.distributed_to">
+        <div v-for="group in bot.distributedTo">
           <span class="badge text-bg-secondary">
             <span v-if="group.goType === 'b'">Klasse</span>
             {{ group.displayName }}

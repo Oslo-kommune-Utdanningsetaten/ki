@@ -274,7 +274,7 @@ def user_bots(request):
             }
                 for tag in bot.tags.all().values('category_id', 'tag_value')] if bot.library else [],
             'accessCount': bot.access_count if request.userinfo.get('admin', False) else 0,
-            'distributed_to': get_distributed_groups(groups=request.userinfo.get('groups', []), bot=bot)
+            'distributedTo': get_distributed_groups(groups=request.userinfo.get('groups', []), bot=bot)
         }
         for bot in users_bots]
 

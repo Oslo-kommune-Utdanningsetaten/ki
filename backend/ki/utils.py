@@ -196,8 +196,7 @@ def get_users_bots(username, feide_memberships):
     return list(bots) if bots else []
 
 
-def get_distributed_groups(groups=None, bot=None):
-    from ki import models  # Avoid circular import
+def get_distributed_groups(groups, bot):
     distributed_groups = []
     accesses = []
 
