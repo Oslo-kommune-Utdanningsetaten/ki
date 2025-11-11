@@ -131,7 +131,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('favorites')"
         >
-          <img src="@/components/icons/star_solid.svg" style="width: 20px" />
+          <img src="@/components/icons/star_solid.svg" class="category_icon" />
           Favoritter
         </a>
       </li>
@@ -142,7 +142,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('personal')"
         >
-          <img src="@/components/icons/user_outline.svg" style="width: 20px" />
+          <img src="@/components/icons/user_outline.svg" class="category_icon" />
           Personlige
         </a>
       </li>
@@ -153,7 +153,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('library')"
         >
-          <img src="@/components/icons/books.svg" style="width: 20px" />
+          <img src="@/components/icons/books.svg" class="category_icon" />
           Bibliotek
         </a>
       </li>
@@ -300,6 +300,13 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       :botLink="botLink"
       :toggleFavorite="toggleFavorite"
       :showSideBar="showSideBar"
+      :isFavoriteView="filterMode === 'favorites'"
     />
   </div>
 </template>
+
+<style>
+.category_icon {
+  width: 20px;
+}
+</style>

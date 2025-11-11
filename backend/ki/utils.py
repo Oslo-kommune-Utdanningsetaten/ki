@@ -196,6 +196,24 @@ def get_users_bots(username, feide_memberships):
     return list(bots) if bots else []
 
 
+def get_distributed_groups(groups, bot):
+    distributed_groups = []
+    accesses = []
+
+    for subj in bot.subjects.all():
+        if is_subject_access_valid(subj):
+            accesses.append(subj.subject_id)
+    for group in groups:
+        group_id = group.get('id')
+        if group_id in accesses:
+            distributed_groups.append({
+                'id': group_id,
+                'displayName': group.get('display_name'),
+                'goType': group.get('go_type'),
+            })
+    return distributed_groups
+
+
 def generate_group_access_list(groups=None, bot=None):
     group_list = []
     default_lifespan = get_setting('default_lifespan')
@@ -318,10 +336,10 @@ def convert_to_slug(text):
 def has_page_access(request, page):
     from ki.models import PageText  # Avoid circular import
     if (page.accessable_by == PageText.AccessEnum.ALL
-            or request.userinfo.get('admin', False)
-            or request.userinfo.get('employee', False)
-            or (page.accessable_by == PageText.AccessEnum.STUDENT
-                and request.userinfo.get('username', False))
+        or request.userinfo.get('admin', False)
+        or request.userinfo.get('employee', False)
+        or (page.accessable_by == PageText.AccessEnum.STUDENT
+                    and request.userinfo.get('username', False))
         ):
         return True
     return False
