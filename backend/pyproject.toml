@@ -6,7 +6,7 @@ authors = []
 readme = "../README.md"
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.14"
 python-dotenv = "^1.0.1"
 oauthlib = "^3.2.2"
 requests = "^2.31.0"
@@ -15,7 +15,7 @@ openai = "^1.66.3"
 pymysql = "^1.1.0"
 gunicorn = "^23.0.0"
 uvicorn = "^0.34.2"
-django = "^4.2.26"
+django = "^5.2.8"
 djangorestframework = "^3.14.0"
 mysqlclient = "^2.2.4"
 azure-cognitiveservices-speech = "^1.41.1"
