@@ -26,8 +26,6 @@ bcrypt = "^4.3.0"
 
 [tool.poetry.group.dev.dependencies]
 daphne = "^4.1.0"
-pytest = "^8.3.5"
-pytest-django = "^4.10.0"
 poethepoet = "^0.32.2"
 
 [build-system]
@@ -44,3 +42,7 @@ pythonpath = ["."]
 [tool.poe.tasks]
 run-tests = "pytest -vv --nomigrations -s"
 run-server = "python manage.py runserver 5000"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.5"
+pytest-django = "^4.10.0"
