@@ -9,16 +9,16 @@ class Migration(migrations.Migration):
         ('ki', '0020_remove_pagetext_public_pagetext_accessable_by'),
     ]
 
-    def insert_is_audio_enabled_for_all(apps, schema_editor):
+    def insert_is_audio_modifiable_by_employees(apps, schema_editor):
         Setting = apps.get_model('ki', 'Setting')
         setting_instance = Setting.objects.create(
-            setting_key='is_audio_enabled_for_all',
-            label='Tale åpen for lærer',
+            setting_key='is_audio_modifiable_by_employees',
+            label='Tale tilgjengelig for lærer',
             int_val=0,
             is_txt=False
         )
         setting_instance.save()
 
     operations = [
-        migrations.RunPython(insert_is_audio_enabled_for_all),
+        migrations.RunPython(insert_is_audio_modifiable_by_employees),
     ]

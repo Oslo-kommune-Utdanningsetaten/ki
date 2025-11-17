@@ -21,7 +21,7 @@ const getAppConfig = async () => {
     store.hasSelfService = data.role ? data.role.hasSelfService : false
     store.defaultModel = data.defaultModel
     store.maxMessageLength = data.maxMessageLength
-    store.isAudioEnabledForAll = data.isAudioEnabledForAll
+    store.isAudioModifiableByEmployees = data.isAudioModifiableByEmployees
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'
