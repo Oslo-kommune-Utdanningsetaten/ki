@@ -57,7 +57,7 @@ const titleColWidth = store.isEmployee || store.isAdmin ? 'col-3' : 'col-2'
       <!-- distributed to -->
       <div v-if="store.isEmployee" class="col-2">
         <div v-for="group in bot.distributedTo">
-          <span class="badge text-bg-secondary">
+          <span class="badge text-bg-secondary text-wrap">
             <span v-if="group.goType === 'b'">Klasse</span>
             {{ group.displayName }}
           </span>

@@ -159,6 +159,7 @@ def app_config(request):
     is_external_user = request.userinfo.get('external_user', False)
     has_self_service = request.userinfo.get('has_self_service', False)
     max_message_length = get_setting('max_message_length', 50000)
+    is_audio_modifiable_by_employees = get_setting('is_audio_modifiable_by_employees', False)
 
     return Response({
         'infoPages': info_page_links,
@@ -170,6 +171,7 @@ def app_config(request):
         },
         'defaultModel': default_model,
         'maxMessageLength': max_message_length,
+        'isAudioModifiableByEmployees': is_audio_modifiable_by_employees,
     })
 
 
@@ -299,7 +301,8 @@ def user_info(request):
         roles.append(role)
     # Schools
     schools = []
-    for school in request.userinfo.get('schools', []):
+    for school_id in request.userinfo.get('schools', []):
+        school = models.School.objects.get(org_nr=school_id)
         schools.append({
             'orgNr': school.org_nr,
             'schoolName': school.school_name,
@@ -570,8 +573,9 @@ def bot_info(request, bot_uuid=None):
         bot.prompt_visibility = body.get('promptVisibility', bot.prompt_visibility)
         bot.allow_distribution = body.get('allowDistribution', bot.allow_distribution)
         bot.mandatory = body.get('mandatory', bot.mandatory)
-        bot.is_audio_enabled = body.get(
-            'isAudioEnabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
+        bot.is_audio_enabled = body.get('isAudioEnabled', bot.is_audio_enabled)\
+            if is_admin or get_setting('is_audio_modifiable_by_employees', False)\
+            else bot.is_audio_enabled
         bot.avatar_scheme = ','.join(
             [str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get(
             'avatarScheme', False) else bot.avatar_scheme
