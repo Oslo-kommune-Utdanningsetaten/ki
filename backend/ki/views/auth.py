@@ -36,7 +36,10 @@ def auth_middleware(get_response):
             request.userinfo['username'] = username
             request.userinfo['name'] = request.session.get('user.name')
             request.userinfo['has_access'] = False
+            request.userinfo['admin_available'] = False
             if role == 'admin':
+                request.userinfo['admin_available'] = True
+            if request.session.get('user.admin_enabled', False) and role == 'admin':
                 request.userinfo.update(get_admin_memberships_and_bots(username))
                 request.userinfo['has_access'] = True
             else:
