@@ -165,6 +165,7 @@ def app_config(request):
         'infoPages': info_page_links,
         'role': {
             'isAdmin': request.userinfo.get('admin', False),
+            'isAdminAvailable': request.userinfo.get('is_admin_available', False),
             'isEmployee': request.userinfo.get('employee', False),
             'isAuthor': request.userinfo.get('author', False),
             'hasSelfService': is_external_user and has_self_service,
@@ -338,6 +339,17 @@ def user_info(request):
             'levels': request.userinfo.get('levels', None),
         }
     })
+
+
+@api_view(["PUT"])
+def admin_toggle(request):
+    if not request.userinfo.get('is_admin_available', False):
+        return Response(status=403)
+
+    current_enabled = request.session.get('user.is_admin_enabled', False)
+    request.session['user.is_admin_enabled'] = not current_enabled
+
+    return Response({'isAdmin': not current_enabled})
 
 
 @api_view(["GET"])
@@ -542,6 +554,8 @@ def bot_info(request, bot_uuid=None):
     is_admin = request.userinfo.get('admin', False)
     is_employee = request.userinfo.get('employee', False)
     is_author = request.userinfo.get('author', False)
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
 
     new_bot = False if bot_uuid else True
 
@@ -556,6 +570,8 @@ def bot_info(request, bot_uuid=None):
             bot = models.Bot.objects.get(uuid=bot_uuid)
         except models.Bot.DoesNotExist:
             return Response(status=404)
+        if not has_bot_access and not is_admin:
+            return Response(status=403)
     is_owner = bot.owner == request.userinfo.get('username', None)
 
     # save bot
@@ -807,7 +823,7 @@ def bot_info(request, bot_uuid=None):
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
             'model': bot_model,
-            'edit': is_admin or (is_employee and is_owner),
+            'isOwner': is_owner,
             'owner': bot.owner if is_admin else None,
             'choices': choices,
             'groups': groups_access_list,
@@ -997,7 +1013,8 @@ async def send_message(request):
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
     is_admin = request.userinfo.get('admin', False)
-    has_bot_access = bot_uuid in request.userinfo.get('bots', [])
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
     if not (has_bot_access or is_admin):
         return HttpResponseForbidden()
     try:
@@ -1021,7 +1038,8 @@ async def send_img_message(request):
     messages = body.get('messages')
     prompt = messages[-1].get('content')
     is_admin = request.userinfo.get('admin', False)
-    has_bot_access = bot_uuid in request.userinfo.get('bots', [])
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
     if not (has_bot_access or is_admin):
         return HttpResponseForbidden()
     try:

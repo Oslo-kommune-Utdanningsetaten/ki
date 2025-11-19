@@ -21,6 +21,7 @@ apiurls = [
     path("api/bot_info/", api.bot_info, name="api.bot_info"),
     path("api/bot_info/<uuid:bot_uuid>", api.bot_info, name="api.bot_info"),
     path("api/user_info/", api.user_info, name="api.user_info"),
+    path("api/admin_toggle", api.admin_toggle, name="api.admin_toggle"),
     path("api/external_users/", api.external_users, name="api.external_users"),
     path("api/external_user/", api.external_user_create, name="api.external_user_create"),
     path("api/external_user/<int:user_id>", api.external_user, name="api.external_user"),

@@ -273,7 +273,7 @@ def get_admin_memberships_and_bots(username) -> dict:
     bots.update((bot.uuid for bot in library_bots))
     return {
         'admin': True,
-        'employee': False,
+        'employee': True,
         'schools': [],
         'levels': [],
         'groups': [],
