@@ -15,7 +15,7 @@ const getAppConfig = async () => {
     infoPages.value = data.infoPages
     store.isAuthenticated = response.headers['x-is-authenticated'] === 'true'
     store.isAdmin = data.role ? data.role.isAdmin : false
-    store.adminAvailable = data.role ? data.role.adminAvailable : false
+    store.isAdminAvailable = data.role ? data.role.isAdminAvailable : false
     store.isEmployee = data.role ? data.role.isEmployee : false
     store.isAuthor = data.role ? data.role.isAuthor : false
     // store.isExternalUser = data.role ? data.role.isExternalUser : false
@@ -124,7 +124,7 @@ onMounted(() => {
               </li>
             </ul>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-              <li v-if="!store.isAdmin && store.adminAvailable" class="nav-item">
+              <li v-if="!store.isAdmin && store.isAdminAvailable" class="nav-item">
                 <a class="nav-link" active-class="active" href="" @click="toggleAdmin">
                   Aktiver administrator
                 </a>

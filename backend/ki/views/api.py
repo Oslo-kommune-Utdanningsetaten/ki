@@ -165,7 +165,7 @@ def app_config(request):
         'infoPages': info_page_links,
         'role': {
             'isAdmin': request.userinfo.get('admin', False),
-            'adminAvailable': request.userinfo.get('admin_available', False),
+            'isAdminAvailable': request.userinfo.get('is_admin_available', False),
             'isEmployee': request.userinfo.get('employee', False),
             'isAuthor': request.userinfo.get('author', False),
             'hasSelfService': is_external_user and has_self_service,
@@ -343,11 +343,11 @@ def user_info(request):
 
 @api_view(["PUT"])
 def admin_toggle(request):
-    if not request.userinfo.get('admin_available', False):
+    if not request.userinfo.get('is_admin_available', False):
         return Response(status=403)
 
-    current_enabled = request.session.get('user.admin_enabled', False)
-    request.session['user.admin_enabled'] = not current_enabled
+    current_enabled = request.session.get('user.is_admin_enabled', False)
+    request.session['user.is_admin_enabled'] = not current_enabled
 
     return Response({'isAdmin': not current_enabled})
 
