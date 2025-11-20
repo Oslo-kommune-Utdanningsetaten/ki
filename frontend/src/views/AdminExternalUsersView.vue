@@ -126,6 +126,7 @@ const membershipsString = computed({
               v-model="activeExternalUser.name"
               maxlength="50"
             />
+            <div class="form-text text-end">{{ activeExternalUser.name.length }}/50</div>
           </div>
           <div class="mb-3">
             <label for="username" class="form-label">Brukernavn</label>

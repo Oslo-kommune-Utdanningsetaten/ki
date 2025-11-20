@@ -459,13 +459,16 @@ def external_user_self_service(request):
         if not user_body:
             return Response(status=400)
         user.name = user_body.get('name', user.name)
-        if 'newPassword' in user_body and 'password' in user_body:
-            if not user.check_password(user_body['password']):
-                return Response(status=403, data={"error": "Gammelt passord er feil"})
-            try:
-                user.set_password(user_body.get('newPassword', user.password))
-            except ValueError as e:
-                return Response(status=404, data={"error": str(e)})
+        if 'newPassword' in user_body and user_body['newPassword']:
+            if 'password' in user_body and user_body['password']:
+                if not user.check_password(user_body['password']):
+                    return Response(status=400, data={"error": "Gammelt passord er feil"})
+                try:
+                    user.set_password(user_body.get('newPassword', user.password))
+                except ValueError as e:
+                    return Response(status=404, data={"error": str(e)})
+            else:
+                return Response(status=400, data={"error": "Nytt passord krever gammelt passord"})
         user.save()
 
     return Response({
@@ -473,6 +476,8 @@ def external_user_self_service(request):
             'id': user.id,
             'username': user.username,
             'name': user.name,
+            'password': '',
+            'newPassword': '',
         }
     })
 

@@ -116,6 +116,7 @@ const schoolName = schoolId => {
             v-model="activeAuthor.name"
             maxlength="50"
           />
+          <div class="form-text text-end">{{ activeAuthor.name.length }}/50</div>
           <label for="userId" class="form-label mt-2">Bruker ID</label>
           <input type="text" class="form-control" id="username" v-model="activeAuthor.username" />
           <div class="form-check mt-2">

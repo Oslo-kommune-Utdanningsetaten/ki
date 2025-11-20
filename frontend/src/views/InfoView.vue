@@ -158,6 +158,7 @@ watchEffect(async () => {
             v-model="page.title"
             maxlength="50"
           />
+          <div class="form-text text-end">{{ page.title.length }}/50</div>
         </div>
         <div class="mb-3"></div>
 

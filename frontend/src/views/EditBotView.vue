@@ -361,6 +361,7 @@ watch(
         name="title"
         maxlength="40"
       />
+      <div class="form-text text-end">{{ bot.title.length }}/40</div>
     </div>
   </div>
   <div class="row mb-3">
@@ -599,6 +600,7 @@ watch(
                   v-model="choice.label"
                   maxlength="50"
                 />
+                <div class="form-text text-end">{{ choice.label.length }}/50</div>
               </div>
             </div>
             <div class="row mb-1">
@@ -617,6 +619,7 @@ watch(
                         v-model="option.label"
                         maxlength="50"
                       />
+                      <div class="form-text text-end">{{ option.label.length }}/50</div>
                     </div>
                   </div>
                   <div class="row mb-1">
