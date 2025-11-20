@@ -15,12 +15,14 @@ const getAppConfig = async () => {
     infoPages.value = data.infoPages
     store.isAuthenticated = response.headers['x-is-authenticated'] === 'true'
     store.isAdmin = data.role ? data.role.isAdmin : false
+    store.isAdminAvailable = data.role ? data.role.isAdminAvailable : false
     store.isEmployee = data.role ? data.role.isEmployee : false
     store.isAuthor = data.role ? data.role.isAuthor : false
     // store.isExternalUser = data.role ? data.role.isExternalUser : false
     store.hasSelfService = data.role ? data.role.hasSelfService : false
     store.defaultModel = data.defaultModel
     store.maxMessageLength = data.maxMessageLength
+    store.isAudioModifiableByEmployees = data.isAudioModifiableByEmployees
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'
@@ -35,6 +37,16 @@ const closeDropdown = event => {
   if (dropdown) {
     dropdown.classList.remove('show')
     dropdown.querySelector('.dropdown-menu')?.classList.remove('show')
+  }
+}
+
+const toggleAdmin = async event => {
+  event.preventDefault()
+  // closeDropdown(event)
+  try {
+    store.isAdmin = (await axios.put('/api/admin_toggle')).data.isAdmin
+  } catch (error) {
+    console.log(error)
   }
 }
 
@@ -110,6 +122,13 @@ onMounted(() => {
                   {{ infoPages[0].title }}
                 </RouterLink>
               </li>
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+              <li v-if="!store.isAdmin && store.isAdminAvailable" class="nav-item">
+                <a class="nav-link" active-class="active" href="" @click="toggleAdmin">
+                  Aktiver administrator
+                </a>
+              </li>
 
               <li v-if="store.isAdmin" class="nav-item dropdown" id="adminHeader">
                 <a
@@ -120,7 +139,7 @@ onMounted(() => {
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  Administrasjon
+                  Administrator
                 </a>
                 <ul class="dropdown-menu">
                   <li>
@@ -163,10 +182,13 @@ onMounted(() => {
                       Innstillinger
                     </RouterLink>
                   </li>
+                  <li>
+                    <a class="dropdown-item" active-class="active" href="" @click="toggleAdmin">
+                      Deaktiver administrator
+                    </a>
+                  </li>
                 </ul>
               </li>
-            </ul>
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
               <li v-if="store.hasSelfService" class="nav-item">
                 <RouterLink active-class="active" class="nav-link" to="/externaluser">
                   Min side

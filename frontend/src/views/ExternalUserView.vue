@@ -21,7 +21,7 @@ onMounted(() => {
 
 async function getUserInfo() {
   try {
-    const { data } = await axios.get('/api/external_user_self_service')
+    const { data } = await axios.get('/api/external_user_self_service/')
     user.value = data.user
   } catch (error) {
     console.log(error)
@@ -56,7 +56,9 @@ async function saveUserInfo() {
           id="name"
           placeholder="Skriv inn navn"
           v-model="user.name"
+          maxlength="50"
         />
+        <div class="form-text text-end">{{ user.name.length }}/50</div>
       </div>
       <label for="inputPassword" class="col-sm-2 col-form-label mb-2">Gammelt passord</label>
       <div class="col-sm-10">
@@ -87,8 +89,9 @@ async function saveUserInfo() {
             id="inputNewPassword"
             placeholder="Skriv inn nytt passord hvis du vil endre passord"
             v-model="user.newPassword"
+            maxlength="50"
+            minlength="8"
           />
-
           <button
             type="button"
             class="btn btn-outline-secondary mb-0"
@@ -98,6 +101,7 @@ async function saveUserInfo() {
             <img v-else src="@/components/icons/eye-show.svg" alt="Vis passord" />
           </button>
         </div>
+        <div class="form-text text-end">Må være 8-50 tegn ({{ user.newPassword.length }}/50)</div>
       </div>
     </div>
 

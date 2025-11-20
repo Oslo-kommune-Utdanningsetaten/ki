@@ -16,6 +16,10 @@ const systemPrompt = ref('')
 // const botModelName = ref(null)
 const botModelTrainingCutoff = ref(null)
 
+const edit = computed(() => {
+  return store.isAdmin || (store.isEmployee && bot.value.isOwner)
+})
+
 const choicesSorted = () => {
   return bot.value.choices.sort((a, b) => a.order - b.order)
 }
@@ -117,11 +121,11 @@ onMounted(async () => {
       >
         Gi tilgang
       </RouterLink>
-      <RouterLink v-if="bot.edit" class="btn oslo-btn-secondary" :to="'/editbot/edit/' + bot.uuid">
+      <RouterLink v-if="edit" class="btn oslo-btn-secondary" :to="'/editbot/edit/' + bot.uuid">
         Rediger bot
       </RouterLink>
       <button
-        v-if="bot.edit"
+        v-if="edit"
         class="btn oslo-btn-warning"
         data-bs-toggle="modal"
         data-bs-target="#deleteBot"

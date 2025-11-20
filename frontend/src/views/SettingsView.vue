@@ -45,6 +45,9 @@ const settingsChange = async setting => {
             maxlength="50"
             @change="settingsChange(setting)"
           />
+          <div v-if="setting.type == 'text'" class="form-text text-end">
+            {{ setting.value.length }}/50
+          </div>
         </div>
       </div>
     </div>

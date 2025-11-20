@@ -19,6 +19,7 @@ const bot = ref({
   model: null,
   mandatory: false,
   allowDistribution: true,
+  isAudioEnabled: false,
   botInfo: '',
   tagCategories: [],
   choices: [],
@@ -360,6 +361,7 @@ watch(
         name="title"
         maxlength="40"
       />
+      <div class="form-text text-end">{{ bot.title.length }}/40</div>
     </div>
   </div>
   <div class="row mb-3">
@@ -467,7 +469,7 @@ watch(
       </div>
     </div>
   </div>
-  <div v-if="store.isAdmin" class="row mb-3">
+  <div v-if="store.isAdmin || store.isAudioModifiableByEmployees" class="row mb-3">
     <label for="isAudioEnabled" class="col-sm-2 col-form-label">Kan bruke tale</label>
     <div class="col-sm-10">
       <div class="form-check form-switch">
@@ -598,6 +600,7 @@ watch(
                   v-model="choice.label"
                   maxlength="50"
                 />
+                <div class="form-text text-end">{{ choice.label.length }}/50</div>
               </div>
             </div>
             <div class="row mb-1">
@@ -616,6 +619,7 @@ watch(
                         v-model="option.label"
                         maxlength="50"
                       />
+                      <div class="form-text text-end">{{ option.label.length }}/50</div>
                     </div>
                   </div>
                   <div class="row mb-1">

@@ -159,17 +159,20 @@ def app_config(request):
     is_external_user = request.userinfo.get('external_user', False)
     has_self_service = request.userinfo.get('has_self_service', False)
     max_message_length = get_setting('max_message_length', 50000)
+    is_audio_modifiable_by_employees = get_setting('is_audio_modifiable_by_employees', False)
 
     return Response({
         'infoPages': info_page_links,
         'role': {
             'isAdmin': request.userinfo.get('admin', False),
+            'isAdminAvailable': request.userinfo.get('is_admin_available', False),
             'isEmployee': request.userinfo.get('employee', False),
             'isAuthor': request.userinfo.get('author', False),
             'hasSelfService': is_external_user and has_self_service,
         },
         'defaultModel': default_model,
         'maxMessageLength': max_message_length,
+        'isAudioModifiableByEmployees': is_audio_modifiable_by_employees,
     })
 
 
@@ -299,7 +302,8 @@ def user_info(request):
         roles.append(role)
     # Schools
     schools = []
-    for school in request.userinfo.get('schools', []):
+    for school_id in request.userinfo.get('schools', []):
+        school = models.School.objects.get(org_nr=school_id)
         schools.append({
             'orgNr': school.org_nr,
             'schoolName': school.school_name,
@@ -335,6 +339,17 @@ def user_info(request):
             'levels': request.userinfo.get('levels', None),
         }
     })
+
+
+@api_view(["PUT"])
+def admin_toggle(request):
+    if not request.userinfo.get('is_admin_available', False):
+        return Response(status=403)
+
+    current_enabled = request.session.get('user.is_admin_enabled', False)
+    request.session['user.is_admin_enabled'] = not current_enabled
+
+    return Response({'isAdmin': not current_enabled})
 
 
 @api_view(["GET"])
@@ -444,13 +459,16 @@ def external_user_self_service(request):
         if not user_body:
             return Response(status=400)
         user.name = user_body.get('name', user.name)
-        if 'newPassword' in user_body and 'password' in user_body:
-            if not user.check_password(user_body['password']):
-                return Response(status=403, data={"error": "Gammelt passord er feil"})
-            try:
-                user.set_password(user_body.get('newPassword', user.password))
-            except ValueError as e:
-                return Response(status=404, data={"error": str(e)})
+        if 'newPassword' in user_body and user_body['newPassword']:
+            if 'password' in user_body and user_body['password']:
+                if not user.check_password(user_body['password']):
+                    return Response(status=400, data={"error": "Gammelt passord er feil"})
+                try:
+                    user.set_password(user_body.get('newPassword', user.password))
+                except ValueError as e:
+                    return Response(status=404, data={"error": str(e)})
+            else:
+                return Response(status=400, data={"error": "Nytt passord krever gammelt passord"})
         user.save()
 
     return Response({
@@ -458,6 +476,8 @@ def external_user_self_service(request):
             'id': user.id,
             'username': user.username,
             'name': user.name,
+            'password': '',
+            'newPassword': '',
         }
     })
 
@@ -539,6 +559,8 @@ def bot_info(request, bot_uuid=None):
     is_admin = request.userinfo.get('admin', False)
     is_employee = request.userinfo.get('employee', False)
     is_author = request.userinfo.get('author', False)
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
 
     new_bot = False if bot_uuid else True
 
@@ -553,6 +575,8 @@ def bot_info(request, bot_uuid=None):
             bot = models.Bot.objects.get(uuid=bot_uuid)
         except models.Bot.DoesNotExist:
             return Response(status=404)
+        if not has_bot_access and not is_admin:
+            return Response(status=403)
     is_owner = bot.owner == request.userinfo.get('username', None)
 
     # save bot
@@ -570,8 +594,9 @@ def bot_info(request, bot_uuid=None):
         bot.prompt_visibility = body.get('promptVisibility', bot.prompt_visibility)
         bot.allow_distribution = body.get('allowDistribution', bot.allow_distribution)
         bot.mandatory = body.get('mandatory', bot.mandatory)
-        bot.is_audio_enabled = body.get(
-            'isAudioEnabled', bot.is_audio_enabled) if is_admin else bot.is_audio_enabled
+        bot.is_audio_enabled = body.get('isAudioEnabled', bot.is_audio_enabled)\
+            if is_admin or get_setting('is_audio_modifiable_by_employees', False)\
+            else bot.is_audio_enabled
         bot.avatar_scheme = ','.join(
             [str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get(
             'avatarScheme', False) else bot.avatar_scheme
@@ -803,7 +828,7 @@ def bot_info(request, bot_uuid=None):
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
             'model': bot_model,
-            'edit': is_admin or (is_employee and is_owner),
+            'isOwner': is_owner,
             'owner': bot.owner if is_admin else None,
             'choices': choices,
             'groups': groups_access_list,
@@ -993,7 +1018,8 @@ async def send_message(request):
     bot_uuid = body.get('uuid')
     messages = body.get('messages')
     is_admin = request.userinfo.get('admin', False)
-    has_bot_access = bot_uuid in request.userinfo.get('bots', [])
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
     if not (has_bot_access or is_admin):
         return HttpResponseForbidden()
     try:
@@ -1017,7 +1043,8 @@ async def send_img_message(request):
     messages = body.get('messages')
     prompt = messages[-1].get('content')
     is_admin = request.userinfo.get('admin', False)
-    has_bot_access = bot_uuid in request.userinfo.get('bots', [])
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
     if not (has_bot_access or is_admin):
         return HttpResponseForbidden()
     try:
