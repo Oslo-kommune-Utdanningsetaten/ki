@@ -5,7 +5,7 @@ import { ref, computed, watchEffect, watch } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
-import VueDatePicker from '@vuepic/vue-datepicker'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 let lastGoType = ''
