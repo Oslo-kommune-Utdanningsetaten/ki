@@ -19,7 +19,7 @@ def sample_text_setting(db, request):
 def sample_int_setting(db, request):
     value = getattr(request, 'param', 42)
     setting = Setting.objects.create(
-        setting_key='test_int_setting', 
+        setting_key='test_int_setting',
         label='Test Int Setting',
         is_txt=False,
         int_val=value
@@ -43,6 +43,6 @@ def test_get_int_setting(sample_int_setting):
 
 @pytest.mark.django_db(reset_sequences=True)
 def test_get_nonexistent_setting():
-    """Test getting a setting that doesn't exist raises exception"""
-    with pytest.raises(Setting.DoesNotExist):
-        get_setting('nonexistent_setting')
+    """Test getting a setting that doesn't exist returns None or default"""
+    assert get_setting('nonexistent_setting') is None
+    assert get_setting('another_nonexistent_setting', default='default_value') == 'default_value'

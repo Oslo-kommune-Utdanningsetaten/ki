@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+import pymysql
+pymysql.install_as_MySQLdb()
 
 load_dotenv()
 
@@ -74,7 +76,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://iz-ki-ap01t.oslo.int'
 ]
-                        
+
 CORS_ALLOWED_ORIGINS = [
     'https://ki.osloskolen.no',
     'https://ki-dev.osloskolen.no',
@@ -83,7 +85,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://iz-ki-ap01t.oslo.int'
 ]
 
-#CORS_ALLOW_HEADERS = ['content-type']
+# CORS_ALLOW_HEADERS = ['content-type']
 
 ROOT_URLCONF = 'app.urls'
 WSGI_APPLICATION = 'app.wsgi.application'
