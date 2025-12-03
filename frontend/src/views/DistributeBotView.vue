@@ -6,6 +6,7 @@ import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
+import { nb } from 'date-fns/locale'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 let lastGoType = ''
@@ -139,29 +140,33 @@ watch(
               {{ dateFormat.format(new Date(group.validRange[1])) }}
             </div>
           </div>
-          <div class="col">
-            <VueDatePicker
-              class="date-picker"
-              v-show="group.checked"
-              v-model="group.validRange"
-              :range="{
-                maxRange: maxLifeSpan,
-                partialRange: false,
-              }"
-              locale="nb"
-              :format="
-                dates => {
-                  return 'Endre tidspunkt'
-                }
-              "
-              select-text="Velg"
-              cancel-text="Avbryt"
-              :clearable="false"
-              :min-date="new Date()"
-              ignore-time-validation
-              preview-format="dd.MM HH:mm"
-            ></VueDatePicker>
-          </div>
+          <VueDatePicker
+            class="date-picker col"
+            v-show="group.checked"
+            v-model="group.validRange"
+            :range="{
+              maxRange: maxLifeSpan,
+              partialRange: false,
+            }"
+            :locale="nb"
+            :formats="{
+              input: () => {
+                return 'Endre tidspunkt'
+              },
+              preview: 'dd.MM HH:mm',
+            }"
+            :action-row="{
+              selectBtnLabel: 'Velg',
+              cancelBtnLabel: 'Avbryt',
+            }"
+            :input-attrs="{
+              clearable: false,
+            }"
+            :time-config="{
+              ignoreTimeValidation: true,
+            }"
+            :min-date="new Date()"
+          />
         </div>
         <div v-else class="form-check form-switch pt-1">
           <input
