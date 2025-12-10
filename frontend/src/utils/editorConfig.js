@@ -21,6 +21,7 @@ import {
   MediaEmbed,
   Paragraph,
   SimpleUploadAdapter,
+  HorizontalLine,
 } from 'ckeditor5'
 import sanitizeHtml from 'sanitize-html'
 
@@ -59,10 +60,14 @@ export const editorConfig = {
     ImageStyle,
     ImageTextAlternative,
     ImageToolbar,
+    HorizontalLine,
     SimpleUploadAdapter,
     MediaEmbed,
   ],
   toolbar: [
+    'undo',
+    'redo',
+    '|',
     'heading',
     '|',
     'bold',
@@ -74,9 +79,7 @@ export const editorConfig = {
     'outdent',
     'indent',
     '|',
-    'undo',
-    'redo',
-    '|',
+    'horizontalLine',
     'insertImage',
     'mediaEmbed',
   ],
