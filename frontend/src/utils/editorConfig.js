@@ -108,9 +108,9 @@ export const editorConfig = {
         value: null,
       },
       {
-        name: 'resizeImage:30px',
-        label: '30px',
-        value: '30',
+        name: 'resizeImage:20px',
+        label: '20px',
+        value: '20',
       },
       {
         name: 'resizeImage:50px',
