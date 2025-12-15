@@ -1,17 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import BotView from '../views/BotView.vue'
-import ImgBotView from '../views/ImgBotView.vue'
-import EditBotView from '../views/EditBotView.vue'
-import DistributeBotView from '../views/DistributeBotView.vue'
-import InfoView from '../views/InfoView.vue'
-import SettingsView from '../views/SettingsView.vue'
-import SchoolAccessesView from '../views/SchoolAccessesView.vue'
-import AuthorsView from '../views/AuthorsView.vue'
-import AdminExternalUsersView from '../views/AdminExternalUsersView.vue'
-import MessageView from '../views/MessageView.vue'
-import ExternalUserView from '../views/ExternalUserView.vue'
-import ExternalUserLogin from '../views/ExternalUserLogin.vue'
+import HomeView from '@/views/HomeView.vue'
+import BotView from '@/views/BotView.vue'
+import ImgBotView from '@/views/ImgBotView.vue'
+import EditBotView from '@/components/EditBotView.vue'
+import DistributeBotView from '@/components/DistributeBotView.vue'
+import InfoView from '@/views/InfoView.vue'
+import SettingsView from '@/views/SettingsView.vue'
+import SchoolAccessesView from '@/views/SchoolAccessesView.vue'
+import AuthorsView from '@/views/AuthorsView.vue'
+import AdminExternalUsersView from '@/views/AdminExternalUsersView.vue'
+import MessageView from '@/views/MessageView.vue'
+import ExternalUserView from '@/views/ExternalUserView.vue'
+import ExternalUserLogin from '@/views/ExternalUserLogin.vue'
+import BotCommunicationView from '@/components/BotCommunicationView.vue'
 import { store } from '../store'
 import { axiosInstance as axios } from '../clients'
 
@@ -28,26 +29,40 @@ const routes = [
   },
   {
     path: '/bot/:id',
-    name: 'bot',
+    name: '',
     component: BotView,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'bot',
+        component: BotCommunicationView,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'editbot/:method?',
+        name: 'editbot',
+        component: EditBotView,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'distribute',
+        name: 'distribute',
+        component: DistributeBotView,
+        meta: { requiresAuth: true },
+      },
+    ],
+  },
+  {
+    path: '/bot/new/:method?',
+    name: 'newbot',
+    component: EditBotView,
     meta: { requiresAuth: true },
   },
   {
     path: '/imgbot/:id',
     name: 'imgbot',
     component: ImgBotView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/editbot/:method/:id?',
-    name: 'editbot',
-    component: EditBotView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/distribute/:id',
-    name: 'distribute',
-    component: DistributeBotView,
     meta: { requiresAuth: true },
   },
   {
@@ -63,28 +78,33 @@ const routes = [
     meta: { requiresAuth: false },
   },
   {
-    path: '/admin/settings',
-    name: 'settings',
-    component: SettingsView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/admin/school_accesses',
-    name: 'school_accesses',
-    component: SchoolAccessesView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/admin/authors',
-    name: 'authors',
-    component: AuthorsView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/admin/externalusers',
-    name: 'externalUsers',
-    component: AdminExternalUsersView,
-    meta: { requiresAuth: true },
+    path: '/admin',
+    children: [
+      {
+        path: 'settings',
+        name: 'settings',
+        component: SettingsView,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'school_accesses',
+        name: 'schoolAccesses',
+        component: SchoolAccessesView,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'authors',
+        name: 'authors',
+        component: AuthorsView,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'externalusers',
+        name: 'externalUsers',
+        component: AdminExternalUsersView,
+        meta: { requiresAuth: true },
+      },
+    ],
   },
   {
     path: '/externaluser/',

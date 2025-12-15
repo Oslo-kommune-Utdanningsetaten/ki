@@ -1,10 +1,9 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
-import { ref, computed, watchEffect, watch } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
-import { defaultAvatarScheme } from '@/utils/botAvatar.js'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import { nb } from 'date-fns/locale'
 import '@vuepic/vue-datepicker/dist/main.css'
@@ -19,32 +18,18 @@ let dateFormat = Intl.DateTimeFormat('nb', {
 })
 const route = useRoute()
 const router = useRouter()
-const bot = ref({
-  title: '',
-  ingress: '',
-  prompt: '',
-  promptVisibility: false,
-  avatarScheme: defaultAvatarScheme,
-  temperature: 1,
-  model: null,
-  mandatory: false,
-  allowDistribution: true,
-  botInfo: '',
-  tagCategories: [],
-  choices: [],
-  schoolAccesses: [],
-  groups: [],
-  library: false,
-})
+const groups = ref([])
 const defaultLifeSpan = ref(0)
 const maxLifeSpan = ref(0)
 const botId = ref()
 
-const getBotInfo = async () => {
-  var url = '/api/bot_info/' + botId.value
+const bot = inject('bot')
+// const systemPrompt = inject('systemPrompt')
+
+const getGroupInfo = async () => {
   try {
-    const { data } = await axios.get(url)
-    bot.value = data.bot
+    const { data } = await axios.get('/api/bot_groups/' + botId.value)
+    groups.value = data.groups
     defaultLifeSpan.value = data.defaultLifespan
     maxLifeSpan.value = data.maxLifespan
   } catch (error) {
@@ -52,16 +37,16 @@ const getBotInfo = async () => {
   }
 }
 
-const update = async () => {
+const saveDistribution = async () => {
   try {
-    await axios.patch('/api/bot_info/' + botId.value, {
-      groups: bot.value.groups,
+    await axios.patch('/api/bot_groups/' + botId.value, {
+      groups: groups.value,
     })
     store.addMessage('Endringene er lagret!', 'info')
   } catch (error) {
     console.log(error)
   }
-  router.push('/bot/' + botId.value)
+  router.push({ name: 'bot', params: { id: botId.value } })
 }
 
 const isGroupHeading = group => {
@@ -71,14 +56,14 @@ const isGroupHeading = group => {
 }
 
 const groupsSorted = computed(() => {
-  return bot.value.groups.sort((a, b) => a.displayName.localeCompare(b.displayName))
+  return groups.value.sort((a, b) => a.displayName.localeCompare(b.displayName))
 })
 
 watch(
   route,
   () => {
     botId.value = route.params.id
-    getBotInfo()
+    getGroupInfo()
   },
   { immediate: true }
 )
@@ -86,8 +71,8 @@ watch(
 
 <template>
   <div class="d-flex justify-content-end">
-    <button @click="update" class="btn oslo-btn-primary">Lagre</button>
-    <RouterLink class="btn oslo-btn-secondary" :to="bot.uuid ? '/bot/' + bot.uuid : '/'">
+    <button @click="saveDistribution" class="btn oslo-btn-primary">Lagre</button>
+    <RouterLink class="btn oslo-btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
       Avbryt
     </RouterLink>
   </div>
@@ -186,14 +171,10 @@ watch(
   </div>
 
   <div class="d-flex flex-row-reverse mb-3">
-    <RouterLink
-      active-class="active"
-      class="btn oslo-btn-secondary"
-      :to="bot.uuid ? '/bot/' + bot.uuid : '/'"
-    >
+    <RouterLink class="btn oslo-btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
       Avbryt
     </RouterLink>
-    <button @click="update" class="btn oslo-btn-primary">Lagre</button>
+    <button @click="saveDistribution" class="btn oslo-btn-primary">Lagre</button>
   </div>
 </template>
 

@@ -146,7 +146,7 @@ onMounted(() => {
                     <RouterLink
                       class="dropdown-item"
                       active-class="active"
-                      to="/admin/school_accesses"
+                      :to="{ name: 'schoolAccesses' }"
                       @click="closeDropdown"
                     >
                       Skoletilgang
@@ -156,7 +156,7 @@ onMounted(() => {
                     <RouterLink
                       class="dropdown-item"
                       active-class="active"
-                      to="/admin/authors"
+                      :to="{ name: 'authors' }"
                       @click="closeDropdown"
                     >
                       Forfattere
@@ -166,7 +166,7 @@ onMounted(() => {
                     <RouterLink
                       class="dropdown-item"
                       active-class="active"
-                      to="/admin/externalusers"
+                      :to="{ name: 'externalUsers' }"
                       @click="closeDropdown"
                     >
                       Eksterne brukere
@@ -176,7 +176,7 @@ onMounted(() => {
                     <RouterLink
                       class="dropdown-item"
                       active-class="active"
-                      to="/admin/settings"
+                      :to="{ name: 'settings' }"
                       @click="closeDropdown"
                     >
                       Innstillinger

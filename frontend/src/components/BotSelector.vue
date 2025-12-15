@@ -160,7 +160,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       <!-- Push following items to the right -->
       <li class="ms-auto"></li>
       <li v-if="enableCreateBot && filterMode === 'library'" class="ms-1">
-        <a href="editbot/newlib">
+        <RouterLink :to="{ name: 'newbot', params: { method: 'newlib' } }">
           <img
             src="@/components/icons/plus.svg"
             class="icon"
@@ -168,15 +168,15 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
             alt="Ny bibliotekbot"
             title="Opprett ny bibliotekbot"
           />
-        </a>
+        </RouterLink>
       </li>
       <li v-if="enableCreateBot && filterMode === 'personal'" class="ms-1">
-        <a href="editbot/new">
+        <RouterLink :to="{ name: 'newbot', params: { method: 'new' } }">
           <img src="@/components/icons/plus.svg" class="icon" alt="Ny bot" title="Opprett ny bot" />
-        </a>
+        </RouterLink>
       </li>
       <li v-if="filterMode === 'library' && props.isBotFilteringEnabled">
-        <a href="#" @click.prevent="(isFilterSelected = !isFilterSelected)">
+        <a href="#" @click.prevent="isFilterSelected = !isFilterSelected">
           <img
             v-if="isFilterSelected"
             src="@/components/icons/filter_off.svg"
@@ -258,7 +258,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
             type="button"
             class="btn-close btn-sm"
             aria-label="Close"
-            @click.prevent="(tagItem.checked = false)"
+            @click.prevent="tagItem.checked = false"
           ></button>
         </span>
       </span>
