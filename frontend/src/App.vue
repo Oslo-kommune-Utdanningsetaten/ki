@@ -2,6 +2,35 @@
 import { RouterView } from 'vue-router'
 import Navbar from '@/components/Navbar.vue'
 import Messages from '@/components/Messages.vue'
+import { onMounted } from 'vue'
+import { axiosInstance as axios } from '@/clients'
+import { store } from '@/store.js'
+
+const getAppConfig = async () => {
+  try {
+    const response = await axios.get('/api/app_config')
+    const data = response.data
+    store.isAuthenticated = response.headers['x-is-authenticated'] === 'true'
+    store.isAdmin = data.role ? data.role.isAdmin : false
+    store.isAdminAvailable = data.role ? data.role.isAdminAvailable : false
+    store.isEmployee = data.role ? data.role.isEmployee : false
+    store.isAuthor = data.role ? data.role.isAuthor : false
+    store.hasSelfService = data.role ? data.role.hasSelfService : false
+    store.defaultModel = data.defaultModel
+    store.maxMessageLength = data.maxMessageLength
+    store.isAudioModifiableByEmployees = data.isAudioModifiableByEmployees
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      window.location.href = '/auth/feidelogin'
+    } else {
+      console.log(error)
+    }
+  }
+}
+
+onMounted(() => {
+  getAppConfig()
+})
 </script>
 
 <template>
