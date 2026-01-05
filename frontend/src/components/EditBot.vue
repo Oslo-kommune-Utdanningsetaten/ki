@@ -1,13 +1,12 @@
 <script setup>
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { axiosInstance as axios } from '../clients'
-import { ref, computed, watchEffect, watch, inject } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import { store } from '../store.js'
 import BotAvatar from '@/components/BotAvatar.vue'
 import BotAvatarEditor from '@/components/BotAvatarEditor.vue'
 import { defaultAvatarScheme } from '@/utils/botAvatar.js'
 
-var dataLoaded = false
 const route = useRoute()
 const router = useRouter()
 const bot = inject('bot', ref({}))
@@ -57,7 +56,7 @@ const initializeCopy = () => {
   bot.value.uuid = null
   bot.value.owner = null
   bot.value.title = 'Kopi av ' + bot.value.title
-  bot.value.mandatory = false
+  bot.value.isMandatory = false
   bot.value.allowDistribution = true
   bot.value.isAudioEnabled = false
   bot.value.model = 'none'
@@ -77,7 +76,7 @@ const initializeNew = (isLibrary = false) => {
   bot.value.uuid = null
   bot.value.owner = null
   bot.value.title = ''
-  bot.value.mandatory = false
+  bot.value.isMandatory = false
   bot.value.allowDistribution = true
   bot.value.isAudioEnabled = false
   bot.value.model = 'none'
@@ -233,7 +232,7 @@ const updateAvatarScheme = newAvatarScheme => {
 }
 
 const newBot = computed(() => {
-  return method.value == 'new' || method.value == 'newlib'
+  return method.value == 'new' || method.value == 'newlib' || method.value == 'copy'
 })
 
 watch(
@@ -250,7 +249,6 @@ watch(
     } else if (method.value == 'copy') {
       initializeCopy()
     }
-    dataLoaded = true
     setAccessOptions()
   },
   { immediate: true }
@@ -409,7 +407,7 @@ watch(
             type="checkbox"
             role="switch"
             id="mandatory"
-            v-model="bot.mandatory"
+            v-model="bot.isMandatory"
           />
         </div>
       </div>

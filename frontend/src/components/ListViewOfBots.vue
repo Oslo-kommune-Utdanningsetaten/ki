@@ -29,7 +29,7 @@ const titleColWidth = store.isEmployee || store.isAdmin ? 'col-3' : 'col-2'
 
       <!-- favorite & category icon -->
       <div v-if="store.isEmployee" class="col-1">
-        <div v-if="!bot.mandatory" class="mb-2">
+        <div v-if="!bot.isMandatory" class="mb-2">
           <a href="#" @click.prevent="props.toggleFavorite(bot)">
             <img
               v-if="bot.favorite"
@@ -49,7 +49,7 @@ const titleColWidth = store.isEmployee || store.isAdmin ? 'col-3' : 'col-2'
           <div v-if="bot.personal && isFavoriteView">
             <img src="@/components/icons/user_outline.svg" class="category_icon" />
           </div>
-          <div v-if="!bot.mandatory && !bot.personal && isFavoriteView">
+          <div v-if="!bot.isMandatory && !bot.personal && isFavoriteView">
             <img src="@/components/icons/books.svg" class="category_icon" />
           </div>
         </div>

@@ -7,7 +7,6 @@ import BotCommunicationAudio from '@/components/BotCommunicationAudio.vue'
 import { deleteBot } from '@/utils/httpTools.js'
 import { store } from '@/store.js'
 
-const route = useRoute()
 const router = useRouter()
 const showSystemPrompt = ref(false)
 const communicationMode = ref('text') // text, audio, maybe video?
@@ -46,8 +45,8 @@ const toggleStartPrompt = () => {
   showSystemPrompt.value = !showSystemPrompt.value
 }
 
-const handleDeleteBot = async botId => {
-  await deleteBot(botId)
+const handleDeleteBot = async () => {
+  await deleteBot(bot.value.uuid)
   router.push({ name: 'home' })
 }
 
@@ -61,7 +60,6 @@ const model = computed(() => {
 </script>
 
 <template>
-  <!-- <div v-if="bot"> -->
   <!-- Modal -->
   <div
     class="modal fade"
@@ -90,7 +88,7 @@ const model = computed(() => {
             type="button"
             class="btn oslo-btn-warning"
             data-bs-dismiss="modal"
-            @click="() => handleDeleteBot(bot.uuid)"
+            @click="() => handleDeleteBot()"
           >
             Ja jeg vil slette
           </button>
@@ -107,7 +105,7 @@ const model = computed(() => {
       Kopier bot
     </RouterLink>
     <RouterLink
-      v-if="bot.distribution_enabled"
+      v-if="bot.idDistributionEnabled"
       class="btn oslo-btn-secondary"
       :to="{ name: 'distribute', params: { id: bot.uuid } }"
     >

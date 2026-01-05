@@ -24,11 +24,10 @@ const maxLifeSpan = ref(0)
 const botId = ref()
 
 const bot = inject('bot')
-// const systemPrompt = inject('systemPrompt')
 
 const getGroupInfo = async () => {
   try {
-    const { data } = await axios.get('/api/bot_groups/' + botId.value)
+    const { data } = await axios.get('/api/bot_groups/' + route.params.id)
     groups.value = data.groups
     defaultLifeSpan.value = data.defaultLifespan
     maxLifeSpan.value = data.maxLifespan
@@ -39,14 +38,14 @@ const getGroupInfo = async () => {
 
 const saveDistribution = async () => {
   try {
-    await axios.patch('/api/bot_groups/' + botId.value, {
+    await axios.patch('/api/bot_groups/' + route.params.id, {
       groups: groups.value,
     })
     store.addMessage('Endringene er lagret!', 'info')
   } catch (error) {
     console.log(error)
   }
-  router.push({ name: 'bot', params: { id: botId.value } })
+  router.push({ name: 'bot', params: { id: route.params.id } })
 }
 
 const isGroupHeading = group => {
@@ -62,7 +61,6 @@ const groupsSorted = computed(() => {
 watch(
   route,
   () => {
-    botId.value = route.params.id
     getGroupInfo()
   },
   { immediate: true }

@@ -2,8 +2,8 @@
 import { ref, computed } from 'vue'
 import { store } from '@/store.js'
 import { axiosInstance as axios } from '../clients'
-import GridView from '@/components/GridView.vue'
-import ListView from '@/components/ListView.vue'
+import GridView from '@/components/GridViewOfBots.vue'
+import ListView from '@/components/ListViewOfBots.vue'
 
 const filterMode = ref(localStorage.getItem('filterMode') || 'favorites')
 const isListView = ref(localStorage.getItem('isListView') === 'true' || false)
@@ -18,7 +18,7 @@ const props = defineProps({
 
 const filteredBots = computed(() => {
   var bots = props.bots
-  bots.sort((a, b) => b.mandatory - a.mandatory || a.botTitle.localeCompare(b.botTitle))
+  bots.sort((a, b) => b.isMandatory - a.isMandatory || a.botTitle.localeCompare(b.botTitle))
   if (!store.isEmployee && !store.isAdmin) {
     return bots // Show all bots for students
   }
@@ -37,11 +37,11 @@ const filteredBots = computed(() => {
         )
       }
     })
-    return botsFiltered.filter(bot => !bot.personal && !bot.mandatory)
+    return botsFiltered.filter(bot => !bot.personal && !bot.isMandatory)
   } else if (filterMode.value === 'personal') {
     return bots.filter(bot => bot.personal)
   } else if (filterMode.value === 'favorites') {
-    return bots.filter(bot => bot.mandatory || bot.favorite)
+    return bots.filter(bot => bot.isMandatory || bot.favorite)
   } else {
     return bots
   }
@@ -176,7 +176,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         </RouterLink>
       </li>
       <li v-if="filterMode === 'library' && props.isBotFilteringEnabled">
-        <a href="#" @click.prevent="isFilterSelected = !isFilterSelected">
+        <a role="button" href="#" @click.prevent="isFilterSelected = !isFilterSelected">
           <img
             v-if="isFilterSelected"
             src="@/components/icons/filter_off.svg"
@@ -196,7 +196,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
         </a>
       </li>
       <li class="ms-1">
-        <a href="#" @click.prevent="toggleIsListView">
+        <a role="button" href="#" @click.prevent="toggleIsListView">
           <img
             v-if="isListView"
             src="@/components/icons/grid.svg"
@@ -222,7 +222,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
     <ul class="nav nav-tabs">
       <!-- Push following items to the right -->
       <li class="ms-auto mb-3">
-        <a href="#" @click.prevent="toggleIsListView">
+        <a role="button" href="#" @click.prevent="toggleIsListView">
           <img
             v-if="isListView"
             src="@/components/icons/grid.svg"

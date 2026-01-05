@@ -34,9 +34,9 @@ const botIconWidth = computed(() =>
               </div>
 
               <div v-if="store.isEmployee" class="col-2 px-0">
-                <div v-if="bot.mandatory"></div>
+                <div v-if="bot.isMandatory"></div>
                 <div v-if="bot.personal"></div>
-                <div v-if="!bot.mandatory">
+                <div v-if="!bot.isMandatory">
                   <a href="#" @click.prevent="toggleFavorite(bot)">
                     <img
                       v-if="bot.favorite"
@@ -56,7 +56,7 @@ const botIconWidth = computed(() =>
                   <div v-if="bot.personal && isFavoriteView">
                     <img src="@/components/icons/user_outline.svg" class="category_icon" />
                   </div>
-                  <div v-if="!bot.mandatory && !bot.personal && isFavoriteView">
+                  <div v-if="!bot.isMandatory && !bot.personal && isFavoriteView">
                     <img src="@/components/icons/books.svg" class="category_icon" />
                   </div>
                 </div>

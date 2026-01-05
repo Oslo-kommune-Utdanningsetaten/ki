@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import BotView from '@/views/BotView.vue'
 import ImgBotView from '@/views/ImgBotView.vue'
-import EditBotView from '@/components/EditBotView.vue'
-import DistributeBotView from '@/components/DistributeBotView.vue'
+import EditBotView from '@/components/EditBot.vue'
+import DistributeBotView from '@/components/DistributeBot.vue'
 import InfoView from '@/views/InfoView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import SchoolAccessesView from '@/views/SchoolAccessesView.vue'
@@ -11,8 +11,8 @@ import AuthorsView from '@/views/AuthorsView.vue'
 import AdminExternalUsersView from '@/views/AdminExternalUsersView.vue'
 import MessageView from '@/views/MessageView.vue'
 import ExternalUserView from '@/views/ExternalUserView.vue'
-import ExternalUserLogin from '@/views/ExternalUserLogin.vue'
-import BotCommunicationView from '@/components/BotCommunicationView.vue'
+import ExternalUserLogin from '@/views/ExternalUserLoginView.vue'
+import BotCommunicationView from '@/components/BotCommunication.vue'
 import { store } from '../store'
 import { axiosInstance as axios } from '../clients'
 
@@ -29,7 +29,6 @@ const routes = [
   },
   {
     path: '/bot/:id',
-    name: '',
     component: BotView,
     meta: { requiresAuth: true },
     children: [
