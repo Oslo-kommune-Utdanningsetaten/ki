@@ -105,7 +105,7 @@ const model = computed(() => {
       Kopier bot
     </RouterLink>
     <RouterLink
-      v-if="bot.idDistributionEnabled"
+      v-if="bot.isDistributionEnabled"
       class="btn oslo-btn-secondary"
       :to="{ name: 'distribute', params: { id: bot.uuid } }"
     >

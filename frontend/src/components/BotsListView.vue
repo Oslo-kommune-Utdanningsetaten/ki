@@ -46,10 +46,10 @@ const titleColWidth = store.isEmployee || store.isAdmin ? 'col-3' : 'col-2'
               class="category_icon"
             />
           </a>
-          <div v-if="bot.personal && isFavoriteView">
+          <div v-if="bot.isPersonal && isFavoriteView">
             <img src="@/components/icons/user_outline.svg" class="category_icon" />
           </div>
-          <div v-if="!bot.isMandatory && !bot.personal && isFavoriteView">
+          <div v-if="!bot.isMandatory && !bot.isPersonal && isFavoriteView">
             <img src="@/components/icons/books.svg" class="category_icon" />
           </div>
         </div>

@@ -2,8 +2,8 @@
 import { ref, computed } from 'vue'
 import { store } from '@/store.js'
 import { axiosInstance as axios } from '../clients'
-import GridView from '@/components/GridViewOfBots.vue'
-import ListView from '@/components/ListViewOfBots.vue'
+import GridView from '@/components/BotsGridView.vue'
+import ListView from '@/components/BotsListView.vue'
 
 const filterMode = ref(localStorage.getItem('filterMode') || 'favorites')
 const isListView = ref(localStorage.getItem('isListView') === 'true' || false)
@@ -37,9 +37,9 @@ const filteredBots = computed(() => {
         )
       }
     })
-    return botsFiltered.filter(bot => !bot.personal && !bot.isMandatory)
+    return botsFiltered.filter(bot => !bot.isPersonal && !bot.isMandatory)
   } else if (filterMode.value === 'personal') {
-    return bots.filter(bot => bot.personal)
+    return bots.filter(bot => bot.isPersonal)
   } else if (filterMode.value === 'favorites') {
     return bots.filter(bot => bot.isMandatory || bot.favorite)
   } else {

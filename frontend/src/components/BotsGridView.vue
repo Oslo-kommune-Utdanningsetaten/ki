@@ -26,7 +26,7 @@ const botIconWidth = computed(() =>
       <div v-for="bot in props.filteredBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
         <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)">
           <div class="card text-center h-100 oslo-bg-light">
-            <span v-if="bot.personal" class="visually-hidden">Personlig bot</span>
+            <span v-if="bot.isPersonal" class="visually-hidden">Personlig bot</span>
             <div class="row text-center m-0 pt-3">
               <div class="col-2"></div>
               <div class="col-8 p-0">
@@ -35,7 +35,7 @@ const botIconWidth = computed(() =>
 
               <div v-if="store.isEmployee" class="col-2 px-0">
                 <div v-if="bot.isMandatory"></div>
-                <div v-if="bot.personal"></div>
+                <div v-if="bot.isPersonal"></div>
                 <div v-if="!bot.isMandatory">
                   <a href="#" @click.prevent="toggleFavorite(bot)">
                     <img
@@ -53,10 +53,10 @@ const botIconWidth = computed(() =>
                       class="category_icon"
                     />
                   </a>
-                  <div v-if="bot.personal && isFavoriteView">
+                  <div v-if="bot.isPersonal && isFavoriteView">
                     <img src="@/components/icons/user_outline.svg" class="category_icon" />
                   </div>
-                  <div v-if="!bot.isMandatory && !bot.personal && isFavoriteView">
+                  <div v-if="!bot.isMandatory && !bot.isPersonal && isFavoriteView">
                     <img src="@/components/icons/books.svg" class="category_icon" />
                   </div>
                 </div>

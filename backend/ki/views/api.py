@@ -268,7 +268,7 @@ def user_bots(request):
             'isMandatory': bot.mandatory,
             'imgBot': bot.img_bot,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
-            'personal': not bot.library,
+            'isPersonal': not bot.library,
             'allowDistribution': bot.allow_distribution,
             'botInfo': bot.bot_info or '',
             'tag': [{
@@ -779,7 +779,7 @@ def bot_info(request, bot_uuid=None):
             'botInfo': bot.bot_info,
             'imgBot': bot.img_bot,
             'promptVisibility': bot.prompt_visibility,
-            'idDistributionEnabled': bot.allow_distribution and len(request.userinfo.get('groups', [])) > 0 and is_employee,
+            'isDistributionEnabled': bot.allow_distribution and len(request.userinfo.get('groups', [])) > 0 and is_employee,
             'isMandatory': bot.mandatory,
             'library': bot.library,
             'isAudioEnabled': bot.is_audio_enabled,
@@ -837,13 +837,14 @@ def bot_groups(request, bot_uuid):
                 valid_from, valid_to = incoming_group.get('validRange', [None, None])
                 if not is_valid_dates(valid_from, valid_to):
                     continue
-                if not (subject_access := models.SubjectAccess.objects.filter(
-                        bot_id=bot, subject_id=incoming_group_id).first()):
-                    subject_access = models.SubjectAccess(
-                        bot_id=bot, subject_id=incoming_group_id)
-                subject_access.valid_from = valid_from
-                subject_access.valid_to = valid_to
-                subject_access.save()
+                subject_access, created = models.SubjectAccess.objects.update_or_create(
+                    bot_id=bot,
+                    subject_id=incoming_group_id,
+                    defaults={
+                        "valid_from": valid_from,
+                        "valid_to": valid_to
+                    }
+                )
             else:
                 if subject_access := models.SubjectAccess.objects.filter(
                         bot_id=bot, subject_id=incoming_group_id).first():
