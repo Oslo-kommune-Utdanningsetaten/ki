@@ -36,6 +36,7 @@ apiurls = [
     path("api/author/<str:user_id>", api.author, name="api.author"),
     path("api/authors", api.authors, name="api.authors"),
     path("api/app_config", api.app_config, name="api.app_config"),
+    path("api/info_page_links/", api.info_page_links, name="api.info_page_links"),
     path("api/info_page/", api.create_info_page, name="api.create_info_page"),
     path("api/info_page/<str:slug>", api.info_page, name="api.info_page"),
     path("api/upload_info_image", api.upload_info_image, name="api.upload_info_image"),

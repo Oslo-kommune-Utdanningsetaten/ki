@@ -1,34 +1,20 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { axiosInstance as axios } from '../clients'
-import { onMounted, computed, ref, watchEffect } from 'vue'
+import { axiosInstance as axios } from '@/clients'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { store } from '../store.js'
+import { store } from '@/store.js'
 
-const infoPages = ref([])
+const infoPageLinks = ref([])
 const route = useRoute()
 
-const getAppConfig = async () => {
+const getInfopages = async () => {
   try {
-    const response = await axios.get('/api/app_config')
+    const response = await axios.get('/api/info_page_links')
     const data = response.data
-    infoPages.value = data.infoPages
-    store.isAuthenticated = response.headers['x-is-authenticated'] === 'true'
-    store.isAdmin = data.role ? data.role.isAdmin : false
-    store.isAdminAvailable = data.role ? data.role.isAdminAvailable : false
-    store.isEmployee = data.role ? data.role.isEmployee : false
-    store.isAuthor = data.role ? data.role.isAuthor : false
-    // store.isExternalUser = data.role ? data.role.isExternalUser : false
-    store.hasSelfService = data.role ? data.role.hasSelfService : false
-    store.defaultModel = data.defaultModel
-    store.maxMessageLength = data.maxMessageLength
-    store.isAudioModifiableByEmployees = data.isAudioModifiableByEmployees
+    infoPageLinks.value = data.infoPageLinks
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      window.location.href = '/auth/feidelogin'
-    } else {
-      console.log(error)
-    }
+    console.log(error)
   }
 }
 
@@ -51,7 +37,7 @@ const toggleAdmin = async event => {
 }
 
 onMounted(() => {
-  getAppConfig()
+  getInfopages()
 })
 </script>
 
@@ -93,7 +79,7 @@ onMounted(() => {
                   Boter
                 </RouterLink>
               </li>
-              <li v-if="infoPages.length > 1" class="nav-item dropdown" id="infoHeader">
+              <li v-if="infoPageLinks.length > 1" class="nav-item dropdown" id="infoHeader">
                 <a
                   class="nav-link dropdown-toggle"
                   :class="{ active: route.name === 'info' }"
@@ -105,7 +91,7 @@ onMounted(() => {
                   Informasjon
                 </a>
                 <ul class="dropdown-menu">
-                  <li v-for="item in infoPages" :key="item.id">
+                  <li v-for="item in infoPageLinks" :key="item.id">
                     <RouterLink
                       class="dropdown-item"
                       active-class="active"
@@ -117,9 +103,9 @@ onMounted(() => {
                   </li>
                 </ul>
               </li>
-              <li v-else-if="infoPages.length == 1" class="nav-item">
-                <RouterLink active-class="active" class="nav-link" :to="infoPages[0].url">
-                  {{ infoPages[0].title }}
+              <li v-else-if="infoPageLinks.length == 1" class="nav-item">
+                <RouterLink active-class="active" class="nav-link" :to="infoPageLinks[0].url">
+                  {{ infoPageLinks[0].title }}
                 </RouterLink>
               </li>
             </ul>

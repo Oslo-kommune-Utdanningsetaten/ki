@@ -133,15 +133,6 @@ def school_list(request):
 
 @api_view(["GET"])
 def app_config(request):
-    info_page_links = []
-    info_pages = models.PageText.objects.all()
-
-    for page in info_pages:
-        if has_page_access(request, page):
-            info_page_links.append({
-                'title': page.page_title,
-                'url': f'/info/{page.page_id}',
-            })
 
     # Get default model
     default_model_id = get_setting('default_model')
@@ -162,7 +153,6 @@ def app_config(request):
     is_audio_modifiable_by_employees = get_setting('is_audio_modifiable_by_employees', False)
 
     return Response({
-        'infoPages': info_page_links,
         'role': {
             'isAdmin': request.userinfo.get('admin', False),
             'isAdminAvailable': request.userinfo.get('is_admin_available', False),
@@ -174,6 +164,21 @@ def app_config(request):
         'maxMessageLength': max_message_length,
         'isAudioModifiableByEmployees': is_audio_modifiable_by_employees,
     })
+
+
+@api_view(["GET"])
+def info_page_links(request):
+    info_page_links = []
+    info_pages = models.PageText.objects.all()
+
+    for page in info_pages:
+        if has_page_access(request, page):
+            info_page_links.append({
+                'title': page.page_title,
+                'url': f'/info/{page.page_id}',
+            })
+
+    return Response({'infoPageLinks': info_page_links})
 
 
 @api_view(["PUT"])
