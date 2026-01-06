@@ -265,10 +265,10 @@ def user_bots(request):
             'favorite': True
             if (bot.favorites.filter(user_id=request.userinfo.get('username', '')).first())
             else False,
-            'mandatory': bot.mandatory,
+            'isMandatory': bot.mandatory,
             'imgBot': bot.img_bot,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
-            'personal': not bot.library,
+            'isPersonal': not bot.library,
             'allowDistribution': bot.allow_distribution,
             'botInfo': bot.bot_info or '',
             'tag': [{
@@ -536,7 +536,7 @@ def empty_bot(request, bot_type):
             'botInfo': '',
             'promptVisibility': True,
             'allowDistribution': True,
-            'mandatory': False,
+            'isMandatory': False,
             'isAudioEnabled': False,
             'avatarScheme': [0, 0, 0, 0, 0, 0, 0],
             'temperature': '1',
@@ -681,48 +681,6 @@ def bot_info(request, bot_uuid=None):
                         access.save()
                 bot_access.save()
 
-    # save groups
-    if request.method == "PUT" or request.method == "POST" or request.method == "PATCH":
-
-        def is_valid_dates(from_date_iso, to_date_iso):
-            max_lifespan = get_setting('max_lifespan', 14)
-            try:
-                from_date = datetime.fromisoformat(from_date_iso)
-                to_date = datetime.fromisoformat(to_date_iso)
-                this_date = datetime.now(timezone.utc)
-            except ValueError:
-                return False
-            if from_date > to_date:
-                return False
-            if to_date > from_date + timedelta(days=max_lifespan):
-                return False
-            if to_date < this_date:
-                return False
-            return True
-
-        users_group_ids = [group['id'] for group in request.userinfo.get('groups', [])]
-        for incoming_group in json.loads(request.body).get('groups', []):
-            incoming_group_id = incoming_group.get('id')
-            if not incoming_group_id in users_group_ids:
-                continue
-            if incoming_group.get('checked', False):
-                valid_from, valid_to = incoming_group.get('validRange', [None, None])
-                if not is_valid_dates(valid_from, valid_to):
-                    continue
-                if not (subject_access := models.SubjectAccess.objects.filter(
-                        bot_id=bot, subject_id=incoming_group_id).first()):
-                    subject_access = models.SubjectAccess(
-                        bot_id=bot, subject_id=incoming_group_id)
-                subject_access.valid_from = valid_from
-                subject_access.valid_to = valid_to
-                subject_access.save()
-            else:
-                if subject_access := models.SubjectAccess.objects.filter(
-                        bot_id=bot, subject_id=incoming_group_id).first():
-                    subject_access.delete()
-
-        return Response({'bot': {'uuid': bot.uuid}})
-
     if request.method == "DELETE":
         if not is_owner and not is_admin:
             return Response(status=403)
@@ -821,8 +779,8 @@ def bot_info(request, bot_uuid=None):
             'botInfo': bot.bot_info,
             'imgBot': bot.img_bot,
             'promptVisibility': bot.prompt_visibility,
-            'allowDistribution': bot.allow_distribution,
-            'mandatory': bot.mandatory,
+            'isDistributionEnabled': bot.allow_distribution and len(request.userinfo.get('groups', [])) > 0 and is_employee,
+            'isMandatory': bot.mandatory,
             'library': bot.library,
             'isAudioEnabled': bot.is_audio_enabled,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
@@ -831,10 +789,73 @@ def bot_info(request, bot_uuid=None):
             'isOwner': is_owner,
             'owner': bot.owner if is_admin else None,
             'choices': choices,
-            'groups': groups_access_list,
             'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tagCategories': tag_categories,
         },
+    })
+
+
+@api_view(["GET", "PATCH"])
+def bot_groups(request, bot_uuid):
+    try:
+        bot = models.Bot.objects.get(uuid=bot_uuid)
+    except models.Bot.DoesNotExist:
+        return Response(status=404)
+
+    is_employee = request.userinfo.get('employee', False)
+    bots_list = {str(b) for b in request.userinfo.get('bots', [])}
+    has_bot_access = str(bot_uuid) in bots_list
+
+    if not has_bot_access and not is_employee:
+        return Response(status=403)
+
+    # save groups
+    if request.method == "PATCH":
+
+        def is_valid_dates(from_date_iso, to_date_iso):
+            max_lifespan = get_setting('max_lifespan', 14)
+            try:
+                from_date = datetime.fromisoformat(from_date_iso)
+                to_date = datetime.fromisoformat(to_date_iso)
+                this_date = datetime.now(timezone.utc)
+            except ValueError:
+                return False
+            if from_date > to_date:
+                return False
+            if to_date > from_date + timedelta(days=max_lifespan):
+                return False
+            if to_date < this_date:
+                return False
+            return True
+
+        users_group_ids = [group['id'] for group in request.userinfo.get('groups', [])]
+        for incoming_group in json.loads(request.body).get('groups', []):
+            incoming_group_id = incoming_group.get('id')
+            if not incoming_group_id in users_group_ids:
+                continue
+            if incoming_group.get('checked', False):
+                valid_from, valid_to = incoming_group.get('validRange', [None, None])
+                if not is_valid_dates(valid_from, valid_to):
+                    continue
+                subject_access, created = models.SubjectAccess.objects.update_or_create(
+                    bot_id=bot,
+                    subject_id=incoming_group_id,
+                    defaults={
+                        "valid_from": valid_from,
+                        "valid_to": valid_to
+                    }
+                )
+            else:
+                if subject_access := models.SubjectAccess.objects.filter(
+                        bot_id=bot, subject_id=incoming_group_id).first():
+                    subject_access.delete()
+
+        return Response({'bot': {'uuid': bot.uuid}})
+
+    groups_access_list = generate_group_access_list(request.userinfo.get('groups', []), bot)
+
+    return Response({
+        'groups': groups_access_list,
         'defaultLifespan': get_setting('default_lifespan', 2),
         'maxLifespan': get_setting('max_lifespan', 14),
     })
