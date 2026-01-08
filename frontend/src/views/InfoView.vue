@@ -11,6 +11,7 @@ const page = ref({
   content: '',
   slug: '',
   accessableBy: 'student',
+  hasSeparateMenu: false,
 })
 const showEdit = ref(false)
 const route = useRoute()
@@ -83,7 +84,7 @@ watchEffect(async () => {
 
 <template>
   <div v-if="!showEdit" class="container my-4">
-    <button v-if="store.isAdmin" @click="(showEdit = true)" class="btn btn-primary mb-4">
+    <button v-if="store.isAdmin" @click="showEdit = true" class="btn btn-primary mb-4">
       Rediger
     </button>
     <div class="container infotext my-4">
@@ -96,7 +97,7 @@ watchEffect(async () => {
       <h1 class="card-header">{{ page.title }}</h1>
       <div class="card-body">
         <div class="mb-3 d-flex gap-2">
-          <button @click="(showEdit = false)" class="btn btn-primary">Forhåndsvisning</button>
+          <button @click="showEdit = false" class="btn btn-primary">Forhåndsvisning</button>
           <button
             v-if="route.params.slug"
             @click="updatePage"
@@ -149,6 +150,17 @@ watchEffect(async () => {
             <label class="form-check-label" for="accessEmp">Bare ansatte</label>
           </div>
         </div>
+
+        <div class="mb-3 form-check">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            id="separateMenuCheck"
+            v-model="page.hasSeparateMenu"
+          />
+          <label class="form-check-label" for="separateMenuCheck">Vis i eget menyvalg</label>
+        </div>
+
         <div class="mb-3">
           <label for="titleInput" class="form-label">Tittel</label>
           <input
