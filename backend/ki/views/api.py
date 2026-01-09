@@ -77,6 +77,7 @@ def info_page(request, slug):
         page.page_title = title
         page.page_text = content
         page.accessable_by = body.get('accessableBy', page.accessable_by)
+        page.has_separate_menu = body.get('hasSeparateMenu', page.has_separate_menu == 'true')
 
         page.save()
 
@@ -85,6 +86,7 @@ def info_page(request, slug):
         "title": page.page_title,
         "content": page.page_text,
         "accessableBy": page.accessable_by,
+        "hasSeparateMenu": page.has_separate_menu,
     })
 
 
@@ -176,6 +178,7 @@ def info_page_links(request):
             info_page_links.append({
                 'title': page.page_title,
                 'url': f'/info/{page.page_id}',
+                'hasSeparateMenu': page.has_separate_menu,
             })
 
     return Response({'infoPageLinks': info_page_links})

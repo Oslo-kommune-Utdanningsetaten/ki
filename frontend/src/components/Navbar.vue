@@ -1,12 +1,13 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { axiosInstance as axios } from '@/clients'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { store } from '@/store.js'
 
 const infoPageLinks = ref([])
 const route = useRoute()
+const MIN_INFO_DROPDOWN_LENGTH = 2
 
 const getInfopages = async () => {
   try {
@@ -35,6 +36,24 @@ const toggleAdmin = async event => {
     console.log(error)
   }
 }
+
+const infoDropdownLinks = computed(() => {
+  const dropdownItems = infoPageLinks.value.filter(item => !item.hasSeparateMenu)
+  if (dropdownItems.length > MIN_INFO_DROPDOWN_LENGTH) {
+    return dropdownItems
+  }
+  return []
+})
+
+const infoSeparateMenuLinks = computed(() => {
+  const dropdownItems = infoPageLinks.value.filter(item => !item.hasSeparateMenu)
+  const separateMenuItems = infoPageLinks.value.filter(item => item.hasSeparateMenu)
+  if (dropdownItems.length > MIN_INFO_DROPDOWN_LENGTH) {
+    return separateMenuItems
+  } else {
+    return dropdownItems.concat(separateMenuItems)
+  }
+})
 
 onMounted(() => {
   getInfopages()
@@ -79,10 +98,11 @@ onMounted(() => {
                   Boter
                 </RouterLink>
               </li>
-              <li v-if="infoPageLinks.length > 1" class="nav-item dropdown" id="infoHeader">
+
+              <!-- use dropdown -->
+              <li v-if="infoDropdownLinks.length > 0" class="nav-item dropdown" id="infoHeader">
                 <a
                   class="nav-link dropdown-toggle"
-                  :class="{ active: route.name === 'info' }"
                   href="#"
                   role="button"
                   data-bs-toggle="dropdown"
@@ -91,7 +111,7 @@ onMounted(() => {
                   Informasjon
                 </a>
                 <ul class="dropdown-menu">
-                  <li v-for="item in infoPageLinks" :key="item.id">
+                  <li v-for="item in infoDropdownLinks" :key="item.id">
                     <RouterLink
                       class="dropdown-item"
                       active-class="active"
@@ -103,9 +123,15 @@ onMounted(() => {
                   </li>
                 </ul>
               </li>
-              <li v-else-if="infoPageLinks.length == 1" class="nav-item">
-                <RouterLink active-class="active" class="nav-link" :to="infoPageLinks[0].url">
-                  {{ infoPageLinks[0].title }}
+
+              <li v-for="item in infoSeparateMenuLinks" :key="item.id">
+                <RouterLink
+                  active-class="active"
+                  class="nav-link"
+                  :to="item.url"
+                  @click="closeDropdown"
+                >
+                  {{ item.title }}
                 </RouterLink>
               </li>
             </ul>

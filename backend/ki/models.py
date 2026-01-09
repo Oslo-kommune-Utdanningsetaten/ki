@@ -192,6 +192,7 @@ class PageText(models.Model):
     page_title = models.CharField(max_length=50)
     page_text = models.TextField(null=True)
     accessable_by = models.CharField(max_length=10, choices=AccessEnum.choices, default=AccessEnum.ALL)
+    has_separate_menu = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'page_text'
