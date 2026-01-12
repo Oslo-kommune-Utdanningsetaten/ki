@@ -39,7 +39,7 @@ apiurls = [
     path("api/info_page_links/", api.info_page_links, name="api.info_page_links"),
     path("api/info_page/", api.create_info_page, name="api.create_info_page"),
     path("api/info_page/<str:slug>", api.info_page, name="api.info_page"),
-    path("api/upload_info_image", api.upload_info_image, name="api.upload_info_image"),
+    path("api/upload_info_file", api.upload_info_file, name="api.upload_info_file"),
 ]
 
 urlpatterns = authurls + apiurls

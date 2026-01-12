@@ -136,7 +136,7 @@ export const editorConfig = {
     },
   },
   simpleUpload: {
-    uploadUrl: '/api/upload_info_image',
+    uploadUrl: '/api/upload_info_file',
     withCredentials: false,
   },
   mediaEmbed: {
