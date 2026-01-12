@@ -101,7 +101,7 @@ def upload_info_file(request):
                 destination.write(chunk)
 
     def allowed_file(filename):
-        allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'pdf',
+        allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'svg', 'pdf',
                               'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt'}
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
