@@ -14,6 +14,7 @@ const page = ref({
   hasSeparateMenu: false,
 })
 const showEdit = ref(false)
+const fileInput = ref(null)
 const route = useRoute()
 const router = useRouter()
 
@@ -77,6 +78,17 @@ const deletePage = async () => {
   }
 }
 
+const handleFileSelect = async event => {
+  var formData = new FormData()
+  fileInput.value = event.target.files[0]
+  formData.append('upload', fileInput.value)
+  try {
+    const { data } = await axios.post('/api/upload_info_file', formData)
+  } catch (error) {
+    store.addMessage(`Kunne ikke laste opp dokumentet. Vennligst prøv igjen senere.`, 'danger')
+  }
+}
+
 watchEffect(async () => {
   await fetchPage()
 })
@@ -98,6 +110,8 @@ watchEffect(async () => {
       <div class="card-body">
         <div class="mb-3 d-flex gap-2">
           <button @click="showEdit = false" class="btn btn-primary">Forhåndsvisning</button>
+          <label for="file-input" class="btn btn-secondary">Last opp dokument</label>
+          <input id="file-input" type="file" hidden @change="handleFileSelect" />
           <button
             v-if="route.params.slug"
             @click="updatePage"

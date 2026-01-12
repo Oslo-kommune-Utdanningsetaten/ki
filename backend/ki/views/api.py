@@ -91,7 +91,7 @@ def info_page(request, slug):
 
 
 @api_view(['POST'])
-def upload_info_image(request):
+def upload_info_file(request):
 
     def handle_uploaded_file(file):
         project_root = django_settings.BASE_DIR  # root path
@@ -101,7 +101,8 @@ def upload_info_image(request):
                 destination.write(chunk)
 
     def allowed_file(filename):
-        allowed_extensions = {'jpg', 'jpeg', 'png', 'gif'}
+        allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'pdf',
+                              'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt'}
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
     if not request.userinfo.get('admin', False):
