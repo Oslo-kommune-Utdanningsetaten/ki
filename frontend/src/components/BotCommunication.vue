@@ -10,7 +10,6 @@ import { store } from '@/store.js'
 const router = useRouter()
 const showSystemPrompt = ref(false)
 const communicationMode = ref('text') // text, audio, maybe video?
-const systemPrompt = ref('')
 const bot = inject('bot')
 
 const edit = computed(() => {
@@ -25,11 +24,7 @@ const optionsSorted = choice => {
   return choice.options.sort((a, b) => a.order - b.order)
 }
 
-const updateSystemPrompt = () => {
-  systemPrompt.value = getSystemPrompt()
-}
-
-const getSystemPrompt = () => {
+const getFullSystemPrompt = () => {
   let fullChoicesText = ''
   if (bot.value.choices) {
     choicesSorted().forEach(choice => {
@@ -188,7 +183,6 @@ const model = computed(() => {
               :id="`${choice.id}-${option.id}`"
               :value="option"
               v-model="choice.selected"
-              @change="updateSystemPrompt()"
             />
             <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
               {{ option.label }}
@@ -205,7 +199,7 @@ const model = computed(() => {
       </div>
       <div class="speech-bubble-assistant position-relative bg-light p-3 border text-right">
         <strong>Dette er instruksene jeg har fått</strong>
-        <p>{{ getSystemPrompt() }}</p>
+        <p>{{ getFullSystemPrompt() }}</p>
         <strong>Jeg bruker modellen</strong>
         <p>{{ model.displayName }}</p>
         <span v-if="model.trainingCutoff">
@@ -219,12 +213,12 @@ const model = computed(() => {
   <BotCommunicationText
     v-if="communicationMode === 'text'"
     :bot="bot"
-    :systemPrompt="systemPrompt"
+    :systemPrompt="getFullSystemPrompt()"
   />
   <BotCommunicationAudio
     v-if="communicationMode === 'audio'"
     :bot="bot"
-    :systemPrompt="systemPrompt"
+    :systemPrompt="getFullSystemPrompt()"
   />
   <!-- </div> -->
 </template>
