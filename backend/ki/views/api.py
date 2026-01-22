@@ -664,6 +664,10 @@ def bot_info(request, bot_uuid=None):
 
 @api_view(["GET", "PATCH"])
 def bot_school_accesses(request, bot_uuid):
+    """
+    Returns or updates school accesses for a bot.
+    Is accessible only by admins and authors. Authors can only see schools they belong to.
+    """
     try:
         bot = models.Bot.objects.get(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
@@ -721,6 +725,11 @@ def bot_school_accesses(request, bot_uuid):
 
 @api_view(["GET", "PATCH"])
 def bot_groups(request, bot_uuid):
+    """
+    Returns or updates group accesses for a bot. 
+    Makes a list of all groups the teacher belongs to, and for each group indicates whether the group has access to the bot and in which date range.
+    PATCH update the group accesses and date ranges.
+    """
     try:
         bot = models.Bot.objects.get(uuid=bot_uuid)
     except models.Bot.DoesNotExist:
@@ -788,6 +797,9 @@ def bot_groups(request, bot_uuid):
 
 @api_view(["GET"])
 def bot_models(request):
+    """
+    Returns a list of all bot models.
+    """
     bot_models = models.BotModel.objects.all()
     return Response({
         'models': [
