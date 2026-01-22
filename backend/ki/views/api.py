@@ -212,23 +212,6 @@ def favorite(request, bot_uuid):
 
 
 @api_view(["GET"])
-def bot_models(request):
-    bot_models = models.BotModel.objects.all()
-    return Response({
-        'models': [
-            {
-                'deploymentId': model.deployment_id,
-                'modelId': model.model_id,
-                'displayName': model.display_name,
-                'modelDescription': model.model_description,
-                'trainingCutoff': model.training_cutoff,
-            }
-            for model in bot_models
-        ]
-    })
-
-
-@api_view(["GET"])
 def user_bots(request):
     if not request.session.get('user.username', None):
         return Response({
@@ -491,77 +474,6 @@ def external_user_self_service(request):
     })
 
 
-@api_view(["GET"])
-def empty_bot(request, bot_type):
-
-    library = bot_type == 'library'
-    is_admin = request.userinfo.get('admin', False)
-    is_employee = request.userinfo.get('employee', False)
-    is_author = request.userinfo.get('author', False)
-
-    if not is_admin and not is_employee:
-        return Response(status=403)
-    if not is_admin and not is_author:
-        library = False
-
-    school_access_list = []
-    if library:
-        school_list = []
-        if is_admin:
-            school_list = models.School.objects.all()
-        elif is_author:
-            school_list = [request.userinfo.get('auth_school')]
-        for school in school_list:
-            school_access_list.append({
-                'orgNr': school.org_nr,
-                'schoolName': school.school_name,
-                'access': 'none',
-                'accessList': [],
-            })
-
-    tag_categories = []
-    for category in models.TagCategory.objects.all().order_by('category_order'):
-        tag_items = []
-        for tag_label in category.tag_labels.all().order_by('tag_label_order'):
-            tag_items.append({
-                'id': tag_label.tag_label_id,
-                'label': tag_label.tag_label_name,
-                'order': tag_label.tag_label_order,
-                'weight': tag_label.tag_label_weight,
-                'checked': False,
-            })
-        tag_categories.append({
-            'id': category.category_id,
-            'label': category.category_name,
-            'order': category.category_order,
-            'tags': tag_items,
-        })
-
-    return Response({
-        'bot': {
-            'title': '',
-            'ingress': '',
-            'prompt': '',
-            'botInfo': '',
-            'promptVisibility': True,
-            'allowDistribution': True,
-            'isMandatory': False,
-            'isAudioEnabled': False,
-            'avatarScheme': [0, 0, 0, 0, 0, 0, 0],
-            'temperature': '1',
-            'model': None,
-            'edit': True,
-            # 'distribute': edit_groups,
-            'choices': [],
-            'schoolAccesses': school_access_list,
-            'library': library,
-            'tagCategories': tag_categories,
-        },
-        'defaultLifespan': get_setting('default_lifespan', 2),
-        'maxLifespan': get_setting('max_lifespan', 14),
-    })
-
-
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def bot_info(request, bot_uuid=None):
 
@@ -668,28 +580,6 @@ def bot_info(request, bot_uuid=None):
                 )
                 choice_option.save()
 
-        # save school access
-        if is_admin or is_author:
-            for school in body.get('schoolAccesses', []):
-                school_obj = models.School.objects.get(org_nr=school.get('orgNr'))
-                if is_author and school_obj != request.userinfo.get('auth_school'):
-                    continue
-                if is_author and not school.get('access', 'none') in ['none', 'emp']:
-                    continue
-                bot_access = school_obj.accesses.filter(bot_id=bot).first()
-                if bot_access:
-                    bot_access.access = school.get('access', 'none')
-                else:
-                    bot_access = models.BotAccess(
-                        bot_id=bot, school_id=school_obj, access=school.get('access', 'none'))
-                if bot_access.access == 'levels':
-                    if not new_bot:
-                        bot_access.levels.all().delete()
-                    for level in school.get('accessList', []):
-                        access = models.BotLevel(access_id=bot_access, level=level)
-                        access.save()
-                bot_access.save()
-
     if request.method == "DELETE":
         if not is_owner and not is_admin:
             return Response(status=403)
@@ -721,33 +611,6 @@ def bot_info(request, bot_uuid=None):
             } if default_option else None,
         })
 
-    school_access_list = []
-    school_list = []
-    if is_admin:
-        school_list = models.School.objects.all()
-    elif is_author:
-        school_list = [request.userinfo.get('auth_school')]
-    for school in school_list:
-        if new_bot:
-            school_access_list.append({
-                'orgNr': school.org_nr,
-                'schoolName': school.school_name,
-                'access': 'none',
-                'accessList': [],
-            })
-        else:
-            access_dict = []
-            bot_access = bot.accesses.filter(school_id=school.org_nr).first()
-            if bot_access and bot_access.access == 'levels':
-                access_dict = [
-                    access.level for access in bot_access.levels.all()]
-            school_access_list.append({
-                'orgNr': school.org_nr,
-                'schoolName': school.school_name,
-                'access': bot_access.access if bot_access else 'none',
-                'accessList': access_dict,
-            })
-
     tag_categories = []
     for category in models.TagCategory.objects.all().order_by('category_order'):
         tag_obj = bot.tags.filter(category_id=category.category_id).first()
@@ -775,10 +638,6 @@ def bot_info(request, bot_uuid=None):
         'trainingCutoff': bot.model_id.training_cutoff,
     } if bot.model_id else None
 
-    groups_access_list = []
-    if is_employee:
-        groups_access_list = generate_group_access_list(request.userinfo.get('groups', []), bot)
-
     return Response({
         'bot': {
             'uuid': bot.uuid,
@@ -798,10 +657,66 @@ def bot_info(request, bot_uuid=None):
             'isOwner': is_owner,
             'owner': bot.owner if is_admin else None,
             'choices': choices,
-            'schoolAccesses': school_access_list if is_admin or is_author else None,
             'tagCategories': tag_categories,
         },
     })
+
+
+@api_view(["GET", "PATCH"])
+def bot_school_accesses(request, bot_uuid):
+    try:
+        bot = models.Bot.objects.get(uuid=bot_uuid)
+    except models.Bot.DoesNotExist:
+        return Response(status=404)
+
+    is_admin = request.userinfo.get('admin', False)
+    is_author = request.userinfo.get('author', False)
+    if not is_admin and not is_author:
+        return Response(status=403)
+
+    if request.method == "PATCH":
+        body = json.loads(request.body)
+        for school in body.get('schoolAccesses', []):
+            school_obj = models.School.objects.get(org_nr=school.get('orgNr'))
+            if is_author and school_obj != request.userinfo.get('auth_school'):
+                continue
+            if is_author and not school.get('access', 'none') in ['none', 'emp']:
+                continue
+            bot_access = school_obj.accesses.filter(bot_id=bot).first()
+            if bot_access:
+                bot_access.access = school.get('access', 'none')
+            else:
+                bot_access = models.BotAccess(
+                    bot_id=bot, school_id=school_obj, access=school.get('access', 'none'))
+            if bot_access.access == 'levels':
+                bot_access.levels.all().delete()
+                for level in school.get('accessList', []):
+                    access = models.BotLevel(access_id=bot_access, level=level)
+                    access.save()
+            bot_access.save()
+        return Response({'bot': {'uuid': bot.uuid}})
+
+    elif request.method == "GET":
+        school_access_list = []
+        school_list = []
+        if is_admin:
+            school_list = models.School.objects.all()
+        elif is_author:
+            school_list = [request.userinfo.get('auth_school')]
+
+        for school in school_list:
+            access_dict = []
+            bot_access = bot.accesses.filter(school_id=school.org_nr).first()
+            if bot_access and bot_access.access == 'levels':
+                access_dict = [
+                    access.level for access in bot_access.levels.all()]
+            school_access_list.append({
+                'orgNr': school.org_nr,
+                'schoolName': school.school_name,
+                'access': bot_access.access if bot_access else 'none',
+                'accessList': access_dict,
+            })
+        return Response({'schoolAccesses': school_access_list})
 
 
 @api_view(["GET", "PATCH"])
@@ -861,12 +776,30 @@ def bot_groups(request, bot_uuid):
 
         return Response({'bot': {'uuid': bot.uuid}})
 
-    groups_access_list = generate_group_access_list(request.userinfo.get('groups', []), bot)
+    elif request.method == "GET":
+        groups_access_list = generate_group_access_list(request.userinfo.get('groups', []), bot)
 
+        return Response({
+            'groups': groups_access_list,
+            'defaultLifespan': get_setting('default_lifespan', 2),
+            'maxLifespan': get_setting('max_lifespan', 14),
+        })
+
+
+@api_view(["GET"])
+def bot_models(request):
+    bot_models = models.BotModel.objects.all()
     return Response({
-        'groups': groups_access_list,
-        'defaultLifespan': get_setting('default_lifespan', 2),
-        'maxLifespan': get_setting('max_lifespan', 14),
+        'models': [
+            {
+                'deploymentId': model.deployment_id,
+                'modelId': model.model_id,
+                'displayName': model.display_name,
+                'modelDescription': model.model_description,
+                'trainingCutoff': model.training_cutoff,
+            }
+            for model in bot_models
+        ]
     })
 
 

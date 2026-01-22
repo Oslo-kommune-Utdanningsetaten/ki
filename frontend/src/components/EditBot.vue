@@ -54,12 +54,12 @@ const setAccessOptions = () => {
 
 const initializeCopy = () => {
   bot.value.uuid = null
-  bot.value.owner = null
   bot.value.title = 'Kopi av ' + bot.value.title
-  bot.value.isMandatory = false
+  bot.value.botInfo = ''
   bot.value.allowDistribution = true
-  bot.value.isAudioEnabled = false
-  bot.value.model = 'none'
+  bot.value.isMandatory = false
+  bot.value.model = null
+  bot.value.owner = null
   bot.value.edit = true
   bot.value.library = false
   bot.value.botInfo = ''
@@ -74,22 +74,27 @@ const initializeCopy = () => {
 
 const initializeNew = (isLibrary = false) => {
   bot.value.uuid = null
-  bot.value.owner = null
   bot.value.title = ''
-  bot.value.isMandatory = false
+  bot.value.ingress = ''
+  bot.value.prompt = ''
+  bot.value.botInfo = ''
+  bot.value.imgBot = false
+  bot.value.promptVisibility = true
   bot.value.allowDistribution = true
+  bot.value.isMandatory = false
   bot.value.isAudioEnabled = false
-  bot.value.model = 'none'
+  bot.value.avatarScheme = defaultAvatarScheme
+  bot.value.temperature = 1.0
+  bot.value.model = null
+  bot.value.owner = null
   bot.value.edit = true
   bot.value.library = isLibrary
-  bot.value.avatarScheme = defaultAvatarScheme
-  bot.value.botInfo = ''
   bot.value.choices = []
   bot.value.schoolAccesses = []
 }
 
 const saveBotData = async () => {
-  if (newBot.value) {
+  if (method.value == 'new' || method.value == 'newlib') {
     try {
       const { data } = await axios.post('/api/bot_info/', bot.value)
       botId.value = data.bot.uuid
@@ -105,8 +110,35 @@ const saveBotData = async () => {
       console.log(error)
     }
   }
+  if (store.isAdmin || store.isAuthor) {
+    try {
+      await axios.patch(`/api/bot_school_accesses/${botId.value}`, {
+        schoolAccesses: bot.value.schoolAccesses,
+      })
+    } catch (error) {
+      console.log('Could not set school accesses:', error)
+    }
+  }
 
   router.push({ name: 'bot', params: { id: botId.value } })
+}
+
+const getModels = async () => {
+  try {
+    const { data } = await axios.get('/api/bot_models')
+    models.value = data.models
+  } catch (error) {
+    console.log('Could not fetch models:', error)
+  }
+}
+
+const getSchoolAccesses = async () => {
+  try {
+    const { data } = await axios.get(`/api/bot_school_accesses/${botId.value}`)
+    bot.value.schoolAccesses = data.schoolAccesses
+  } catch (error) {
+    console.log('Could not fetch school accesses:', error)
+  }
 }
 
 const deleteChoice = choice => {
@@ -244,12 +276,18 @@ watch(
     }
     botId.value = route.params.id
     method.value = route.params.method
-    if (newBot.value) {
+    if (method.value == 'new' || method.value == 'newlib') {
       initializeNew(method.value == 'newlib')
     } else if (method.value == 'copy') {
       initializeCopy()
     }
     setAccessOptions()
+    if (store.isAdmin || (store.isAuthor && bot.value.library)) {
+      getModels()
+    }
+    if (store.isAdmin || store.isAuthor) {
+      getSchoolAccesses()
+    }
   },
   { immediate: true }
 )
@@ -471,7 +509,7 @@ watch(
               class="form-check-input"
               type="radio"
               id="no_model"
-              value="none"
+              :value="null"
               v-model="bot.model"
             />
             <label class="form-check-label" for="no_model">Sentralt satt</label>

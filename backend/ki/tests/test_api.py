@@ -88,21 +88,3 @@ def test_bot_models_endpoint(set_up_database):
     expected_bot_models = {'models': [{'modelId': 1, 'displayName': 'GPT 4o mini',
                                        'modelDescription': None, 'trainingCutoff': None, 'deploymentId': 'gpt-4o-mini'}]}
     assert response.data == expected_bot_models
-
-
-@pytest.mark.django_db(reset_sequences=True)
-@pytest.mark.parametrize("user_roles, expected_status_code, expected_response", [
-    ([''], 403, ''),
-    (['admin'], 200, 'bot'),
-    (['employee'], 200, 'bot'),
-    (['employee', 'author'], 200, 'bot'),
-    (['author'], 403, ''),
-])
-def test_empty_bot_endpoint(set_up_database, user_roles, expected_status_code, expected_response):
-    """empty_bot endpoint test access"""
-    request = RequestFactory().get('/api/empty_bot')
-    decorate_request(request, user_roles)
-    response = empty_bot(request, '')
-    assert response.status_code == expected_status_code
-    if expected_status_code == 200:
-        assert response.data[expected_response]
