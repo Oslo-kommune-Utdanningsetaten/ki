@@ -189,7 +189,7 @@ const schoolName = schoolId => {
 
   <div class="card mt-3">
     <div class="card-body">
-      <h3 class="h4">Forfattere</h3>
+      <h2 class="h4">Forfattere</h2>
       <ul class="list-group mb-2">
         <li v-for="author in authors" class="list-group-item">
           <div class="row">

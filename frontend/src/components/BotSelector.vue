@@ -131,7 +131,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('favorites')"
         >
-          <img src="@/components/icons/star_solid.svg" class="category_icon" />
+          <img src="@/components/icons/star_solid.svg" class="category_icon" alt="" />
           Favoritter
         </a>
       </li>
@@ -142,7 +142,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('personal')"
         >
-          <img src="@/components/icons/user_outline.svg" class="category_icon" />
+          <img src="@/components/icons/user_outline.svg" class="category_icon" alt="" />
           Personlige
         </a>
       </li>
@@ -153,7 +153,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('library')"
         >
-          <img src="@/components/icons/books.svg" class="category_icon" />
+          <img src="@/components/icons/books.svg" class="category_icon" alt="" />
           Bibliotek
         </a>
       </li>

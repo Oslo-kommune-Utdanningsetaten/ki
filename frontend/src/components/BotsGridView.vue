@@ -25,7 +25,7 @@ const botIconWidth = computed(() =>
     <div class="row">
       <div v-for="bot in props.filteredBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
         <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)">
-          <div class="card text-center h-100 oslo-bg-light">
+          <div class="card text-center h-100 oslo-btn-light">
             <span v-if="bot.isPersonal" class="visually-hidden">Personlig bot</span>
             <div class="row text-center m-0 pt-3">
               <div class="col-2"></div>
@@ -41,23 +41,31 @@ const botIconWidth = computed(() =>
                     <img
                       v-if="bot.favorite"
                       src="@/components/icons/star_solid.svg"
-                      alt="Fjern som favoritt"
+                      :alt="`Fjern ${bot.botTitle} som favoritt`"
                       title="Fjern som favoritt"
                       class="category_icon"
                     />
                     <img
                       v-else
                       src="@/components/icons/star.svg"
-                      alt="Sett som favoritt"
+                      :alt="`Sett ${bot.botTitle} som favoritt`"
                       title="Sett som favoritt"
                       class="category_icon"
                     />
                   </a>
                   <div v-if="bot.isPersonal && isFavoriteView">
-                    <img src="@/components/icons/user_outline.svg" class="category_icon" />
+                    <img
+                      src="@/components/icons/user_outline.svg"
+                      class="category_icon"
+                      alt="Personlig bot"
+                    />
                   </div>
                   <div v-if="!bot.isMandatory && !bot.isPersonal && isFavoriteView">
-                    <img src="@/components/icons/books.svg" class="category_icon" />
+                    <img
+                      src="@/components/icons/books.svg"
+                      class="category_icon"
+                      alt="Bibliotek bot"
+                    />
                   </div>
                 </div>
               </div>

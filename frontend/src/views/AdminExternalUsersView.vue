@@ -149,7 +149,7 @@ const membershipsString = computed({
               <button
                 type="button"
                 class="btn btn-outline-secondary mb-0"
-                @click="(showPassword = !showPassword)"
+                @click="showPassword = !showPassword"
               >
                 <img
                   v-if="showPassword"
@@ -246,7 +246,7 @@ const membershipsString = computed({
 
   <div class="card mt-3">
     <div class="card-body">
-      <h3 class="h4">Eksterne brukere</h3>
+      <h2 class="h4">Eksterne brukere</h2>
       <ul class="list-group mb-2">
         <li v-for="user in externalUsers" class="list-group-item">
           <div class="row">

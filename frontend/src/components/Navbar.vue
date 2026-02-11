@@ -67,9 +67,9 @@ onMounted(() => {
         <RouterLink class="nav-link" to="/">
           <h1 class="h3">Kunstig intelligens for Osloskolen</h1>
         </RouterLink>
-        <RouterLink class="logo" to="/">
+        <div class="logo">
           <img src="@/assets/img/oslo_logo_sort.svg" alt="Oslologo" />
-        </RouterLink>
+        </div>
       </div>
 
       <nav class="navbar navbar-expand-lg">

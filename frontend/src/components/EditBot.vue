@@ -609,14 +609,14 @@ watch(
                 <div class="col-sm-10">
                   <div v-for="option in optionsSorted(choice)">
                     <div class="row mb-1">
-                      <label :for="`optLabel{option.id}`" class="col-sm-2 col-form-label">
+                      <label :for="`optLabel${option.id}`" class="col-sm-2 col-form-label">
                         Knapp
                       </label>
                       <div class="col-sm-10">
                         <input
                           type="text"
                           class="form-control"
-                          :id="`optLabel{option.id}`"
+                          :id="`optLabel${option.id}`"
                           v-model="option.label"
                           maxlength="50"
                         />
@@ -624,13 +624,13 @@ watch(
                       </div>
                     </div>
                     <div class="row mb-1">
-                      <label :for="`optText{option.id}`" class="col-sm-2 col-form-label">
+                      <label :for="`optText${option.id}`" class="col-sm-2 col-form-label">
                         Ledetekst
                       </label>
                       <div class="col-sm-10">
                         <textarea
                           class="form-control"
-                          :id="`optText{option.id}`"
+                          :id="`optText${option.id}`"
                           rows="1"
                           v-model="option.text"
                         ></textarea>
@@ -763,10 +763,13 @@ watch(
                     class="form-check-input"
                     :id="school.orgNr + option.value"
                     :value="option.value"
+                    :aria-label="school.schoolName"
                     type="radio"
                     v-model="school.access"
                   />
-                  <label class="form-check-label" :for="option.value">{{ option.label }}</label>
+                  <label class="form-check-label" :for="school.orgNr + option.value">
+                    {{ option.label }}
+                  </label>
                 </div>
               </div>
               <div v-if="school.access == 'levels'" class="row">
