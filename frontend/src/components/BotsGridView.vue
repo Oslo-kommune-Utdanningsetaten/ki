@@ -21,71 +21,63 @@ const botIconWidth = computed(() =>
 </script>
 
 <template>
-  <div class="col">
-    <div class="row">
-      <div v-for="bot in props.filteredBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
-        <RouterLink active-class="active" class="bot_tile" :to="botLink(bot)">
-          <div class="card text-center h-100 oslo-btn-light">
-            <span v-if="bot.isPersonal" class="visually-hidden">Personlig bot</span>
-            <div class="row text-center m-0 pt-3">
-              <div class="col-2"></div>
-              <div class="col-8 p-0">
-                <BotAvatar :avatarScheme="bot.avatarScheme" />
-              </div>
+  <div class="row">
+    <div v-for="bot in props.filteredBots" :key="bot.uuid" :class="botIconWidth" class="mb-3">
+      <RouterLink class="card text-center h-100 bg-light" :to="botLink(bot)">
+        <span v-if="bot.isPersonal" class="visually-hidden">Personlig bot</span>
+        <div class="row text-center m-0 pt-3">
+          <div class="col-2"></div>
+          <div class="col-8 p-0">
+            <BotAvatar :avatarScheme="bot.avatarScheme" />
+          </div>
 
-              <div v-if="store.isEmployee" class="col-2 px-0">
-                <div v-if="bot.isMandatory"></div>
-                <div v-if="bot.isPersonal"></div>
-                <div v-if="!bot.isMandatory">
-                  <a href="#" @click.prevent="toggleFavorite(bot)">
-                    <img
-                      v-if="bot.favorite"
-                      src="@/components/icons/star_solid.svg"
-                      :alt="`Fjern ${bot.botTitle} som favoritt`"
-                      title="Fjern som favoritt"
-                      class="category_icon"
-                    />
-                    <img
-                      v-else
-                      src="@/components/icons/star.svg"
-                      :alt="`Sett ${bot.botTitle} som favoritt`"
-                      title="Sett som favoritt"
-                      class="category_icon"
-                    />
-                  </a>
-                  <div v-if="bot.isPersonal && isFavoriteView">
-                    <img
-                      src="@/components/icons/user_outline.svg"
-                      class="category_icon"
-                      alt="Personlig bot"
-                    />
-                  </div>
-                  <div v-if="!bot.isMandatory && !bot.isPersonal && isFavoriteView">
-                    <img
-                      src="@/components/icons/books.svg"
-                      class="category_icon"
-                      alt="Bibliotek bot"
-                    />
-                  </div>
-                </div>
+          <div v-if="store.isEmployee" class="col-2 px-0">
+            <div v-if="bot.isMandatory"></div>
+            <div v-if="bot.isPersonal"></div>
+            <div v-if="!bot.isMandatory">
+              <a href="#" @click.prevent="toggleFavorite(bot)">
+                <img
+                  v-if="bot.favorite"
+                  src="@/components/icons/star_solid.svg"
+                  :alt="`Fjern ${bot.botTitle} som favoritt`"
+                  title="Fjern som favoritt"
+                  class="category_icon"
+                />
+                <img
+                  v-else
+                  src="@/components/icons/star.svg"
+                  :alt="`Sett ${bot.botTitle} som favoritt`"
+                  title="Sett som favoritt"
+                  class="category_icon"
+                />
+              </a>
+              <div v-if="bot.isPersonal && isFavoriteView">
+                <img
+                  src="@/components/icons/user_outline.svg"
+                  class="category_icon"
+                  alt="Personlig bot"
+                />
               </div>
-              <div class="card-body row m-0">
-                <div class="col-10 ps-0">{{ bot.botTitle }}</div>
-                <a
-                  v-if="bot.botInfo"
-                  class="col px-0"
-                  href="#"
-                  data-bs-toggle="modal"
-                  data-bs-target="#botinfo"
-                  @click.prevent="setActiveBot(bot)"
-                >
-                  <img src="@/components/icons/information.svg" alt="Informasjon" />
-                </a>
+              <div v-if="!bot.isMandatory && !bot.isPersonal && isFavoriteView">
+                <img src="@/components/icons/books.svg" class="category_icon" alt="Bibliotek bot" />
               </div>
             </div>
           </div>
-        </RouterLink>
-      </div>
+          <div class="card-body row m-0">
+            <div class="col-10 ps-0">{{ bot.botTitle }}</div>
+            <a
+              v-if="bot.botInfo"
+              class="col px-0"
+              href="#"
+              data-bs-toggle="modal"
+              data-bs-target="#botinfo"
+              @click.prevent="setActiveBot(bot)"
+            >
+              <img src="@/components/icons/information.svg" alt="Informasjon" />
+            </a>
+          </div>
+        </div>
+      </RouterLink>
     </div>
   </div>
 </template>

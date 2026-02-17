@@ -67,7 +67,7 @@ const onLoginModalClosed = () => {
       Utdanningsetaten og veilederteamet for bruk av læringsteknologi i Osloskolen.
     </p>
     <div v-if="status === 'not_feide'">
-      <a href="/auth/feidelogin" role="button" class="btn oslo-btn-primary">Logg inn</a>
+      <a href="/auth/feidelogin" role="button" class="btn btn-primary">Logg inn</a>
     </div>
     <div v-else-if="status === 'not_school'">
       <div class="card">

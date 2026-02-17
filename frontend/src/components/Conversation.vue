@@ -35,7 +35,7 @@ const editMessageAtIndex = index => {
         <!-- User -->
         <div class="w-60 position-relative">
           <div
-            class="position-relative p-3 border oslo-bg-primary"
+            class="position-relative p-3 border bg-primary"
             :class="`speech-bubble-${aMessage.role}`"
             v-html="renderMessage(aMessage.content)"
           ></div>

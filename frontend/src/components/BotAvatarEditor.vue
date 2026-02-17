@@ -103,7 +103,7 @@ const handleOptionChange = event => {
   <div class="modal-body">
     Her kan du bestemme utseendet på din bot. Eller
     <button
-      class="btn oslo-btn-secondary ms-0"
+      class="btn btn-secondary ms-0"
       @click="randomizeAttributes"
       title="La tilfeldighetene avgjøre"
     >

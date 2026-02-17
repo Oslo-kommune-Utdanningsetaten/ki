@@ -464,9 +464,9 @@ onBeforeUnmount(() => {
         </button>
 
         <button
-          class="btn oslo-btn-secondary mt-2 me-auto ps-1 pe-1 pt-0 pb-0"
+          class="btn btn-secondary mt-2 me-auto ps-1 pe-1 pt-0 pb-0"
           @click="handleToggleLanguageOptions"
-          :class="{ 'oslo-btn-secondary-checked': isLanguageOptionsVisible }"
+          :class="{ 'btn-secondary-checked': isLanguageOptionsVisible }"
         >
           {{ isLanguageOptionsVisible ? 'Skjul' : 'Vis' }} språkvalg
         </button>

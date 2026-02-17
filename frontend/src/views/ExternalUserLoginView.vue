@@ -53,7 +53,7 @@ const sendLogin = async () => {
             <button
               type="button"
               class="btn btn-outline-secondary mb-0"
-              @click="(showPassword = !showPassword)"
+              @click="showPassword = !showPassword"
             >
               <img v-if="showPassword" src="@/components/icons/eye-hide.svg" alt="Skjul passord" />
               <img v-else src="@/components/icons/eye-show.svg" alt="Vis passord" />
@@ -61,7 +61,7 @@ const sendLogin = async () => {
           </div>
         </div>
         <div class="d-flex justify-content-end">
-          <button type="submit" class="btn oslo-btn-primary">Logg inn</button>
+          <button type="submit" class="btn btn-primary">Logg inn</button>
         </div>
       </form>
     </div>
