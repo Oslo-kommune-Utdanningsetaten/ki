@@ -23,6 +23,18 @@ onMounted(() => {
   }
 })
 
+const updateFilterFromStore = () => {
+  const storedFilterValue = localStorage.getItem('selectedTags')
+  const storedFilter = storedFilterValue ? storedFilterValue.split(',') : []
+  if (storedFilter.length > 0) {
+    tagCategories.value.forEach(tagCategory => {
+      tagCategory.tagItems.forEach(tagItem => {
+        tagItem.checked = storedFilter.includes(String(tagItem.id))
+      })
+    })
+  }
+}
+
 async function getBots() {
   try {
     const { data } = await axios.get('/api/user_bots')
@@ -30,6 +42,7 @@ async function getBots() {
     status.value = data.status || ''
     isBotFilteringEnabled.value = Boolean(data.isBotFilteringEnabled) || false
     tagCategories.value = data.tagCategories || []
+    updateFilterFromStore()
   } catch (error) {
     if (error.response && error.response.status === 401) {
       window.location.href = '/auth/feidelogin'
