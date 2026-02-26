@@ -12,12 +12,11 @@ azureClient = AsyncAzureOpenAI(
     api_version=os.environ.get('OPENAI_API_VERSION'),
 )
 
-async def chat_completion_azure(messages, model, temperature=DEFAULT_TEMPERATURE):
+
+async def chat_completion_azure(chat_parameters):
     try:
         completion = await azureClient.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=float(temperature),
+            **chat_parameters
         )
     except BadRequestError as e:
         if e.code == "content_filter":
@@ -40,14 +39,12 @@ async def chat_completion_azure(messages, model, temperature=DEFAULT_TEMPERATURE
         return "Noe gikk galt. Mulig det hjelper å prøve igjen, men det er ikke sikkert."
 
 
-async def chat_completion_azure_streamed(messages, model, temperature=DEFAULT_TEMPERATURE):
+async def chat_completion_azure_streamed(chat_parameters):
     async def stream():
         try:
             completion = await azureClient.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=float(temperature),
                 stream=True,
+                **chat_parameters,
             )
         except BadRequestError as e:
             if e.code == "content_filter":
@@ -69,11 +66,10 @@ async def chat_completion_azure_streamed(messages, model, temperature=DEFAULT_TE
     return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
 
-async def generate_image_azure(prompt, model):
+async def generate_image_azure(parameters):
     try:
         response = await azureClient.images.generate(
-            model=model,
-            prompt=prompt,
+            **parameters,
             response_format='url',
             size='1024x1024',
             quality='standard',
@@ -87,5 +83,3 @@ async def generate_image_azure(prompt, model):
         else:
             data = {'system_message': "Noe gikk galt. Prøv igjen senere."}
     return JsonResponse(data)
-
-

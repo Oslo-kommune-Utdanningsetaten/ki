@@ -77,10 +77,16 @@ const onProgressCallback = streamedText => {
 const sendMessage = async () => {
   const { bot } = props
 
-  messages.value.push({
-    role: 'user',
-    content: message.value,
-  })
+  messages.value.push(
+    {
+      role: 'user',
+      content: message.value,
+    },
+    {
+      role: 'assistant',
+      content: '',
+    }
+  )
 
   const data = { uuid: bot.uuid, messages: messages.value }
   isProcessingInput.value = true

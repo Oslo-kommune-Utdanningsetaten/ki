@@ -87,17 +87,18 @@ const editMessageAtIndex = index => {
             class="position-relative bg-light p-3 border"
             :class="`speech-bubble-${aMessage.role}`"
           >
-            <div v-if="isProcessingInput && !isStreaming && messageIndex === messages.length - 1">
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              <span v-if="props.bot.imgBot">Vent litt mens jeg prøver å lage bildet</span>
+            <div
+              v-if="aMessage.content === '' && messageIndex === props.messages.length - 1"
+              aria-hidden="true"
+            >
+              <p class="placeholder-glow" aria-hidden="true">
+                <span class="placeholder col-12 bg-secondary"></span>
+                <span class="placeholder col-12 bg-secondary"></span>
+                <span class="placeholder col-7 bg-secondary"></span>
+              </p>
             </div>
             <div v-else>
               <div v-html="renderMessage(aMessage.content)"></div>
-              <span
-                v-if="isStreaming"
-                class="spinner-border spinner-border-sm me-2"
-                role="status"
-              ></span>
               <div v-if="aMessage.imageUrl">
                 <img :src="aMessage.imageUrl" class="img-fluid" alt="Bilde" />
               </div>

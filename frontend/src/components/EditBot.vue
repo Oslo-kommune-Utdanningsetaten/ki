@@ -41,6 +41,18 @@ const levels = [
   { id: 'vg2', name: 'Vg2' },
   { id: 'vg3', name: 'Vg3' },
 ]
+const reasoningEffortOptions = [
+  { value: 'none', label: 'Ingen' },
+  { value: 'minimal', label: 'Minimal' },
+  { value: 'low', label: 'Lav' },
+  { value: 'medium', label: 'Moderat' },
+  { value: 'high', label: 'Høy' },
+]
+const verbosityOptions = [
+  { value: 'low', label: 'Lavt' },
+  { value: 'medium', label: 'Moderat' },
+  { value: 'high', label: 'Høyt' },
+]
 
 const setAccessOptions = () => {
   if (store.isAdmin) {
@@ -415,7 +427,61 @@ watch(
         </button>
       </div>
     </div>
-    <div class="row mb-3">
+    <div v-if="bot.model.isReasoningModel">
+      <div class="row mb-3">
+        <legend class="col-sm-2 col-form-label">Resonneringsinnsats</legend>
+        <div class="col-sm-5">
+          <div
+            v-for="option in reasoningEffortOptions"
+            :key="option.value"
+            class="form-check form-check-inline"
+          >
+            <input
+              type="radio"
+              class="form-check-input"
+              :id="'reasoning_effort_' + option.value"
+              :value="option.value"
+              v-model="bot.reasoning_effort"
+            />
+            <label class="form-check-label me-3" :for="'reasoning_effort_' + option.value">
+              {{ option.label }}
+            </label>
+          </div>
+        </div>
+        <div class="col">
+          Resonneringsinnsats er et mål på hvor mye resonnement boten skal bruke for å komme fram
+          til svaret. Høyere innsats kan gi mer gjennomtenkte svar, men kan også gjøre at boten
+          bruker lengre tid på å svare. Det kan være lurt å sette høyere innsats for spørsmål som
+          krever mer komplekse svar, og lavere innsats for enklere spørsmål.
+        </div>
+      </div>
+      <div class="row mb-3">
+        <legend class="col-sm-2 col-form-label">Detaljnivå</legend>
+        <div class="col-sm-5">
+          <div
+            v-for="option in verbosityOptions"
+            :key="option.value"
+            class="form-check form-check-inline"
+          >
+            <input
+              type="radio"
+              class="form-check-input"
+              :id="'verbosity_' + option.value"
+              :value="option.value"
+              v-model="bot.verbosity"
+            />
+            <label class="form-check-label me-3" :for="'verbosity_' + option.value">
+              {{ option.label }}
+            </label>
+          </div>
+        </div>
+        <div class="col">
+          Detaljnivå er et mål på hvor detaljert botens svar skal være. Høyere detaljnivå gir mer
+          utførlige svar, mens lavere detaljnivå gir kortere og mer konsise svar.
+        </div>
+      </div>
+    </div>
+    <div v-else class="row mb-3">
       <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
       <div class="col-sm-1">
         <input
