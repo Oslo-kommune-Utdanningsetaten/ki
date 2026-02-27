@@ -76,12 +76,10 @@ const model = computed(() => {
         </div>
         <div class="modal-body">Vi du virkelig slette denne boten?</div>
         <div class="modal-footer">
-          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">
-            Avbryt
-          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
           <button
             type="button"
-            class="btn oslo-btn-warning"
+            class="btn btn-warning"
             data-bs-dismiss="modal"
             @click="() => handleDeleteBot()"
           >
@@ -94,31 +92,26 @@ const model = computed(() => {
 
   <div v-if="store.isEmployee || store.isAdmin" class="d-flex justify-content-end">
     <RouterLink
-      class="btn oslo-btn-secondary"
+      class="btn btn-secondary"
       :to="{ name: 'editbot', params: { method: 'copy', id: bot.uuid } }"
     >
       Kopier bot
     </RouterLink>
     <RouterLink
       v-if="bot.isDistributionEnabled"
-      class="btn oslo-btn-secondary"
+      class="btn btn-secondary"
       :to="{ name: 'distribute', params: { id: bot.uuid } }"
     >
       Gi tilgang
     </RouterLink>
     <RouterLink
       v-if="edit"
-      class="btn oslo-btn-secondary"
+      class="btn btn-secondary"
       :to="{ name: 'editbot', params: { method: 'edit', id: bot.uuid } }"
     >
       Rediger bot
     </RouterLink>
-    <button
-      v-if="edit"
-      class="btn oslo-btn-warning"
-      data-bs-toggle="modal"
-      data-bs-target="#deleteBot"
-    >
+    <button v-if="edit" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#deleteBot">
       Slett bot
     </button>
   </div>
@@ -128,9 +121,9 @@ const model = computed(() => {
       {{ bot.title || 'Navnløs chatbot' }}
       <button
         v-if="bot.promptVisibility || store.isAdmin || store.isEmployee"
-        class="btn oslo-btn-secondary ms-3 me-auto ps-1 pe-1 pt-0 pb-0"
+        class="btn btn-secondary ms-3 me-auto ps-1 pe-1 pt-0 pb-0"
         @click="toggleStartPrompt"
-        :class="{ 'oslo-btn-secondary-checked': showSystemPrompt }"
+        :active="showSystemPrompt"
       >
         {{ showSystemPrompt ? 'Skjul' : 'Vis' }} bot info
         {{ bot.promptVisibility ? '' : '(kun ansatte)' }}
@@ -146,7 +139,7 @@ const model = computed(() => {
           autocomplete="off"
         />
         <label
-          class="ms-2 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
+          class="ms-2 me-auto ps-1 pe-1 pt-0 pb-0 btn btn-secondary"
           for="communicationModeText"
         >
           Skrive
@@ -161,7 +154,7 @@ const model = computed(() => {
           autocomplete="off"
         />
         <label
-          class="ms-0 me-auto ps-1 pe-1 pt-0 pb-0 btn oslo-btn-secondary"
+          class="ms-0 me-auto ps-1 pe-1 pt-0 pb-0 btn btn-secondary"
           for="communicationModeAudio"
         >
           Snakke
@@ -174,8 +167,8 @@ const model = computed(() => {
 
     <div v-if="bot.choices && bot.choices.length" class="card p-3 mb-3">
       <div v-for="choice in choicesSorted()" class="row mb-2">
-        <div class="col-4 col-form-label">{{ choice.label }}</div>
-        <div class="col-8" role="group">
+        <div class="col-4 col-form-label" :id="choice.id">{{ choice.label }}</div>
+        <div class="col-8 btn-group" role="group" :aria-labelledby="choice.id">
           <span v-for="option in optionsSorted(choice)" :key="option.id">
             <input
               class="btn-check"
@@ -184,7 +177,7 @@ const model = computed(() => {
               :value="option"
               v-model="choice.selected"
             />
-            <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+            <label class="btn btn-secondary" :for="`${choice.id}-${option.id}`">
               {{ option.label }}
             </label>
           </span>

@@ -138,13 +138,13 @@ const schoolName = schoolId => {
         <div class="modal-footer">
           <button
             type="button"
-            class="btn oslo-btn-primary"
+            class="btn btn-primary"
             data-bs-dismiss="modal"
             @click="saveAuthor(activeAuthor)"
           >
             Lagre
           </button>
-          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
         </div>
       </div>
     </div>
@@ -175,13 +175,13 @@ const schoolName = schoolId => {
         <div class="modal-footer">
           <button
             type="button"
-            class="btn oslo-btn-warning"
+            class="btn btn-warning"
             data-bs-dismiss="modal"
             @click="deleteAuthor(activeAuthor)"
           >
             Slett
           </button>
-          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
         </div>
       </div>
     </div>
@@ -189,7 +189,7 @@ const schoolName = schoolId => {
 
   <div class="card mt-3">
     <div class="card-body">
-      <h3 class="h4">Forfattere</h3>
+      <h2 class="h4">Forfattere</h2>
       <ul class="list-group mb-2">
         <li v-for="author in authors" class="list-group-item">
           <div class="row">
@@ -199,7 +199,7 @@ const schoolName = schoolId => {
             <div class="col-2">
               <button
                 type="button"
-                class="btn oslo-btn-secondary"
+                class="btn btn-secondary"
                 data-bs-toggle="modal"
                 data-bs-target="#editAuthor"
                 @click="setActiveAuthor(author)"
@@ -208,7 +208,7 @@ const schoolName = schoolId => {
               </button>
               <button
                 type="button"
-                class="btn oslo-btn-warning"
+                class="btn btn-warning"
                 data-bs-toggle="modal"
                 data-bs-target="#deleteAuthorConfirm"
                 @click="setActiveAuthor(author)"
@@ -220,7 +220,7 @@ const schoolName = schoolId => {
         </li>
       </ul>
       <button
-        class="btn oslo-btn-secondary ms-0"
+        class="btn btn-secondary ms-0"
         data-bs-toggle="modal"
         data-bs-target="#editAuthor"
         @click="addAuthor"

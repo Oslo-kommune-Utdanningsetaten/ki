@@ -115,7 +115,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           <span v-html="activeBot.botInfo"></span>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
         </div>
       </div>
     </div>
@@ -131,7 +131,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('favorites')"
         >
-          <img src="@/components/icons/star_solid.svg" class="category_icon" />
+          <img src="@/components/icons/star_solid.svg" class="category_icon" alt="" />
           Favoritter
         </a>
       </li>
@@ -142,7 +142,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('personal')"
         >
-          <img src="@/components/icons/user_outline.svg" class="category_icon" />
+          <img src="@/components/icons/user_outline.svg" class="category_icon" alt="" />
           Personlige
         </a>
       </li>
@@ -153,7 +153,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
           href="#"
           @click.prevent="changeFilterMode('library')"
         >
-          <img src="@/components/icons/books.svg" class="category_icon" />
+          <img src="@/components/icons/books.svg" class="category_icon" alt="" />
           Bibliotek
         </a>
       </li>
@@ -286,22 +286,24 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
       </div>
     </div>
 
-    <ListView
-      v-if="isListView"
-      :filteredBots="filteredBots"
-      :botLink="botLink"
-      :toggleFavorite="toggleFavorite"
-      :isFavoriteView="filterMode === 'favorites'"
-    />
-    <GridView
-      v-else
-      :filteredBots="filteredBots"
-      :setActiveBot="setActiveBot"
-      :botLink="botLink"
-      :toggleFavorite="toggleFavorite"
-      :showSideBar="showSideBar"
-      :isFavoriteView="filterMode === 'favorites'"
-    />
+    <div class="col">
+      <ListView
+        v-if="isListView"
+        :filteredBots="filteredBots"
+        :botLink="botLink"
+        :toggleFavorite="toggleFavorite"
+        :isFavoriteView="filterMode === 'favorites'"
+      />
+      <GridView
+        v-else
+        :filteredBots="filteredBots"
+        :setActiveBot="setActiveBot"
+        :botLink="botLink"
+        :toggleFavorite="toggleFavorite"
+        :showSideBar="showSideBar"
+        :isFavoriteView="filterMode === 'favorites'"
+      />
+    </div>
   </div>
 </template>
 

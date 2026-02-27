@@ -152,13 +152,11 @@ onMounted(async () => {
       <div class="card-body bg-body-tertiary d-flex flex-wrap align-items-center button-container">
         <SpeechToText v-if="!bot.isAudioEnabled" :onMessageReceived="handleMessageInput" />
 
-        <button class="btn oslo-btn-primary" type="button" @click="sendMessage()">Send!</button>
+        <button class="btn btn-primary" type="button" @click="sendMessage()">Send!</button>
 
-        <button class="btn oslo-btn-secondary" type="button" @click="resetMessages()">
-          Ny samtale
-        </button>
+        <button class="btn btn-secondary" type="button" @click="resetMessages()">Ny samtale</button>
 
-        <button class="btn oslo-btn-secondary" type="button" @click="clipboardAll(bot)">
+        <button class="btn btn-secondary" type="button" @click="clipboardAll(bot)">
           <img src="@/components/icons/copy.svg" alt="kopier" />
           Kopier samtalen
         </button>

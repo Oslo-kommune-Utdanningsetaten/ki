@@ -61,7 +61,7 @@ const schoolAccessFiltered = computed(() => {
 <template>
   <div class="card mt-3">
     <div class="card-body">
-      <h3 class="h4">Skoletilgang</h3>
+      <h2 class="h4">Skoletilgang</h2>
       <ul class="list-group">
         <li class="list-group-item">
           <div class="row">

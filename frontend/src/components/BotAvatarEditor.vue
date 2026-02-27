@@ -103,7 +103,7 @@ const handleOptionChange = event => {
   <div class="modal-body">
     Her kan du bestemme utseendet på din bot. Eller
     <button
-      class="btn oslo-btn-secondary ms-0"
+      class="btn btn-secondary ms-0"
       @click="randomizeAttributes"
       title="La tilfeldighetene avgjøre"
     >
@@ -113,9 +113,9 @@ const handleOptionChange = event => {
   <div class="modal-body row">
     <div class="col-6">
       <div>
-        <div v-for="attribute in botAttributes">
+        <fieldset v-for="attribute in botAttributes">
           <div class="mt-2 border-bottom">
-            <strong>{{ attribute.text }}</strong>
+            <legend>{{ attribute.text }}</legend>
           </div>
           <div class="row">
             <div v-for="option in attribute.options" class="col-md-6 align-items-center">
@@ -135,7 +135,7 @@ const handleOptionChange = event => {
               </label>
             </div>
           </div>
-        </div>
+        </fieldset>
       </div>
     </div>
     <div class="col-6">

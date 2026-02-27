@@ -149,7 +149,7 @@ const membershipsString = computed({
               <button
                 type="button"
                 class="btn btn-outline-secondary mb-0"
-                @click="(showPassword = !showPassword)"
+                @click="showPassword = !showPassword"
               >
                 <img
                   v-if="showPassword"
@@ -195,13 +195,13 @@ const membershipsString = computed({
         <div class="modal-footer">
           <button
             type="button"
-            class="btn oslo-btn-primary"
+            class="btn btn-primary"
             data-bs-dismiss="modal"
             @click="saveExternalUser(activeExternalUser)"
           >
             Lagre
           </button>
-          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
         </div>
       </div>
     </div>
@@ -232,13 +232,13 @@ const membershipsString = computed({
         <div class="modal-footer">
           <button
             type="button"
-            class="btn oslo-btn-warning"
+            class="btn btn-warning"
             data-bs-dismiss="modal"
             @click="deleteExternalUser(activeExternalUser)"
           >
             Slett
           </button>
-          <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">Lukk</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
         </div>
       </div>
     </div>
@@ -246,7 +246,7 @@ const membershipsString = computed({
 
   <div class="card mt-3">
     <div class="card-body">
-      <h3 class="h4">Eksterne brukere</h3>
+      <h2 class="h4">Eksterne brukere</h2>
       <ul class="list-group mb-2">
         <li v-for="user in externalUsers" class="list-group-item">
           <div class="row">
@@ -258,7 +258,7 @@ const membershipsString = computed({
             <div class="col">
               <button
                 type="button"
-                class="btn oslo-btn-secondary"
+                class="btn btn-secondary"
                 data-bs-toggle="modal"
                 data-bs-target="#editAuthor"
                 @click="getExternalUser(user.id)"
@@ -267,7 +267,7 @@ const membershipsString = computed({
               </button>
               <button
                 type="button"
-                class="btn oslo-btn-warning"
+                class="btn btn-warning"
                 data-bs-toggle="modal"
                 data-bs-target="#deleteUserConfirm"
                 @click="getExternalUser(user.id)"
@@ -279,7 +279,7 @@ const membershipsString = computed({
         </li>
       </ul>
       <button
-        class="btn oslo-btn-secondary ms-0"
+        class="btn btn-secondary ms-0"
         data-bs-toggle="modal"
         data-bs-target="#editAuthor"
         @click="addExternalUser"

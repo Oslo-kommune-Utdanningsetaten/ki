@@ -75,7 +75,7 @@ watchEffect(async () => {
   <div class="d-flex justify-content-end">
     <RouterLink
       v-if="bot.distribute && bot.library"
-      class="btn oslo-btn-secondary"
+      class="btn btn-secondary"
       :to="'/editbot/distribute/' + bot.uuid"
     >
       Gi tilgang
@@ -116,15 +116,10 @@ watchEffect(async () => {
     <div class="card">
       <div class="card-body bg-body-tertiary">
         <SpeechToText :onMessageReceived="handleMessageInput" />
-        <button class="btn oslo-btn-primary" type="button" id="button-send" @click="sendMessage()">
+        <button class="btn btn-primary" type="button" id="button-send" @click="sendMessage()">
           Send
         </button>
-        <button
-          class="btn oslo-btn-secondary"
-          type="button"
-          id="button-new"
-          @click="resetMessages()"
-        >
+        <button class="btn btn-secondary" type="button" id="button-new" @click="resetMessages()">
           Start på nytt
         </button>
       </div>

@@ -321,26 +321,18 @@ watch(
           />
 
           <div class="modal-footer">
-            <button type="button" class="btn oslo-btn-secondary" data-bs-dismiss="modal">
-              Lukk
-            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Lukk</button>
           </div>
         </div>
       </div>
     </div>
 
     <div class="d-flex justify-content-end">
-      <RouterLink v-if="newBot" class="btn oslo-btn-secondary" :to="{ name: 'home' }">
+      <RouterLink v-if="newBot" class="btn btn-secondary" :to="{ name: 'home' }">Avbryt</RouterLink>
+      <RouterLink v-else class="btn btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
         Avbryt
       </RouterLink>
-      <RouterLink
-        v-else
-        class="btn oslo-btn-secondary"
-        :to="{ name: 'bot', params: { id: botId } }"
-      >
-        Avbryt
-      </RouterLink>
-      <button @click="saveBotData" class="btn oslo-btn-primary">Lagre</button>
+      <button @click="saveBotData" class="btn btn-primary">Lagre</button>
     </div>
     <div class="row mb-4">
       <div class="col-sm-1">
@@ -406,11 +398,7 @@ watch(
     <div class="row mb-3">
       <div class="col-sm-2 col-form-label">Utseende på bot</div>
       <div class="col">
-        <button
-          class="btn oslo-btn-secondary ms-0"
-          data-bs-toggle="modal"
-          data-bs-target="#genBotImg"
-        >
+        <button class="btn btn-secondary ms-0" data-bs-toggle="modal" data-bs-target="#genBotImg">
           Endre
         </button>
       </div>
@@ -573,7 +561,7 @@ watch(
 
     <div class="mb-3">
       <button
-        class="btn oslo-btn-primary ms-0"
+        class="btn btn-primary ms-0"
         type="button"
         data-bs-toggle="collapse"
         data-bs-target="#collapseAdvanced"
@@ -609,14 +597,14 @@ watch(
                 <div class="col-sm-10">
                   <div v-for="option in optionsSorted(choice)">
                     <div class="row mb-1">
-                      <label :for="`optLabel{option.id}`" class="col-sm-2 col-form-label">
+                      <label :for="`optLabel${option.id}`" class="col-sm-2 col-form-label">
                         Knapp
                       </label>
                       <div class="col-sm-10">
                         <input
                           type="text"
                           class="form-control"
-                          :id="`optLabel{option.id}`"
+                          :id="`optLabel${option.id}`"
                           v-model="option.label"
                           maxlength="50"
                         />
@@ -624,13 +612,13 @@ watch(
                       </div>
                     </div>
                     <div class="row mb-1">
-                      <label :for="`optText{option.id}`" class="col-sm-2 col-form-label">
+                      <label :for="`optText${option.id}`" class="col-sm-2 col-form-label">
                         Ledetekst
                       </label>
                       <div class="col-sm-10">
                         <textarea
                           class="form-control"
-                          :id="`optText{option.id}`"
+                          :id="`optText${option.id}`"
                           rows="1"
                           v-model="option.text"
                         ></textarea>
@@ -643,22 +631,22 @@ watch(
                       :value="option"
                       v-model="choice.selected"
                     />
-                    <label class="btn oslo-btn-secondary" :for="`${choice.id}-${option.id}`">
+                    <label class="btn btn-secondary" :for="`${choice.id}-${option.id}`">
                       Valgt
                     </label>
-                    <button class="btn oslo-btn-warning" @click="deleteOption(choice, option)">
+                    <button class="btn btn-warning" @click="deleteOption(choice, option)">
                       Slett alternativ
                     </button>
                     <button
                       v-if="notFirstOption(choice, option)"
-                      class="btn oslo-btn-secondary"
+                      class="btn btn-secondary"
                       @click="optionOrderUp(choice, option)"
                     >
                       <img src="@/components/icons/move_up.svg" alt="flytt opp" />
                     </button>
                     <button
                       v-if="notLastOption(choice, option)"
-                      class="btn oslo-btn-secondary"
+                      class="btn btn-secondary"
                       @click="optionOrderDown(choice, option)"
                     >
                       <img src="@/components/icons/move_down.svg" alt="flytt ned" />
@@ -666,25 +654,25 @@ watch(
                     <!-- {{ option.order }} -->
                     <hr />
                   </div>
-                  <button class="btn oslo-btn-primary" @click="addOption(choice)">
+                  <button class="btn btn-primary" @click="addOption(choice)">
                     Legg til alternativ
                   </button>
                 </div>
               </div>
               <div class="mb-1">
-                <button class="btn oslo-btn-warning" @click="deleteChoice(choice)">
+                <button class="btn btn-warning" @click="deleteChoice(choice)">
                   Slett spørsmål
                 </button>
                 <button
                   v-if="notFirstChoice(choice)"
-                  class="btn oslo-btn-secondary"
+                  class="btn btn-secondary"
                   @click="choiceOrderUp(choice)"
                 >
                   <img src="@/components/icons/move_up.svg" alt="flytt opp" />
                 </button>
                 <button
                   v-if="notLastChoice(choice)"
-                  class="btn oslo-btn-secondary"
+                  class="btn btn-secondary"
                   @click="choiceOrderDown(choice)"
                 >
                   <img src="@/components/icons/move_down.svg" alt="flytt ned" />
@@ -693,7 +681,7 @@ watch(
               </div>
             </div>
             <div class="mb-1">
-              <button class="btn oslo-btn-primary" @click="addChoice">Legg til spørsmål</button>
+              <button class="btn btn-primary" @click="addChoice">Legg til spørsmål</button>
             </div>
           </div>
         </div>
@@ -701,17 +689,11 @@ watch(
     </div>
 
     <div class="d-flex justify-content-end">
-      <RouterLink v-if="newBot" class="btn oslo-btn-secondary" :to="{ name: 'home' }">
+      <RouterLink v-if="newBot" class="btn btn-secondary" :to="{ name: 'home' }">Avbryt</RouterLink>
+      <RouterLink v-else class="btn btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
         Avbryt
       </RouterLink>
-      <RouterLink
-        v-else
-        class="btn oslo-btn-secondary"
-        :to="{ name: 'bot', params: { id: botId } }"
-      >
-        Avbryt
-      </RouterLink>
-      <button @click="saveBotData" class="btn oslo-btn-primary">Lagre</button>
+      <button @click="saveBotData" class="btn btn-primary">Lagre</button>
     </div>
 
     <div v-if="store.isAdmin || (store.isAuthor && bot.library)" class="mb-3">
@@ -724,7 +706,7 @@ watch(
               <div class="row">
                 <div class="col-4">Sett alle skoler til:</div>
                 <div v-for="option in accessOptions" :key="option.value" class="e col-1">
-                  <button class="btn oslo-btn-secondary" @click="setAllAccesses(option.value)">
+                  <button class="btn btn-secondary" @click="setAllAccesses(option.value)">
                     {{ option.label }}
                   </button>
                 </div>
@@ -763,10 +745,13 @@ watch(
                     class="form-check-input"
                     :id="school.orgNr + option.value"
                     :value="option.value"
+                    :aria-label="school.schoolName"
                     type="radio"
                     v-model="school.access"
                   />
-                  <label class="form-check-label" :for="option.value">{{ option.label }}</label>
+                  <label class="form-check-label" :for="school.orgNr + option.value">
+                    {{ option.label }}
+                  </label>
                 </div>
               </div>
               <div v-if="school.access == 'levels'" class="row">
@@ -792,17 +777,13 @@ watch(
       </div>
 
       <div class="d-flex justify-content-end">
-        <RouterLink v-if="newBot" class="btn oslo-btn-secondary" :to="{ name: 'home' }">
+        <RouterLink v-if="newBot" class="btn btn-secondary" :to="{ name: 'home' }">
           Avbryt
         </RouterLink>
-        <RouterLink
-          v-else
-          class="btn oslo-btn-secondary"
-          :to="{ name: 'bot', params: { id: botId } }"
-        >
+        <RouterLink v-else class="btn btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
           Avbryt
         </RouterLink>
-        <button @click="saveBotData" class="btn oslo-btn-primary">Lagre</button>
+        <button @click="saveBotData" class="btn btn-primary">Lagre</button>
       </div>
     </div>
   </div>

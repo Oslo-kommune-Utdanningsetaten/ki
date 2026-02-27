@@ -71,14 +71,14 @@ onMounted(() => {
   <a name="toggleSpeech" @click="toggleSpeech">
     <img
       v-if="isCurrentlyPlaying"
-      class="oslo-fill-dark-black"
+      class="oslo-fill-black"
       src="@/components/icons/pause.svg"
       alt="Pause avspilling"
       title="Pause avspilling"
     />
     <img
       v-else
-      class="oslo-fill-dark-black"
+      class="oslo-fill-black"
       src="@/components/icons/play.svg"
       alt="Spill av denne meldingen"
       title="Spill av denne meldingen"

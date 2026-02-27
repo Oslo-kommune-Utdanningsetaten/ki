@@ -69,8 +69,8 @@ watch(
 
 <template>
   <div class="d-flex justify-content-end">
-    <button @click="saveDistribution" class="btn oslo-btn-primary">Lagre</button>
-    <RouterLink class="btn oslo-btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
+    <button @click="saveDistribution" class="btn btn-primary">Lagre</button>
+    <RouterLink class="btn btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
       Avbryt
     </RouterLink>
   </div>
@@ -169,10 +169,10 @@ watch(
   </div>
 
   <div class="d-flex flex-row-reverse mb-3">
-    <RouterLink class="btn oslo-btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
+    <RouterLink class="btn btn-secondary" :to="{ name: 'bot', params: { id: botId } }">
       Avbryt
     </RouterLink>
-    <button @click="saveDistribution" class="btn oslo-btn-primary">Lagre</button>
+    <button @click="saveDistribution" class="btn btn-primary">Lagre</button>
   </div>
 </template>
 
