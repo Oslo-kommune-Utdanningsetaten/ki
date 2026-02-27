@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { store } from '@/store.js'
 import { axiosInstance as axios } from '../clients'
 import GridView from '@/components/BotsGridView.vue'
@@ -62,6 +62,18 @@ const toggleFavorite = async bot => {
   } catch (error) {
     console.log(error)
   }
+}
+
+const storeSelectedFilter = () => {
+  const selectedTagIds = []
+  props.tagCategories.forEach(tagCategory => {
+    tagCategory.tagItems.forEach(tagItem => {
+      if (tagItem.checked) {
+        selectedTagIds.push(String(tagItem.id))
+      }
+    })
+  })
+  localStorage.setItem('selectedTags', selectedTagIds.join(','))
 }
 
 const changeFilterMode = mode => {
@@ -245,6 +257,9 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
   </div>
 
   <div v-if="filterMode === 'library' && props.isBotFilteringEnabled" class="mb-2">
+    <span v-if="tagCategoriesSorted.some(tc => tc.tagItems.some(ti => ti.checked))">
+      Filter brukt:
+    </span>
     <span v-for="tagCategory in tagCategoriesSorted">
       <span v-for="tagItem in tagItemSorted(tagCategory)" :key="tagItem.id">
         <span
@@ -258,7 +273,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
             type="button"
             class="btn-close btn-sm"
             aria-label="Close"
-            @click.prevent="tagItem.checked = false"
+            @click.prevent="((tagItem.checked = false), storeSelectedFilter())"
           ></button>
         </span>
       </span>
@@ -277,6 +292,7 @@ const botLink = bot => (bot.imgBot ? 'imgbot/' + bot.uuid : 'bot/' + bot.uuid)
               type="checkbox"
               v-model="tagItem.checked"
               :id="`filterCheck${tagCategory.id}:${tagItem.id}`"
+              @change="storeSelectedFilter"
             />
             <label class="form-check-label" :for="`filterCheck${tagCategory.id}:${tagItem.id}`">
               {{ tagItem.label }}
