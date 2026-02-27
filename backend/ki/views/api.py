@@ -522,6 +522,8 @@ def bot_info(request, bot_uuid=None):
             [str(a) for a in body.get('avatarScheme', bot.avatar_scheme)]) if body.get(
             'avatarScheme', False) else bot.avatar_scheme
         bot.temperature = body.get('temperature', bot.temperature)
+        bot.reasoning_effort = body.get('reasoning_effort', bot.reasoning_effort)
+        bot.verbosity = body.get('verbosity', bot.verbosity)
         bot.library = body.get('library', bot.library)
         bot.owner = body.get('owner', bot.owner) if is_admin else bot.owner
         bot.owner = None if bot.owner == '' else bot.owner
@@ -636,6 +638,7 @@ def bot_info(request, bot_uuid=None):
         'modelDescription': bot.model_id.model_description,
         'deploymentId': bot.model_id.deployment_id,
         'trainingCutoff': bot.model_id.training_cutoff,
+        'isReasoningModel': bot.model_id.is_reasoning_model if bot.model_id else False,
     } if bot.model_id else None
 
     return Response({
@@ -653,6 +656,8 @@ def bot_info(request, bot_uuid=None):
             'isAudioEnabled': bot.is_audio_enabled,
             'avatarScheme': [int(a) for a in bot.avatar_scheme.split(',')] if bot.avatar_scheme else [0, 0, 0, 0, 0, 0, 0],
             'temperature': bot.temperature,
+            'reasoning_effort': bot.reasoning_effort if bot.reasoning_effort is not None else 'minimal',
+            'verbosity': bot.verbosity if bot.verbosity is not None else 'low',
             'model': bot_model,
             'isOwner': is_owner,
             'owner': bot.owner if is_admin else None,
@@ -809,6 +814,7 @@ def bot_models(request):
                 'displayName': model.display_name,
                 'modelDescription': model.model_description,
                 'trainingCutoff': model.training_cutoff,
+                'isReasoningModel': model.is_reasoning_model,
             }
             for model in bot_models
         ]
@@ -995,21 +1001,33 @@ async def send_message(request):
     is_admin = request.userinfo.get('admin', False)
     bots_list = {str(b) for b in request.userinfo.get('bots', [])}
     has_bot_access = bot_uuid is not None and str(bot_uuid) in bots_list
+
     if not (has_bot_access or is_admin):
         return HttpResponseForbidden()
     try:
         bot = await models.Bot.objects.aget(uuid=bot_uuid)
         try:
-            bot_model_obj = await models.BotModel.objects.aget(model_id=bot.model_id_id)
+            bot_model = await models.BotModel.objects.aget(model_id=bot.model_id_id)
         except models.BotModel.DoesNotExist:
             default_model_id = await get_setting_async('default_model')
-            bot_model_obj = await models.BotModel.objects.aget(model_id=default_model_id)
-        bot_model = bot_model_obj.deployment_id
+            bot_model = await models.BotModel.objects.aget(model_id=default_model_id)
+        bot_model_deployment_id = bot_model.deployment_id
     except models.Bot.DoesNotExist:
         return HttpResponseNotFound()
+
+    azure_chat_parameters = {
+        'messages': messages,
+        'model': bot_model_deployment_id,
+    }
+    if bot_model.is_reasoning_model:
+        azure_chat_parameters['reasoning_effort'] = bot.reasoning_effort if bot.reasoning_effort else models.Bot.ReasoningEffortEnum.MINIMAL
+        azure_chat_parameters['verbosity'] = bot.verbosity if bot.verbosity else models.Bot.VerbosityEnum.LOW
+    else:
+        azure_chat_parameters['temperature'] = float(bot.temperature) if bot.temperature else 0.7
+
     level, schools, role = get_user_data_from_userinfo(request)
     await use_log(bot_uuid, role=role, level=level, schools=schools, message_length=len(messages), interaction_type='text')
-    return await chat_completion_azure_streamed(messages, bot_model, temperature=bot.temperature)
+    return await chat_completion_azure_streamed(azure_chat_parameters)
 
 
 async def send_img_message(request):

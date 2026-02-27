@@ -19,6 +19,18 @@ class Setting(models.Model):
 
 
 class Bot(models.Model):
+    class reasoningEffortEnum(models.TextChoices):
+        NONE = 'none'
+        MINIMAL = 'minimal'
+        LOW = 'low'
+        MEDIUM = 'medium'
+        HIGH = 'high'
+
+    class verbosityEnum(models.TextChoices):
+        LOW = 'low'
+        MEDIUM = 'medium'
+        HIGH = 'high'
+
     uuid = models.CharField(primary_key=True, max_length=36, default=uuid.uuid4)
     title = models.CharField(max_length=40, null=True)
     ingress = models.TextField(null=True)
@@ -26,6 +38,8 @@ class Bot(models.Model):
     model_id = models.ForeignKey('BotModel', on_delete=models.RESTRICT,
                                  db_column='model_id', related_name="bots_id", null=True)
     temperature = models.DecimalField(max_digits=2, decimal_places=1, default=1.0)
+    reasoning_effort = models.CharField(max_length=20, choices=reasoningEffortEnum.choices, null=True)
+    verbosity = models.CharField(max_length=20, choices=verbosityEnum.choices, null=True)
     avatar_scheme = models.CharField(max_length=50, null=True)
     prompt_visibility = models.BooleanField(default=True)
     library = models.BooleanField(default=False)
@@ -46,6 +60,7 @@ class Bot(models.Model):
 class BotModel(models.Model):
     model_id = models.AutoField(primary_key=True)
     deployment_id = models.CharField(max_length=36, null=True)
+    is_reasoning_model = models.BooleanField(default=False)
     provider = models.CharField(max_length=50)
     model_url = models.CharField(max_length=500, null=True)
     display_name = models.CharField(max_length=500, null=True)
