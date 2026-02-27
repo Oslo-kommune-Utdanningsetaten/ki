@@ -54,6 +54,14 @@ const verbosityOptions = [
   { value: 'high', label: 'Høyt' },
 ]
 
+const model = computed(() => {
+  if (bot.value.model) {
+    return bot.value.model
+  } else {
+    return store.defaultModel
+  }
+})
+
 const setAccessOptions = () => {
   if (store.isAdmin) {
     accessOptions = accessOptionsAdmin
@@ -427,7 +435,7 @@ watch(
         </button>
       </div>
     </div>
-    <div v-if="bot.model.isReasoningModel">
+    <div v-if="model.isReasoningModel">
       <div class="row mb-3">
         <legend class="col-sm-2 col-form-label">Resonneringsinnsats</legend>
         <div class="col-sm-5">
@@ -481,7 +489,7 @@ watch(
         </div>
       </div>
     </div>
-    <div v-else class="row mb-3">
+    <div v-else-if="store.isAdmin || (store.isAuthor && bot.library)" class="row mb-3">
       <label for="temperature" class="col-sm-2 col-form-label">Temperatur</label>
       <div class="col-sm-1">
         <input
@@ -582,10 +590,10 @@ watch(
           </div>
         </div>
       </div>
-      <div v-if="bot.model" class="row mb-3">
+      <div v-if="model" class="row mb-3">
         <div class="col-sm-2"></div>
         <div class="col-sm-10">
-          {{ bot.model.modelDescription }}
+          {{ model.modelDescription }}
         </div>
       </div>
     </fieldset>

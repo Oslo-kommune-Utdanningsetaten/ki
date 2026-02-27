@@ -1,4 +1,5 @@
 <script setup>
+import { nextTick, watch } from 'vue'
 import BotAvatar from '@/components/BotAvatar.vue'
 import SpeechSynthesizer from '@/components/SpeechSynthesizer.vue'
 import { renderMessage } from '../utils/renderTools.js'
@@ -10,6 +11,17 @@ const props = defineProps({
   bot: Object,
   handleEditMessageAtIndex: Function,
 })
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth',
+    })
+  })
+}
+
+watch(() => props.messages, scrollToBottom, { deep: true })
 
 const copyToclipboard = textToCopy => {
   try {
