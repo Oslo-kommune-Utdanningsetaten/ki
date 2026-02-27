@@ -230,7 +230,7 @@ button img {
 }
 .message-widget img {
   height: 20px;
-  width: 20x;
+  width: 20px;
 }
 
 .message {
@@ -262,10 +262,10 @@ legend {
 }
 
 .btn-secondary {
-  --bs-btn-color: #000;
+  --bs-btn-color: var(--oslo-black);
   --bs-btn-bg: var(--oslo-light-beige);
   --bs-btn-border-color: var(--oslo-light-beige);
-  --bs-btn-hover-color: #000;
+  --bs-btn-hover-color: var(--oslo-black);
   --bs-btn-hover-bg: var(--oslo-dark-beige);
   --bs-btn-hover-border-color: var(--oslo-dark-beige);
   --bs-btn-focus-shadow-rgb: 0, 0, 0;
@@ -275,7 +275,7 @@ legend {
 }
 
 .btn-warning {
-  --bs-btn-color: #000;
+  --bs-btn-color: var(--oslo-black);
   --bs-btn-bg: var(--oslo-yellow);
   --bs-btn-border-color: var(--oslo-yellow);
   --bs-btn-hover-color: #fff;
@@ -288,10 +288,10 @@ legend {
 }
 
 .btn-light {
-  --bs-btn-color: #000;
+  --bs-btn-color: var(--oslo-black);
   --bs-btn-bg: var(--oslo-light-grey);
   --bs-btn-border-color: var(--oslo-light-grey);
-  --bs-btn-hover-color: #000;
+  --bs-btn-hover-color: var(--oslo-black);
   --bs-btn-hover-bg: var(--oslo-semilight-grey);
   --bs-btn-hover-border-color: var(--oslo-semilight-grey);
   --bs-btn-focus-shadow-rgb: 0, 0, 0;
