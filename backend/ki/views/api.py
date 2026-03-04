@@ -1020,8 +1020,8 @@ async def send_message(request):
         'model': bot_model_deployment_id,
     }
     if bot_model.is_reasoning_model:
-        azure_chat_parameters['reasoning_effort'] = bot.reasoning_effort if bot.reasoning_effort else models.Bot.ReasoningEffortEnum.MINIMAL
-        azure_chat_parameters['verbosity'] = bot.verbosity if bot.verbosity else models.Bot.VerbosityEnum.LOW
+        azure_chat_parameters['reasoning_effort'] = bot.reasoning_effort if bot.reasoning_effort else bot.reasoningEffortEnum.MINIMAL
+        azure_chat_parameters['verbosity'] = bot.verbosity if bot.verbosity else bot.verbosityEnum.LOW
     else:
         azure_chat_parameters['temperature'] = float(bot.temperature) if bot.temperature else 0.7
 

@@ -50,6 +50,7 @@ async def chat_completion_azure_streamed(chat_parameters):
             if e.code == "content_filter":
                 yield "Dette er ikke et passende emne. Start samtalen på nytt."
             else:
+                print(f"Azure OpenAI API error: {e}")
                 yield "Noe gikk galt. Prøv igjen senere."
             return
         async for line in completion:

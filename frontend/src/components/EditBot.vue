@@ -73,6 +73,7 @@ const setAccessOptions = () => {
 }
 
 const initializeCopy = () => {
+  method.value = 'new'
   bot.value.uuid = null
   bot.value.title = 'Kopi av ' + bot.value.title
   bot.value.botInfo = ''
