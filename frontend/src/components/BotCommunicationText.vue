@@ -1,5 +1,5 @@
 <script setup>
-import { ref, useTemplateRef, onMounted, watch } from 'vue'
+import { ref, useTemplateRef, onMounted, watch, nextTick } from 'vue'
 import { store } from '../store.js'
 import Conversation from '@/components/Conversation.vue'
 import { submitTextPrompt } from '../utils/httpTools.js'
@@ -96,7 +96,9 @@ const sendMessage = async () => {
     isProcessingInput.value = false
     isStreaming.value = false
     message.value = ''
-    textInput.value.focus()
+    nextTick(() => {
+      textInput.value.focus()
+    })
   })
   scrollTo(textInput)
 }
