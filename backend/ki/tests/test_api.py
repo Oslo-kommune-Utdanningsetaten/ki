@@ -1,7 +1,7 @@
 import pytest
 from django.test import RequestFactory
 from ki.models import Setting, BotModel, PageText, TagCategory
-from ki.views.api import app_config, bot_models, empty_bot
+from ki.views.api import app_config, bot_models, info_page_links
 from unittest.mock import patch
 
 
@@ -60,23 +60,23 @@ def set_up_database(db, request):
 
 @pytest.mark.django_db(reset_sequences=True)
 @pytest.mark.parametrize("user_roles, expected_items", [
-    ([], [{'title': 'Test public title', 'url': '/info/test_p'}]),
+    ([], [{'title': 'Test public title', 'url': '/info/test_p', 'hasSeparateMenu': False}]),
     (['employee'], [
-        {'title': 'Test title', 'url': '/info/test'},
-        {'title': 'Test public title', 'url': '/info/test_p'}
+        {'title': 'Test title', 'url': '/info/test', 'hasSeparateMenu': False},
+        {'title': 'Test public title', 'url': '/info/test_p', 'hasSeparateMenu': False}
     ]),
     (['admin'], [
-        {'title': 'Test title', 'url': '/info/test'},
-        {'title': 'Test public title', 'url': '/info/test_p'}
+        {'title': 'Test title', 'url': '/info/test', 'hasSeparateMenu': False},
+        {'title': 'Test public title', 'url': '/info/test_p', 'hasSeparateMenu': False}
     ]),
 ])
 def test_info_page_links_endpoint(set_up_database, user_roles, expected_items):
-    """info_pages endpoint returns items"""
-    request = RequestFactory().get('/api/app_config')
+    """info_page_links endpoint returns items"""
+    request = RequestFactory().get('/api/info_page_links/')
     decorate_request(request, user_roles)
-    response = app_config(request)
+    response = info_page_links(request)
     assert response.status_code == 200
-    assert response.data['infoPages'] == expected_items
+    assert response.data['infoPageLinks'] == expected_items
 
 
 @pytest.mark.django_db(reset_sequences=True)
@@ -86,5 +86,6 @@ def test_bot_models_endpoint(set_up_database):
     response = bot_models(request)
     assert response.status_code == 200
     expected_bot_models = {'models': [{'modelId': 1, 'displayName': 'GPT 4o mini',
-                                       'modelDescription': None, 'trainingCutoff': None, 'deploymentId': 'gpt-4o-mini'}]}
+                                       'modelDescription': None, 'trainingCutoff': None,
+                                       'deploymentId': 'gpt-4o-mini', 'isReasoningModel': False}]}
     assert response.data == expected_bot_models
