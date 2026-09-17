@@ -125,6 +125,11 @@ const editMessageAtIndex = () => {
 </template>
 
 <style scoped>
+:deep(pre code) {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .widget-container {
   bottom: -27px;
   right: 10px;

@@ -1,4 +1,4 @@
-import { marked } from 'marked'
+import { Marked } from 'marked'
 import katex from 'katex'
 
 export const fixBraces = (input) => {
@@ -39,16 +39,30 @@ export const getPlaceholderAt = (placeholderIndex) => {
   return `MATHPLACEHOLDER${paddedIndex}`
 }
 
-export const renderMessage = (messageContent, options = { useKatex: true }) => {
-  const { useKatex } = options
-  let processedText = messageContent
-  if (useKatex) {
-    processedText = renderKatex(processedText)
-  }
-  return marked.parse(processedText)
+const escapeHtml = (unsafe) => {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 }
 
-export const renderKatex = messageContent => {
+// Markdown renderer that treats raw HTML tokens as code so completions
+// containing HTML display the tags literally instead of executing them.
+const md = new Marked()
+md.use({
+  renderer: {
+    html({ text, block }) {
+      const escaped = escapeHtml(text)
+      return block
+        ? `<pre><code>${escaped}</code></pre>\n`
+        : `<code>${escaped}</code>`
+    },
+  },
+})
+
+const extractAndRenderKatex = (messageContent) => {
   const inlineMathRegex = /\\\((.+?)\\\)/g
   const blockMathRegex = /\\\[(.+?)\\\]/gs
   const renderedMathItems = {}
@@ -93,10 +107,34 @@ export const renderKatex = messageContent => {
     }
   })
 
-  // Replace placeholders with rendered math
+  return { text: processedText, renderedMathItems }
+}
+
+export const renderMessage = (messageContent, options = { useKatex: true }) => {
+  const { useKatex } = options
+
+  if (!useKatex) {
+    return md.parse(messageContent)
+  }
+
+  // Extract math, escape any raw HTML in the remaining text, then restore math.
+  const { text: processedText, renderedMathItems } = extractAndRenderKatex(messageContent)
+
+  let html = md.parse(processedText)
   Object.keys(renderedMathItems).forEach((placeholderKey) => {
-    const renderedMath = renderedMathItems[placeholderKey]
-    processedText = processedText.replace(placeholderKey, renderedMath)
+    html = html.replace(placeholderKey, renderedMathItems[placeholderKey])
+  })
+
+  return html
+}
+
+export const renderKatex = messageContent => {
+  const { text, renderedMathItems } = extractAndRenderKatex(messageContent)
+
+  // Replace placeholders with rendered math
+  let processedText = text
+  Object.keys(renderedMathItems).forEach((placeholderKey) => {
+    processedText = processedText.replace(placeholderKey, renderedMathItems[placeholderKey])
   })
 
   return processedText

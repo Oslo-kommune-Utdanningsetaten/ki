@@ -72,3 +72,30 @@ test('renders a message with a mix of katex and markdown', () => {
   expect(sanitizeHtml(result)).toBe(sanitizeHtml(expected))
 })
 
+test('renderMessage renders raw HTML as code', () => {
+  const result = renderMessage('<div>Hello</div>', { useKatex: false })
+  const expected = '<pre><code>&lt;div&gt;Hello&lt;/div&gt;</code></pre>\n'
+  expect(result).toBe(expected)
+})
+
+test('renderMessage preserves markdown blockquotes', () => {
+  const result = renderMessage('> Quote', { useKatex: false })
+  const expected = '<blockquote>\n<p>Quote</p>\n</blockquote>\n'
+  expect(result).toBe(expected)
+})
+
+test('renderMessage preserves markdown autolinks', () => {
+  const result = renderMessage('<https://example.com>', { useKatex: false })
+  const expected = '<p><a href="https://example.com">https://example.com</a></p>\n'
+  expect(result).toBe(expected)
+})
+
+test('renderMessage escapes HTML while still rendering KaTeX', () => {
+  const input = String.raw`<div>x</div>
+
+\( \text{Cu}^{2+} \)`
+  const result = renderMessage(input, { useKatex: true })
+  expect(result).toContain('&lt;div&gt;x&lt;/div&gt;')
+  expect(result).toContain('<span class="katex">')
+})
+
