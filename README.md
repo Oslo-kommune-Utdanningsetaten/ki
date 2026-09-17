@@ -35,6 +35,7 @@ This repo contains the complete code for the ki.osloskolen.no web app. If you'd 
 - Start the frontend: `npm run dev` and point your browser at http://localhost:5173
 - There's probably no way that actually worked on the first try :)
 - Hopefully, you know enough to debug your way out of any problems. If not, feel free to contact the maintainers for advice <3
+- Check backend deps: `poetry run safety check --file poetry.lock`
 
 ### MacOS tips
 
