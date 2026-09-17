@@ -1,54 +1,59 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-const synth = window.speechSynthesis
+import { ref, watch, onMounted } from 'vue'
 
-const props = defineProps({
-  textInput: String,
-})
-// Used to keep track of whether the play function should play from the beginning, or resume
-const isResumeable = ref(false)
+const props = defineProps({ textInput: String })
+
+const synth = window.speechSynthesis
 const isCurrentlyPlaying = ref(false)
-const utterance = new SpeechSynthesisUtterance()
+const isResumeable = ref(false)
+const utterance = ref(new SpeechSynthesisUtterance())
 
 const configureSynthesizer = () => {
-  if (synth) {
-    utterance.voice = synth
-      .getVoices()
-      .find(aVoice => aVoice.lang === navigator.language || navigator.userLanguage)
-    utterance.volume = 1
-    utterance.rate = 0.9
-    utterance.pitch = 1
-    utterance.text = props.textInput
-    utterance.lang = navigator.language || navigator.userLanguage
-    // Set up event handlers
-    utterance.onend = handleSpeechEnd
-    utterance.onerror = handleSpeechError
-  } else {
+  if (!synth) {
     console.warn('Speech synthesis not supported in this browser')
+    return
+  }
+
+  const voices = synth.getVoices()
+  utterance.value.voice = voices.find(
+    aVoice => aVoice.lang === navigator.language || navigator.userLanguage
+  )
+  utterance.value.volume = 1
+  utterance.value.rate = 0.9
+  utterance.value.pitch = 1
+  utterance.value.text = props.textInput
+  utterance.value.lang = navigator.language || navigator.userLanguage
+
+  utterance.value.onend = handleSpeechEnd
+  utterance.value.onerror = handleSpeechError
+}
+
+const play = () => {
+  if (!synth) return
+
+  if (isResumeable.value && synth.paused) {
+    synth.resume()
+  } else {
+    synth.cancel()
+    synth.speak(utterance.value)
+    isResumeable.value = true
+  }
+}
+
+const pause = () => {
+  if (synth) {
+    synth.pause()
   }
 }
 
 const toggleSpeech = () => {
   if (isCurrentlyPlaying.value) {
     pause()
+    isCurrentlyPlaying.value = false
   } else {
     play()
+    isCurrentlyPlaying.value = true
   }
-  isCurrentlyPlaying.value = !isCurrentlyPlaying.value
-}
-
-const play = () => {
-  if (isResumeable.value) {
-    synth.resume()
-  } else {
-    synth.cancel()
-    synth.speak(utterance)
-    isResumeable.value = true
-  }
-}
-
-const pause = () => {
-  synth.pause()
 }
 
 const handleSpeechEnd = () => {
@@ -61,6 +66,15 @@ const handleSpeechError = event => {
   isCurrentlyPlaying.value = false
   isResumeable.value = false
 }
+
+watch(
+  () => props.textInput,
+  () => {
+    isCurrentlyPlaying.value = false
+    isResumeable.value = false
+    configureSynthesizer()
+  }
+)
 
 onMounted(() => {
   configureSynthesizer()
